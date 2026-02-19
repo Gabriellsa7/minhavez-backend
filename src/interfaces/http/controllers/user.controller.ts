@@ -56,10 +56,9 @@ export class UserController implements IController {
    * Create a new user
    */
   createUser = async (req: Request, res: Response): Promise<void> => {
-    const { id, name, email, createdAt } = req.body;
+    const { name, email, createdAt } = req.body;
     try {
       const newUser = await this.userService.createUser({
-        id,
         name,
         email,
         createdAt: createdAt ? new Date(createdAt) : new Date(),

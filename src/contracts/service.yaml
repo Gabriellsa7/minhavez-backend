@@ -208,7 +208,6 @@ components:
     NewUser:
       type: object
       required:
-        - id
         - name
         - email
       properties:

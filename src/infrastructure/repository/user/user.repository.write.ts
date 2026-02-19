@@ -1,48 +1,51 @@
+import { HydratedDocument } from 'mongoose';
 import { IUser } from '../../../domain/user/interfaces/user.interface';
 import { Muser } from '../../db/mongo/models/user.model';
+import { IUserSchema } from '../../db/mongo/schema/user.schema';
 
 export class UserRepositoryWrite {
-  /**
-   * Create a new user in the database
-   * @param userData - The user data to create
-   * @returns The created user document
-   */
+  private mapToDomain(userDoc: HydratedDocument<IUserSchema>): IUser {
+    return {
+      id: userDoc._id.toString(),
+      name: userDoc.name,
+      email: userDoc.email,
+      createdAt: userDoc.createdAt,
+    };
+  }
+
   async createUser(userData: IUser): Promise<IUser> {
     try {
-      const user = new Muser(userData);
-      return await user.save();
+      const userDoc = await Muser.create(userData);
+      return this.mapToDomain(userDoc);
     } catch (error) {
       throw new Error(`Error creating user: ${(error as Error).message}`);
     }
   }
 
-  /**
-   * Update a user by ID
-   * @param id - The user's ID
-   * @param updateData - The data to update
-   * @returns The updated user document or null if not found
-   */
   async updateUserById(
     id: string,
     updateData: Partial<IUser>,
   ): Promise<IUser | null> {
     try {
-      return await Muser.findOneAndUpdate({ id }, updateData, {
+      const userDoc = await Muser.findByIdAndUpdate(id, updateData, {
         new: true,
       });
+
+      if (!userDoc) return null;
+
+      return this.mapToDomain(userDoc);
     } catch (error) {
       throw new Error(`Error updating user by ID: ${(error as Error).message}`);
     }
   }
 
-  /**
-   * Delete a user by ID
-   * @param id - The user's ID
-   * @returns The deleted user document or null if not found
-   */
   async deleteUserById(id: string): Promise<IUser | null> {
     try {
-      return await Muser.findOneAndDelete({ id });
+      const userDoc = await Muser.findByIdAndDelete(id);
+
+      if (!userDoc) return null;
+
+      return this.mapToDomain(userDoc);
     } catch (error) {
       throw new Error(`Error deleting user by ID: ${(error as Error).message}`);
     }

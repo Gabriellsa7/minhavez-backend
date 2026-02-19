@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 
 export const userSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true, // Assuming IDs are unique
-  },
   name: {
     type: String,
     required: true,
@@ -25,3 +20,9 @@ export const userSchema = new mongoose.Schema({
     default: Date.now, // Automatically set the createdAt field if not provided
   },
 });
+
+export interface IUserSchema {
+  name: string;
+  email: string;
+  createdAt: Date;
+}

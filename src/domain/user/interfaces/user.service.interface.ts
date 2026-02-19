@@ -3,7 +3,6 @@ import { IUserRepositoryWrite } from '../repository/user.repository.write';
 import { IUser } from './user.interface';
 
 export interface IParamsCreateUser {
-  id: string;
   name: string;
   email: string;
   createdAt: Date;
