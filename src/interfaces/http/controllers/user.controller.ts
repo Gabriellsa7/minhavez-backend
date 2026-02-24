@@ -65,11 +65,7 @@ export class UserController implements IController {
       });
       res.status(201).json(newUser);
     } catch (error) {
-      res.status(400).json({
-        message: (error as Error).message,
-        status: 400,
-        errors: [],
-      });
+      res.status(400).json({ error: (error as Error).message });
     }
   };
 

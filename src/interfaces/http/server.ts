@@ -70,6 +70,7 @@ export class Server {
       }),
     );
   }
+
   private customizers() {
     this.app.use(
       (err: Error, req: Request, res: Response, _next: NextFunction) => {
