@@ -24,7 +24,7 @@ export const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ['ADMIN', 'USER', 'PROFISSIONAL'],
+      enum: ['ADMIN', 'USER'],
       default: 'USER',
     },
 
@@ -42,7 +42,7 @@ export interface IUserSchema {
   name: string;
   email: string;
   password: string;
-  role: 'ADMIN' | 'USER' | 'PROFISSIONAL';
+  role: 'ADMIN' | 'USER';
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
