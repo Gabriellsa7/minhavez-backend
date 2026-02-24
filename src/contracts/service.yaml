@@ -681,3 +681,70 @@ components:
           format: date-time
           description: The date and time the queue item was finished
           nullable: true
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the notification
+        patientId:
+          type: string
+          description: The patient identifier associated with the notification
+        title:
+          type: string
+          description: The title of the notification
+        message:
+          type: string
+          description: The content of the notification
+        read:
+          type: boolean
+          description: Whether the notification has been read
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the notification was sent (null if not sent yet)
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the notification was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the notification was last updated
+    CreateNotification:
+      type: object
+      required:
+        - patientId
+        - title
+        - message
+      properties:
+        patientId:
+          type: string
+          description: The patient identifier associated with the notification
+        title:
+          type: string
+          description: The title of the notification
+        message:
+          type: string
+          description: The content of the notification
+    UpdateNotification:
+      type: object
+      properties:
+        patientId:
+          type: string
+          description: The patient identifier associated with the notification
+        title:
+          type: string
+          description: The title of the notification
+        message:
+          type: string
+          description: The content of the notification
+        read:
+          type: boolean
+          description: Whether the notification has been read
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the notification was sent (null if not sent yet)
