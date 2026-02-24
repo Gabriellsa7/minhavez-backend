@@ -460,3 +460,70 @@ components:
           type: string
           enum: [LOW, MEDIUM, HIGH]
           description: The priority level of the patient (1-5)
+    HealthProfessional:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the health professional
+        userId:
+          type: string
+          description: The user identifier of the health professional
+        healthUnitId:
+          type: string
+          description: The health unit identifier of the health professional
+        specialty:
+          type: string
+          description: The specialty of the health professional
+        professionalLicense:
+          type: string
+          description: The professional license number of the health professional
+        active:
+          type: boolean
+          description: Whether the health professional is active
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the health professional was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the health professional was last updated
+    CreateHealthProfessional:
+      type: object
+      required:
+        - userId
+        - healthUnitId
+        - specialty
+        - professionalLicense
+      properties:
+        userId:
+          type: string
+          description: The user identifier of the health professional
+        healthUnitId:
+          type: string
+          description: The health unit identifier of the health professional
+        specialty:
+          type: string
+          description: The specialty of the health professional
+        professionalLicense:
+          type: string
+          description: The professional license number of the health professional
+    UpdateHealthProfessional:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: The user identifier of the health professional
+        healthUnitId:
+          type: string
+          description: The health unit identifier of the health professional
+        specialty:
+          type: string
+          description: The specialty of the health professional
+        professionalLicense:
+          type: string
+          description: The professional license number of the health professional
+        active:
+          type: boolean
+          description: Whether the health professional is active
