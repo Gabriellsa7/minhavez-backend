@@ -201,29 +201,36 @@ components:
         email:
           type: string
           description: The user's email address
+        active:
+          type: boolean
+          description: Whether the user is active
         createdAt:
           type: string
           format: date-time
           description: The date and time the user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the user was last updated
     NewUser:
       type: object
       required:
         - name
         - email
+        - password
       properties:
-        id:
-          type: string
-          description: The unique identifier for the user
         name:
           type: string
           description: The user's name
         email:
           type: string
           description: The user's email address
-        createdAt:
+        password:
           type: string
-          format: date-time
-          description: The creation timestamp (optional)
+          description: The user's password
+        role:
+          type: string
+          description: The user's role (e.g., admin, user)
     UpdateUser:
       type: object
       properties:
@@ -233,6 +240,9 @@ components:
         email:
           type: string
           description: The user's email address
+        password:
+          type: string
+          description: The user's password
     Error:
       type: object
       required:
