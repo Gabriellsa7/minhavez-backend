@@ -7,6 +7,7 @@ import {
   IParamsUserService,
   IUserService,
 } from '../interfaces/user.service.interface';
+import bcrypt from 'bcrypt';
 
 export class UserService implements IUserService {
   private userRepositoryRead: IUserRepositoryRead;
@@ -32,7 +33,12 @@ export class UserService implements IUserService {
         throw new Error('A user with this email already exists');
       }
 
-      return await this.userRepositoryWrite.createUser(params);
+      const hashedPassword = await bcrypt.hash(params.password, 10);
+
+      return await this.userRepositoryWrite.createUser({
+        ...params,
+        password: hashedPassword,
+      });
     } catch (error) {
       throw new Error(`Error creating user: ${(error as Error).message}`);
     }

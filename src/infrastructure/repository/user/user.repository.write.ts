@@ -1,5 +1,8 @@
 import { HydratedDocument } from 'mongoose';
-import { IUser } from '../../../domain/user/interfaces/user.interface';
+import {
+  ICreateUser,
+  IUser,
+} from '../../../domain/user/interfaces/user.interface';
 import { Muser } from '../../db/mongo/models/user.model';
 import { IUserSchema } from '../../db/mongo/schema/user.schema';
 
@@ -9,11 +12,13 @@ export class UserRepositoryWrite {
       id: userDoc._id.toString(),
       name: userDoc.name,
       email: userDoc.email,
+      role: userDoc.role,
+      active: userDoc.active,
       createdAt: userDoc.createdAt,
     };
   }
 
-  async createUser(userData: IUser): Promise<IUser> {
+  async createUser(userData: ICreateUser): Promise<IUser> {
     try {
       const userDoc = await Muser.create(userData);
       return this.mapToDomain(userDoc);

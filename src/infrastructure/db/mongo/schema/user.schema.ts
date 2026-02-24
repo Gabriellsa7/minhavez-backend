@@ -38,7 +38,7 @@ export const userSchema = new mongoose.Schema(
   },
 );
 
-export interface IUser {
+export interface IUserSchema {
   name: string;
   email: string;
   password: string;

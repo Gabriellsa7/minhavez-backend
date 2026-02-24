@@ -5,7 +5,7 @@ import { IUser } from './user.interface';
 export interface IParamsCreateUser {
   name: string;
   email: string;
-  createdAt: Date;
+  password: string;
 }
 
 export interface IParamsUpdateUser {

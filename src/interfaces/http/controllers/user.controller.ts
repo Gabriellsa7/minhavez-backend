@@ -56,16 +56,20 @@ export class UserController implements IController {
    * Create a new user
    */
   createUser = async (req: Request, res: Response): Promise<void> => {
-    const { name, email, createdAt } = req.body;
+    const { name, email, password } = req.body;
     try {
       const newUser = await this.userService.createUser({
         name,
         email,
-        createdAt: createdAt ? new Date(createdAt) : new Date(),
+        password,
       });
       res.status(201).json(newUser);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      res.status(400).json({
+        message: (error as Error).message,
+        status: 400,
+        errors: [],
+      });
     }
   };
 
