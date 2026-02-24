@@ -598,3 +598,86 @@ components:
           type: string
           enum: [GENERAL, PRIORITY]
           description: The type of the queue entry
+    QueueItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the queue item
+        queueId:
+          type: string
+          description: The queue identifier associated with the queue item
+        patientId:
+          type: string
+          description: The patient identifier associated with the queue item
+        position:
+          type: integer
+          description: The position of the queue item in the queue
+        status:
+          type: string
+          enum: [WAITING, CALLED, FINISHED]
+          description: The status of the queue item
+        checkInTime:
+          type: string
+          format: date-time
+          description: The date and time the patient checked in for the queue item
+        calledAt:
+          type: string
+          format: date-time
+          description: The date and time the patient was called for the queue item
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue item was finished
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the queue item was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue item was last updated
+    CreateQueueItem:
+      type: object
+      required:
+        - queueId
+        - patientId
+      properties:
+        queueId:
+          type: string
+          description: The queue identifier associated with the queue item
+        patientId:
+          type: string
+          description: The patient identifier associated with the queue item
+    UpdateQueueItem:
+      type: object
+      properties:
+        queueId:
+          type: string
+          description: The queue identifier associated with the queue item
+        patientId:
+          type: string
+          description: The patient identifier associated with the queue item
+        position:
+          type: integer
+          description: The position of the queue item in the queue
+        status:
+          type: string
+          enum: [WAITING, CALLED, FINISHED]
+          description: The status of the queue item
+        checkInTime:
+          type: string
+          format: date-time
+          description: The date and time the patient checked in for the queue item
+        calledAt:
+          type: string
+          format: date-time
+          description: The date and time the patient was called for the queue item
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue item was finished
+          nullable: true
