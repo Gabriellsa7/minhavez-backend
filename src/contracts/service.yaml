@@ -383,3 +383,80 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the patient
+        userId:
+          type: string
+          description: The user identifier of the patient
+        cpf:
+          type: string
+          description: The CPF (Brazilian individual taxpayer registry) of the patient
+        birthDate:
+          type: string
+          format: date
+          description: The birth date of the patient
+        phone:
+          type: string
+          description: The contact phone number of the patient
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient (1-5)
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the patient was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the patient was last updated
+    CreatePatient:
+      type: object
+      required:
+        - userId
+        - cpf
+        - birthDate
+        - phone
+        - priority
+      properties:
+        userId:
+          type: string
+          description: The user identifier of the patient
+        cpf:
+          type: string
+          description: The CPF (Brazilian individual taxpayer registry) of the patient
+        birthDate:
+          type: string
+          format: date
+          description: The birth date of the patient
+        phone:
+          type: string
+          description: The contact phone number of the patient
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient (1-5)
+    UpdatePatient:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: The user identifier of the patient
+        cpf:
+          type: string
+          description: The CPF (Brazilian individual taxpayer registry) of the patient
+        birthDate:
+          type: string
+          format: date
+          description: The birth date of the patient
+        phone:
+          type: string
+          description: The contact phone number of the patient
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient (1-5)
