@@ -748,3 +748,114 @@ components:
           format: date-time
           nullable: true
           description: The date and time the notification was sent (null if not sent yet)
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the appointment
+        patientId:
+          type: string
+          format: uuid
+          description: The patient identifier associated with the appointment
+        professionalId:
+          type: string
+          format: uuid
+          description: The professional identifier associated with the appointment
+        healthUnitId:
+          type: string
+          format: uuid
+          description: The health unit identifier associated with the appointment
+        dateTime:
+          type: string
+          format: date-time
+          description: The date and time of the appointment
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+          description: The status of the appointment
+        notes:
+          type: string
+          description: Notes about the appointment
+        checkInAt:
+          type: string
+          format: date-time
+          description: The date and time the patient checked in for the appointment (null if not checked in yet)
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the appointment was finished (null if not finished yet)
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the appointment was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the appointment was last updated
+    CreateAppointment:
+      type: object
+      required:
+        - patientId
+        - professionalId
+        - healthUnitId
+        - dateTime
+      properties:
+        patientId:
+          type: string
+          format: uuid
+          description: The patient identifier associated with the appointment
+        professionalId:
+          type: string
+          format: uuid
+          description: The professional identifier associated with the appointment
+        healthUnitId:
+          type: string
+          format: uuid
+          description: The health unit identifier associated with the appointment
+        dateTime:
+          type: string
+          format: date-time
+          description: The date and time of the appointment
+        notes:
+          type: string
+          description: Notes about the appointment
+    UpdateAppointment:
+      type: object
+      properties:
+        patientId:
+          type: string
+          format: uuid
+          description: The patient identifier associated with the appointment
+        professionalId:
+          type: string
+          format: uuid
+          description: The professional identifier associated with the appointment
+        healthUnitId:
+          type: string
+          format: uuid
+          description: The health unit identifier associated with the appointment
+        dateTime:
+          type: string
+          format: date-time
+          description: The date and time of the appointment
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+          description: The status of the appointment
+        notes:
+          type: string
+          description: Notes about the appointment
+        checkInAt:
+          type: string
+          format: date-time
+          description: The date and time the patient checked in for the appointment (null if not checked in yet)
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the appointment was finished (null if not finished yet)
