@@ -9,7 +9,7 @@ export class UserRepositoryRead {
    */
   async findUserById(id: string): Promise<IUser | null> {
     try {
-      return await Muser.findOne({ id });
+      return await Muser.findOne({ _id: id });
     } catch (error) {
       throw new Error(`Error finding user by ID: ${(error as Error).message}`);
     }
