@@ -8,6 +8,8 @@ const OPEN_API_SPEC_FILE_LOCATION = path.resolve(
   './contracts/service.yaml',
 );
 
+import 'dotenv/config';
+
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
   controllers: [UserControllerFactory.create()],
