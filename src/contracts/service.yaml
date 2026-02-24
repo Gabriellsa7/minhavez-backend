@@ -1,26 +1,26 @@
 openapi: 3.0.2
 info:
-  title: Example API
+  title: minha-vez
   description: This is a sample API to demonstrate OpenAPI specification.
   version: 1.0.0
-  contact:
-    name: API Support
-    url: https://example.com/support
-    email: support@example.com
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-
-servers:
-  - url: https://api.example.com/v1
-    description: Production server
-  - url: https://staging-api.example.com/v1
-    description: Staging server
-  - url: http://localhost
 
 tags:
   - name: Users
     description: User management operations
+  - name: HealthUnits
+    description: Health unit management operations
+  - name: Patients
+    description: Patient management operations
+  - name: HealthProfessionals
+    description: Health professional management operations
+  - name: Queues
+    description: Queue management operations
+  - name: QueueItems
+    description: Queue item management operations
+  - name: Notifications
+    description: Notification management operations
+  - name: Appointments
+    description: Appointment management operations
 
 paths:
   /users:
