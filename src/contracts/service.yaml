@@ -527,3 +527,74 @@ components:
         active:
           type: boolean
           description: Whether the health professional is active
+    Queue:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the queue entry
+        professionalId:
+          type: string
+          description: The professional identifier associated with the queue entry
+        healthUnitId:
+          type: string
+          description: The health unit identifier associated with the queue entry
+        status:
+          type: string
+          enum: [OPEN, CLOSED]
+          description: The status of the queue entry
+        type:
+          type: string
+          enum: [GENERAL, PRIORITY]
+          description: The type of the queue entry
+        openedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue entry was opened
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the queue entry was closed (null if still open)
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the queue entry was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue entry was last updated
+    CreateQueue:
+      type: object
+      required:
+        - professionalId
+        - healthUnitId
+        - type
+      properties:
+        professionalId:
+          type: string
+          description: The professional identifier associated with the queue entry
+        healthUnitId:
+          type: string
+          description: The health unit identifier associated with the queue entry
+        type:
+          type: string
+          enum: [GENERAL, PRIORITY]
+          description: The type of the queue entry
+    UpdateQueue:
+      type: object
+      properties:
+        professionalId:
+          type: string
+          description: The professional identifier associated with the queue entry
+        healthUnitId:
+          type: string
+          description: The health unit identifier associated with the queue entry
+        status:
+          type: string
+          enum: [OPEN, CLOSED]
+          description: The status of the queue entry
+        type:
+          type: string
+          enum: [GENERAL, PRIORITY]
+          description: The type of the queue entry
