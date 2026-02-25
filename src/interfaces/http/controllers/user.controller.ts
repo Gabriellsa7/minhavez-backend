@@ -20,9 +20,6 @@ export class UserController implements IController {
     this.router.delete('/users/:id', this.deleteUser);
   }
 
-  /**
-   * Fetch all users
-   */
   getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
       const users = await this.userService.listUsers();
@@ -32,9 +29,6 @@ export class UserController implements IController {
     }
   };
 
-  /**
-   * Fetch a user by ID
-   */
   getUserById = async (
     req: Request<{ id: string }>,
     res: Response,
@@ -52,9 +46,6 @@ export class UserController implements IController {
     }
   };
 
-  /**
-   * Create a new user
-   */
   createUser = async (req: Request, res: Response): Promise<void> => {
     const { name, email, password } = req.body;
     try {
@@ -69,9 +60,6 @@ export class UserController implements IController {
     }
   };
 
-  /**
-   * Update a user's information by ID
-   */
   updateUser = async (
     req: Request<{ id: string }>,
     res: Response,
@@ -90,9 +78,6 @@ export class UserController implements IController {
     }
   };
 
-  /**
-   * Delete a user by ID
-   */
   deleteUser = async (
     req: Request<{ id: string }>,
     res: Response,
@@ -110,9 +95,6 @@ export class UserController implements IController {
     }
   };
 
-  /**
-   * Get the router with all routes
-   */
   public getRoutes(): Router {
     return this.router;
   }

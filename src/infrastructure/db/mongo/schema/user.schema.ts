@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { EUserRole } from '../../../../domain/user/interfaces/user.interface';
 
 export const userSchema = new mongoose.Schema(
   {
@@ -24,8 +25,8 @@ export const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ['ADMIN', 'USER'],
-      default: 'USER',
+      enum: EUserRole,
+      default: EUserRole.USER,
     },
 
     active: {
@@ -42,7 +43,7 @@ export interface IUserSchema {
   name: string;
   email: string;
   password: string;
-  role: 'ADMIN' | 'USER';
+  role: EUserRole;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

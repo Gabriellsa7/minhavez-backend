@@ -1,14 +1,13 @@
 export interface IUser {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  role?: 'ADMIN' | 'USER';
+  role?: EUserRole;
   active?: boolean;
   createdAt: Date;
 }
 
-export interface ICreateUser {
-  name: string;
-  email: string;
-  password: string;
+export enum EUserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
 }
