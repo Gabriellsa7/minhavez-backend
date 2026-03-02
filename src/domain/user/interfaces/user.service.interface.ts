@@ -11,9 +11,9 @@ export interface IParamsUserService {
 
 export interface IUserService {
   createUser(params: IParamsCreateUser): Promise<IUser>;
-  getUserById(id: string): Promise<IUser | null>;
+  getUserById(_id: string): Promise<IUser | null>;
   getUserByEmail(email: string): Promise<IUser | null>;
   updateUserById(_id: string, params: IParamsUpdateUser): Promise<IUser | null>;
-  deleteUserById(id: string): Promise<IUser | null>;
+  deleteUserById(_id: string): Promise<IUser | null>;
   listUsers(filter: Partial<IUser>): Promise<IUser[]>;
 }

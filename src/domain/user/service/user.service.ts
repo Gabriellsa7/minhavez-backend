@@ -17,11 +17,6 @@ export class UserService implements IUserService {
     this.userRepository = params.userRepository;
   }
 
-  /**
-   * Create a new user
-   * @param params - The user data to create
-   * @returns The created user document
-   */
   async createUser(params: IParamsCreateUser): Promise<IUser> {
     try {
       // Business logic (e.g., validation, ID/email uniqueness checks)
@@ -43,14 +38,9 @@ export class UserService implements IUserService {
     }
   }
 
-  /**
-   * Get a user by ID
-   * @param id - The user's ID
-   * @returns The user document or null if not found
-   */
-  async getUserById(id: string): Promise<IUser | null> {
+  async getUserById(_id: string): Promise<IUser | null> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this.userRepository.findUserById(_id);
       if (!user) {
         throw new Error('User not found');
       }
@@ -62,11 +52,6 @@ export class UserService implements IUserService {
     }
   }
 
-  /**
-   * Get a user by email
-   * @param email - The user's email
-   * @returns The user document or null if not found
-   */
   async getUserByEmail(email: string): Promise<IUser | null> {
     try {
       const user = await this.userRepository.findUserByEmail(email);
@@ -81,12 +66,6 @@ export class UserService implements IUserService {
     }
   }
 
-  /**
-   * Update a user's information by ID
-   * @param id - The user's ID
-   * @param updateData - The data to update
-   * @returns The updated user document or null if not found
-   */
   async updateUserById(
     _id: string,
     params: IParamsUpdateUser,
@@ -103,30 +82,20 @@ export class UserService implements IUserService {
     }
   }
 
-  /**
-   * Delete a user by ID
-   * @param id - The user's ID
-   * @returns The deleted user document or null if not found
-   */
-  async deleteUserById(id: string): Promise<IUser | null> {
+  async deleteUserById(_id: string): Promise<IUser | null> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this.userRepository.findUserById(_id);
       if (!user) {
         throw new Error('User not found');
       }
 
-      await this.userRepository.deleteUserById(id);
+      await this.userRepository.deleteUserById(_id);
       return user;
     } catch (error) {
       throw new Error(`Error deleting user: ${(error as Error).message}`);
     }
   }
 
-  /**
-   * List all users with optional filters
-   * @param filter - Filters for the query
-   * @returns An array of user documents
-   */
   async listUsers(filter: Partial<IUser> = {}): Promise<IUser[]> {
     try {
       return await this.userRepository.listUsers(filter);
