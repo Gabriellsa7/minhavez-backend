@@ -35,6 +35,7 @@ export const userSchema = new mongoose.Schema(
     },
   },
   {
+    _id: true,
     timestamps: true,
   },
 );
