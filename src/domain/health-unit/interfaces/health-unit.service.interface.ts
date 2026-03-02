@@ -3,7 +3,7 @@ import {
   IParamsCreateHealthUnit,
   IParamsUpdateHealthUnit,
 } from '../repository/health-unit.repository.interface';
-import { IHealthUnit } from './health-unit.interface';
+import { IHealthUnit } from '../../user/interfaces/health-unit.interface';
 
 export interface IParamsHealthUnitService {
   healthRepository: IHealthUnitRepository;
