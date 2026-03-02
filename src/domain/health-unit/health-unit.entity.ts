@@ -1,4 +1,4 @@
-import { IHealthUnit } from '../user/interfaces/health-unit.interface';
+import { IHealthUnit } from './interfaces/health-unit.interface';
 
 export class HealthUnit implements IHealthUnit {
   _id: string;

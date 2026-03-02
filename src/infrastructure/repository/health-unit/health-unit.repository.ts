@@ -4,7 +4,7 @@ import {
   IHealthUnitRepository,
   IParamsUpdateHealthUnit,
 } from '../../../domain/health-unit/repository/health-unit.repository.interface';
-import { IHealthUnit } from '../../../domain/user/interfaces/health-unit.interface';
+import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitSchema } from '../../db/mongo/schema/health-unit.schema';
 import { Muser } from '../../db/mongo/models/health-unit.model';
 
