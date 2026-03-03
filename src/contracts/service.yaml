@@ -1353,6 +1353,197 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
 
+  # additional paths expected to be useful in the near future
+  /auth/login:
+    post:
+      tags:
+        - Users
+      summary: Authenticate user
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current logged-in user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health-units/{id}/appointments:
+    get:
+      tags:
+        - Appointments
+      summary: List appointments for a health unit
+      operationId: getAppointmentsByHealthUnit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Health unit ID
+      responses:
+        '200':
+          description: Appointments belonging to the unit
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '404':
+          description: Health unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /patients/{id}/appointments:
+    get:
+      tags:
+        - Appointments
+      summary: List appointments for a patient
+      operationId: getAppointmentsByPatient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Patient ID
+      responses:
+        '200':
+          description: Appointments belonging to the patient
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health-professionals/{id}/appointments:
+    get:
+      tags:
+        - Appointments
+      summary: List appointments for a health professional
+      operationId: getAppointmentsByHealthProfessional
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Health professional ID
+      responses:
+        '200':
+          description: Appointments belonging to the professional
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/{id}/read:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark a notification as read
+      operationId: markNotificationRead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Notification ID
+      responses:
+        '200':
+          description: Notification marked read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     User:
@@ -1488,6 +1679,31 @@ components:
           format: date-time
           description: When the operation was completed
           example: '2025-07-15T17:30:00.000Z'
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: User email
+        password:
+          type: string
+          description: User password
+
+    AuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for authenticated requests
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration timestamp of the token
+
     HealthUnit:
       type: object
       properties:
