@@ -1,5 +1,5 @@
-import { UserService } from '../../../domain/user/service/user.service';
-import { UserRepository } from '../../repository/user/user.repository';
+import { UserService } from '../../../../domain/user/service/user.service';
+import { UserRepository } from '../../../repository/user/user.repository';
 
 export class UserServiceFactory {
   static create() {
