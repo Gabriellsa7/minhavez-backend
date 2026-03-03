@@ -30,12 +30,12 @@ export class HealthUnitController implements IController {
   };
 
   getHealthUnitById = async (
-    req: Request<{ _id: string }>,
+    req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> => {
     try {
       const healthUnit = await this.healthUnitService.getHealthUnitById(
-        req.params._id,
+        req.params.id,
       );
       res.status(200).json(healthUnit);
     } catch (error) {
@@ -59,14 +59,14 @@ export class HealthUnitController implements IController {
   };
 
   updateHealthUnit = async (
-    req: Request<{ _id: string }>,
+    req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> => {
-    const { _id } = req.params;
+    const { id } = req.params;
     const updateData = req.body;
     try {
       const updatedHealthUnit =
-        await this.healthUnitService.updateHealthUnitById(_id, updateData);
+        await this.healthUnitService.updateHealthUnitById(id, updateData);
       if (!updatedHealthUnit) {
         res.status(404).json({ message: 'Health unit not found' });
         return;
@@ -78,13 +78,13 @@ export class HealthUnitController implements IController {
   };
 
   deleteHealthUnit = async (
-    req: Request<{ _id: string }>,
+    req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> => {
-    const { _id } = req.params;
+    const { id } = req.params;
     try {
       const deletedHealthUnit =
-        await this.healthUnitService.deleteHealthUnitById(_id);
+        await this.healthUnitService.deleteHealthUnitById(id);
       if (!deletedHealthUnit) {
         res.status(404).json({ message: 'Health unit not found' });
         return;
