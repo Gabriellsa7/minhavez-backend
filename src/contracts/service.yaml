@@ -511,6 +511,168 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /health-professionals:
+    get:
+      tags:
+        - HealthProfessionals
+      summary: Get all health professionals
+      operationId: getHealthProfessionals
+      description: Retrieve a list of all health professionals.
+      responses:
+        '200':
+          description: A list of health professionals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthProfessional'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - HealthProfessionals
+      summary: Create a new health professional
+      operationId: createHealthProfessional
+      description: Add a new health professional to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHealthProfessional'
+      responses:
+        '201':
+          description: Health professional created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthProfessional'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-professionals/{id}:
+    get:
+      tags:
+        - HealthProfessionals
+      summary: Get a health professional by ID
+      operationId: getHealthProfessionalById
+      description: Retrieve a health professional by their unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health professional
+      responses:
+        '200':
+          description: Health professional found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthProfessional'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - HealthProfessionals
+      summary: Update a health professional
+      operationId: updateHealthProfessional
+      description: Update the information of an existing health professional by ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health professional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHealthProfessional'
+      responses:
+        '200':
+          description: Health professional updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthProfessional'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - HealthProfessionals
+      summary: Delete a health professional
+      operationId: deleteHealthProfessional
+      description: Delete an existing health professional by ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the health professional
+      responses:
+        '200':
+          description: Health professional deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
