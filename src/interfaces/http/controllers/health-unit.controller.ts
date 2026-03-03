@@ -13,11 +13,11 @@ export class HealthUnitController implements IController {
   }
 
   initRoutes() {
-    this.router.get('/health-unit', this.getHealthUnits);
-    this.router.get('/health-unit/:id', this.getHealthUnitById);
-    this.router.post('/health-unit', this.createHealthUnit);
-    this.router.put('/health-unit/:id', this.updateHealthUnit);
-    this.router.delete('/health-unit/:id', this.deleteHealthUnit);
+    this.router.get('/health-units', this.getHealthUnits);
+    this.router.get('/health-units/:id', this.getHealthUnitById);
+    this.router.post('/health-units', this.createHealthUnit);
+    this.router.put('/health-units/:id', this.updateHealthUnit);
+    this.router.delete('/health-units/:id', this.deleteHealthUnit);
   }
 
   getHealthUnits = async (req: Request, res: Response): Promise<void> => {
