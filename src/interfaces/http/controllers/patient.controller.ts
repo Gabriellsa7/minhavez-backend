@@ -15,6 +15,7 @@ export class PatientController implements IController {
   initRoutes() {
     this.router.get('/patients', this.getPatients);
     this.router.get('/patients/:id', this.getPatientById);
+    this.router.get('/patients/user/:userId', this.getPatientByUserId);
     this.router.post('/patients', this.createPatient);
     this.router.put('/patients/:id', this.updatePatient);
     this.router.delete('/patients/:id', this.deletePatient);
@@ -36,6 +37,23 @@ export class PatientController implements IController {
     const { id } = req.params;
     try {
       const patient = await this.patientService.getPatientById(id);
+      if (!patient) {
+        res.status(404).json({ message: 'Patient not found' });
+        return;
+      }
+      res.status(200).json(patient);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getPatientByUserId = async (
+    req: Request<{ userId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { userId } = req.params;
+    try {
+      const patient = await this.patientService.getPatientByUserId(userId);
       if (!patient) {
         res.status(404).json({ message: 'Patient not found' });
         return;

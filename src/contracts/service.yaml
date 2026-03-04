@@ -511,6 +511,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /patients/user/{userId}:
+    get:
+      tags:
+        - Patients
+      summary: Get a patient by user ID
+      operationId: getPatientByUserId
+      description: Retrieve a patient by their associated user ID.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user ID associated with the patient
+      responses:
+        '200':
+          description: Patient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /health-professionals:
     get:
       tags:
