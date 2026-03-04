@@ -1,4 +1,4 @@
-import { IPatient } from '../interfaces/patients.interface';
+import { IPatient } from '../interfaces/patient.interface';
 
 export interface IParamsCreatePatient {
   userId: string;

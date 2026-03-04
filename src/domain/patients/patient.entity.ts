@@ -1,4 +1,4 @@
-import { EPatientPriority, IPatient } from './interfaces/patients.interface';
+import { EPatientPriority, IPatient } from './interfaces/patient.interface';
 
 export class Patient implements IPatient {
   _id: string;
