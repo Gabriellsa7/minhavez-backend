@@ -1,8 +1,11 @@
-import { IHealthUnit } from '../interfaces/health-unit.interface';
+import {
+  IHealthUnit,
+  IHealthUnitAddress,
+} from '../interfaces/health-unit.interface';
 
 export interface IParamsCreateHealthUnit {
   name: string;
-  address: string;
+  address: IHealthUnitAddress;
   phone: string;
   email: string;
 }

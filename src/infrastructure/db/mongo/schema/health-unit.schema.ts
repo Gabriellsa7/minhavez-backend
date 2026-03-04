@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { IHealthUnitAddress } from '../../../../domain/health-unit/interfaces/health-unit.interface';
 
 export const healthUnitSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ export const healthUnitSchema = new mongoose.Schema(
     },
 
     address: {
-      type: String,
+      type: Object,
       required: true,
       trim: true,
     },
@@ -36,7 +37,7 @@ export const healthUnitSchema = new mongoose.Schema(
 
 export interface IHealthUnitSchema {
   name: string;
-  address: string;
+  address: IHealthUnitAddress;
   phone: string;
   email: string;
   createdAt: Date;

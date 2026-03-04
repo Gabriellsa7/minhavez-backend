@@ -1714,7 +1714,7 @@ components:
           type: string
           description: The name of the health unit
         address:
-          type: string
+          $ref: '#/components/schemas/HealthUnitAddress'
           description: The address of the health unit
         phone:
           type: string
@@ -1730,6 +1730,31 @@ components:
           type: string
           format: date-time
           description: The date and time the health unit was last updated
+    HealthUnitAddress:
+      type: object
+      required:
+        - street
+        - number
+        - neighborhood
+        - city
+        - state
+        - zipCode
+      properties:
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+          nullable: true
+        neighborhood:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
     CreateHealthUnit:
       type: object
       required:
@@ -1742,7 +1767,7 @@ components:
           type: string
           description: The name of the health unit
         address:
-          type: string
+          $ref: '#/components/schemas/HealthUnitAddress'
           description: The address of the health unit
         phone:
           type: string
@@ -1757,7 +1782,7 @@ components:
           type: string
           description: The name of the health unit
         address:
-          type: string
+          $ref: '#/components/schemas/HealthUnitAddress'
           description: The address of the health unit
         phone:
           type: string
