@@ -1,6 +1,6 @@
-import { EPatientPriority } from './interfaces/patients.interface';
+import { EPatientPriority, IPatient } from './interfaces/patients.interface';
 
-export class Patient {
+export class Patient implements IPatient {
   _id: string;
 
   userId: string;
