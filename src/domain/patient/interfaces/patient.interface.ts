@@ -14,5 +14,4 @@ export enum EPatientPriority {
   ELDERLY = 'ELDERLY',
   PREGNANT = 'PREGNANT',
   DISABLED = 'DISABLED',
-  EMERGENCY = 'EMERGENCY',
 }

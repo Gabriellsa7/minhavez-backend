@@ -1849,7 +1849,6 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
-            - EMERGENCY
           description: The priority level of the patient (1-5)
         createdAt:
           type: string
@@ -1888,7 +1887,6 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
-            - EMERGENCY
           description: |
             Priority classification of the patient.
 
@@ -1915,7 +1913,11 @@ components:
           description: The contact phone number of the patient
         priority:
           type: string
-          enum: [LOW, MEDIUM, HIGH]
+          enum:
+            - NORMAL
+            - ELDERLY
+            - PREGNANT
+            - DISABLED
           description: The priority level of the patient (1-5)
     HealthProfessional:
       type: object
