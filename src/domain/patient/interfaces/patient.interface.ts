@@ -10,7 +10,9 @@ export interface IPatient {
 }
 
 export enum EPatientPriority {
-  HIGH = 'HIGH',
-  MEDIUM = 'MEDIUM',
-  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  ELDERLY = 'ELDERLY',
+  PREGNANT = 'PREGNANT',
+  DISABLED = 'DISABLED',
+  EMERGENCY = 'EMERGENCY',
 }

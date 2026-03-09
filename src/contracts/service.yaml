@@ -1844,7 +1844,12 @@ components:
           description: The contact phone number of the patient
         priority:
           type: string
-          enum: [LOW, MEDIUM, HIGH]
+          enum:
+            - NORMAL
+            - ELDERLY
+            - PREGNANT
+            - DISABLED
+            - EMERGENCY
           description: The priority level of the patient (1-5)
         createdAt:
           type: string
@@ -1878,8 +1883,20 @@ components:
           description: The contact phone number of the patient
         priority:
           type: string
-          enum: [LOW, MEDIUM, HIGH]
-          description: The priority level of the patient (1-5)
+          enum:
+            - NORMAL
+            - ELDERLY
+            - PREGNANT
+            - DISABLED
+            - EMERGENCY
+          description: |
+            Priority classification of the patient.
+
+            NORMAL - Standard priority
+            ELDERLY - Elderly patient
+            PREGNANT - Pregnant patient
+            DISABLED - Patient with disability
+            EMERGENCY - Emergency case
     UpdatePatient:
       type: object
       properties:

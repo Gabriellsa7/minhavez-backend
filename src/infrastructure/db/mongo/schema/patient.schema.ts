@@ -25,7 +25,7 @@ export const patientSchema = new mongoose.Schema(
     priority: {
       type: String,
       enum: Object.values(EPatientPriority),
-      default: EPatientPriority.LOW,
+      default: EPatientPriority.NORMAL,
     },
 
     phone: {
