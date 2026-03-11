@@ -15,6 +15,17 @@ export class QueueService implements IQueueService {
 
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
     try {
+      //add this method to find an open queue
+      // if (params.status === 'OPEN') {
+      //   const existingOpenQueue = await this.queueRepository.findOpenQueue(
+      //     params.professionalId,
+      //     params.healthUnitId,
+      //   );
+
+      //   if (existingOpenQueue) {
+      //     throw new Error('Already has an open queue');
+      //   }
+      // }
       return await this.queueRepository.createQueue(params);
     } catch (error) {
       throw new Error(`Error creating queue: ${(error as Error).message}`);
