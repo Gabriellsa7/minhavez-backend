@@ -56,7 +56,7 @@ export class QueueController implements IController {
         status: data.status,
         type: data.type,
       });
-      console.warn(newQueueItem);
+
       res.status(201).json(newQueueItem);
     } catch (error) {
       console.error('CREATE QUEUE ERROR:', error);
