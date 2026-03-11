@@ -4,10 +4,11 @@ import { IPatient } from '../../../domain/patient/interfaces/patient.interface';
 import {
   IParamsCreatePatient,
   IParamsUpdatePatient,
+  IPatientRepository,
 } from '../../../domain/patient/repository/patient.repository.interface';
 import { Muser } from '../../db/mongo/models/patient.model';
 
-export class PatientRepository {
+export class PatientRepository implements IPatientRepository {
   private mapToDomain(patientDoc: HydratedDocument<IPatientSchema>): IPatient {
     return {
       _id: patientDoc._id.toString(),
