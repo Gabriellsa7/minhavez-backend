@@ -2072,6 +2072,10 @@ components:
         position:
           type: integer
           description: The position of the queue item in the queue
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient (1-5)
         status:
           type: string
           enum: [WAITING, CALLED, FINISHED]
@@ -2103,6 +2107,7 @@ components:
       required:
         - queueId
         - patientId
+        - priority
       properties:
         queueId:
           type: string
@@ -2110,6 +2115,10 @@ components:
         patientId:
           type: string
           description: The patient identifier associated with the queue item
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient (1-5)
     UpdateQueueItem:
       type: object
       properties:
@@ -2122,6 +2131,10 @@ components:
         position:
           type: integer
           description: The position of the queue item in the queue
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: The priority level of the patient
         status:
           type: string
           enum: [WAITING, CALLED, FINISHED]
