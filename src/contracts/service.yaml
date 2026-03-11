@@ -2000,11 +2000,11 @@ components:
           description: The health unit identifier associated with the queue entry
         status:
           type: string
-          enum: [OPEN, CLOSED]
+          enum: [OPEN, PAUSED, CLOSED]
           description: The status of the queue entry
         type:
           type: string
-          enum: [GENERAL, PRIORITY]
+          enum: [WALK_IN, SCHEDULED]
           description: The type of the queue entry
         openedAt:
           type: string
@@ -2038,7 +2038,7 @@ components:
           description: The health unit identifier associated with the queue entry
         type:
           type: string
-          enum: [GENERAL, PRIORITY]
+          enum: [WALK_IN, SCHEDULED]
           description: The type of the queue entry
     UpdateQueue:
       type: object
@@ -2051,11 +2051,11 @@ components:
           description: The health unit identifier associated with the queue entry
         status:
           type: string
-          enum: [OPEN, CLOSED]
+          enum: [OPEN, PAUSED, CLOSED]
           description: The status of the queue entry
         type:
           type: string
-          enum: [GENERAL, PRIORITY]
+          enum: [WALK_IN, SCHEDULED]
           description: The type of the queue entry
     QueueItem:
       type: object
