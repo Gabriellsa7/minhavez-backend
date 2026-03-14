@@ -32,9 +32,9 @@ export class PatientService implements IPatientService {
     }
   }
 
-  getPatientById(_id: string): Promise<IPatient | null> {
+  async getPatientById(_id: string): Promise<IPatient | null> {
     try {
-      const patient = this.patientRepository.getPatientById(_id);
+      const patient = await this.patientRepository.getPatientById(_id);
 
       if (!patient) {
         throw new Error('Patient not found');
@@ -48,9 +48,9 @@ export class PatientService implements IPatientService {
     }
   }
 
-  getPatientByUserId(userId: string): Promise<IPatient | null> {
+  async getPatientByUserId(userId: string): Promise<IPatient | null> {
     try {
-      const patient = this.patientRepository.getPatientByUserId(userId);
+      const patient = await this.patientRepository.getPatientByUserId(userId);
 
       if (!patient) {
         throw new Error('Patient not found');
@@ -63,12 +63,16 @@ export class PatientService implements IPatientService {
       );
     }
   }
-  updatePatientById(
+
+  async updatePatientById(
     _id: string,
     params: IParamsUpdatePatient,
   ): Promise<IPatient | null> {
     try {
-      const patient = this.patientRepository.updatePatientById(_id, params);
+      const patient = await this.patientRepository.updatePatientById(
+        _id,
+        params,
+      );
 
       if (!patient) {
         throw new Error('Patient not found');
@@ -81,9 +85,10 @@ export class PatientService implements IPatientService {
       );
     }
   }
-  deletePatientById(_id: string): Promise<IPatient | null> {
+
+  async deletePatientById(_id: string): Promise<IPatient | null> {
     try {
-      const patient = this.patientRepository.deletePatientById(_id);
+      const patient = await this.patientRepository.deletePatientById(_id);
 
       if (!patient) {
         throw new Error('Patient not found');
@@ -97,9 +102,9 @@ export class PatientService implements IPatientService {
     }
   }
 
-  listPatients(filter: Partial<IPatient>): Promise<IPatient[]> {
+  async listPatients(filter: Partial<IPatient>): Promise<IPatient[]> {
     try {
-      return this.patientRepository.listPatients(filter);
+      return await this.patientRepository.listPatients(filter);
     } catch (error) {
       throw new Error(`Error listing patients: ${(error as Error).message}`);
     }
