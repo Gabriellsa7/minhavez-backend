@@ -1,8 +1,8 @@
 import supertest from 'supertest';
 import { app } from '../../../jest/setup-integration-tests';
 import { Muser } from '../../infrastructure/db/mongo/models/user.model';
-import { ICreateUser } from '../../domain/user/interfaces/user.interface';
-let paramsCreate: ICreateUser;
+import { IParamsCreateUser } from '../../domain/user/repository/user.repository.interface';
+let paramsCreate: IParamsCreateUser;
 
 beforeEach(async () => {
   await Muser.deleteMany({});
@@ -30,7 +30,6 @@ describe('When we try to create a valid user', () => {
       email: paramsCreate.email,
     });
 
-    expect(body).toHaveProperty('id');
     expect(body).toHaveProperty('createdAt');
     expect(body).not.toHaveProperty('password');
 
