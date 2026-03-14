@@ -76,6 +76,29 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  async findUserByEmailWithPassword(
+    email: string,
+  ): Promise<(IUser & { password: string }) | null> {
+    try {
+      const userDoc = await Muser.findOne({ email }).select('+password');
+      if (!userDoc) return null;
+
+      return {
+        _id: userDoc._id.toString(),
+        name: userDoc.name,
+        email: userDoc.email,
+        role: userDoc.role,
+        active: userDoc.active,
+        createdAt: userDoc.createdAt,
+        password: userDoc.password,
+      };
+    } catch (error) {
+      throw new Error(
+        `Error finding user by email with password: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async listUsers(filter: Partial<IUser>): Promise<IUser[]> {
     try {
       return await Muser.find(filter);

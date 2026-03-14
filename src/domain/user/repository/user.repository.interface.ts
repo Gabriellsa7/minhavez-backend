@@ -15,6 +15,9 @@ export interface IUserRepository {
   updateUserById(id: string, params: IParamsUpdateUser): Promise<IUser | null>;
   deleteUserById(id: string): Promise<IUser | null>;
   findUserByEmail(email: string): Promise<IUser | null>;
+  findUserByEmailWithPassword(
+    email: string,
+  ): Promise<(IUser & { password: string }) | null>;
   findUserById(id: string): Promise<IUser | null>;
   listUsers(filter: Partial<IUser>): Promise<IUser[]>;
 }
