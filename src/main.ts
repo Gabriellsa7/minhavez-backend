@@ -13,6 +13,7 @@ import { HealthUnitControllerFactory } from './infrastructure/config/factories/h
 import { PatientControllerFactory } from './infrastructure/config/factories/patient/patient.controller.factory';
 import { HealthProfessionalControllerFactory } from './infrastructure/config/factories/health-professional/health-professional.controller.factory';
 import { QueueControllerFactory } from './infrastructure/config/factories/queue/queue.controller.factory';
+import { QueueItemControllerFactory } from './infrastructure/config/factories/queue-item/queue-item.controller.factory';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -22,6 +23,7 @@ const app = new Server({
     PatientControllerFactory.create(),
     HealthProfessionalControllerFactory.create(),
     QueueControllerFactory.create(),
+    QueueItemControllerFactory.create(),
   ],
   databaseURI: process.env.DATABASE_URI,
   apiSpecLocation: OPEN_API_SPEC_FILE_LOCATION,
