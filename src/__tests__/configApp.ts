@@ -1,6 +1,6 @@
 import path from 'path';
 import { Server } from '../interfaces/http/server';
-import { UserControllerFactory } from '../infrastructure/config/factories/user.controller.factory';
+import { UserControllerFactory } from '../infrastructure/config/factories/user/user.controller.factory';
 
 const OPEN_API_SPEC_FILE_LOCATION = path.resolve(
   __dirname,
