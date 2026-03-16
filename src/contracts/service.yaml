@@ -30,6 +30,8 @@ paths:
       summary: Get all users
       operationId: getUsers
       description: Retrieve a list of all users.
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of users
@@ -1419,12 +1421,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /auth/refresh:
+    post:
+      tags:
+        - Users
+      summary: Refresh access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /users/me:
     get:
       tags:
         - Users
       summary: Get current logged-in user
       operationId: getCurrentUser
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Current user information
@@ -1726,16 +1762,27 @@ components:
           type: string
           description: User password
 
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token to obtain new access token
+
     AuthToken:
       type: object
       properties:
-        token:
+        accessToken:
           type: string
-          description: JWT token for authenticated requests
-        expiresAt:
+          description: JWT access token for authenticated requests
+        refreshToken:
           type: string
-          format: date-time
-          description: Expiration timestamp of the token
+          description: JWT refresh token to obtain new access tokens
+        expiresIn:
+          type: string
+          description: Expiration time of the access token (e.g., "1h")
 
     HealthUnit:
       type: object
@@ -2331,3 +2378,9 @@ components:
           format: date-time
           nullable: true
           description: The date and time the appointment was finished (null if not finished yet)
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
