@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { IController } from './IController';
 import { UserService } from '../../../domain/user/service/user.service';
+import { authMiddleware } from '../middlewary/auth.middleware';
 
 export class UserController implements IController {
   router: Router;
@@ -13,11 +14,12 @@ export class UserController implements IController {
   }
 
   initRoutes() {
-    this.router.get('/users', this.getUsers);
+    this.router.get('/users/me', authMiddleware, this.getCurrentUser);
+    this.router.get('/users', authMiddleware, this.getUsers);
     this.router.get('/users/:id', this.getUserById);
     this.router.post('/users', this.createUser);
-    this.router.put('/users/:id', this.updateUser);
-    this.router.delete('/users/:id', this.deleteUser);
+    this.router.put('/users/:id', authMiddleware, this.updateUser);
+    this.router.delete('/users/:id', authMiddleware, this.deleteUser);
   }
 
   getUsers = async (req: Request, res: Response): Promise<void> => {
@@ -92,6 +94,20 @@ export class UserController implements IController {
       res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // User data is attached by authMiddleware
+      const user = req.user!;
+      res.status(200).json({
+        id: user.sub,
+        email: user.email,
+        role: user.role,
+      });
+    } catch (error) {
+      res.status(500).json({ message: (error as Error).message });
     }
   };
 
