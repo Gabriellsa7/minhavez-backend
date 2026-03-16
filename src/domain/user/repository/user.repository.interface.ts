@@ -14,6 +14,7 @@ export interface IUserRepository {
   createUser(userData: IParamsCreateUser): Promise<IUser>;
   updateUserById(id: string, params: IParamsUpdateUser): Promise<IUser | null>;
   deleteUserById(id: string): Promise<IUser | null>;
+  findById(id: string): Promise<IUser | null>;
   findUserByEmail(email: string): Promise<IUser | null>;
   findUserByEmailWithPassword(
     email: string,

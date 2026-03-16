@@ -58,12 +58,18 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async findUserById(id: string): Promise<IUser | null> {
+  async findById(id: string): Promise<IUser | null> {
     try {
-      return await Muser.findOne({ _id: id });
+      const userDoc = await Muser.findById(id);
+      if (!userDoc) return null;
+      return this.mapToDomain(userDoc);
     } catch (error) {
       throw new Error(`Error finding user by ID: ${(error as Error).message}`);
     }
+  }
+
+  async findUserById(id: string): Promise<IUser | null> {
+    return this.findById(id);
   }
 
   async findUserByEmail(email: string): Promise<IUser | null> {
