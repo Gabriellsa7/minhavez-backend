@@ -1,9 +1,8 @@
 import bcrypt from 'bcrypt';
-import { IAuthToken, ILoginRequest } from '../interfaces/auth.interface';
+import jwt from 'jsonwebtoken';
+import { IAuthTokenResponse, IAuthPayload, ILoginRequest, IRefreshTokenRequest } from '../interfaces/auth.interface';
 import { IAuthService } from '../interfaces/auth.service.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
-
-const TOKEN_TTL_MS = 1000 * 60 * 60; // 1 hour
 
 export class AuthService implements IAuthService {
   private userRepository: IUserRepository;
@@ -12,7 +11,7 @@ export class AuthService implements IAuthService {
     this.userRepository = userRepository;
   }
 
-  async login(params: ILoginRequest): Promise<IAuthToken> {
+  async login(params: ILoginRequest): Promise<IAuthTokenResponse> {
     const user = await this.userRepository.findUserByEmailWithPassword(
       params.email,
     );
@@ -25,28 +24,108 @@ export class AuthService implements IAuthService {
       throw new Error('Invalid email or password');
     }
 
-    const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
-    const token = Buffer.from(
-      `${user._id}|${expiresAt.toISOString()}`,
-    ).toString('base64');
+    const payload: IAuthPayload = {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role || 'USER',
+    };
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET not configured');
+    }
+
+    const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
+    if (!refreshSecret) {
+      throw new Error('REFRESH_TOKEN_SECRET not configured');
+    }
+
+    const accessToken = jwt.sign(payload, secret, {
+      expiresIn: process.env.JWT_EXPIRATION || '1h',
+      issuer: 'minhavez-api',
+    } as jwt.SignOptions);
+
+    const refreshToken = jwt.sign(payload, refreshSecret, {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRATION || '7d',
+      issuer: 'minhavez-api',
+    } as jwt.SignOptions);
 
     return {
-      token,
-      expiresAt,
+      accessToken,
+      refreshToken,
+      expiresIn: process.env.JWT_EXPIRATION || '1h',
     };
+  }
+
+  async refreshToken(params: IRefreshTokenRequest): Promise<IAuthTokenResponse> {
+    try {
+      const decoded = jwt.verify(params.refreshToken, process.env.REFRESH_TOKEN_SECRET!) as IAuthPayload;
+
+      // Verificar se o usuário ainda existe
+      const user = await this.userRepository.findById(decoded.sub);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const payload: IAuthPayload = {
+        sub: user._id.toString(),
+        email: user.email,
+        role: user.role || 'USER',
+      };
+
+      const secret = process.env.JWT_SECRET;
+      if (!secret) {
+        throw new Error('JWT_SECRET not configured');
+      }
+
+      const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
+      if (!refreshSecret) {
+        throw new Error('REFRESH_TOKEN_SECRET not configured');
+      }
+
+      const accessToken = jwt.sign(payload, secret, {
+        expiresIn: process.env.JWT_EXPIRATION || '1h',
+        issuer: 'minhavez-api',
+      } as jwt.SignOptions);
+
+      const refreshToken = jwt.sign(payload, refreshSecret, {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRATION || '7d',
+        issuer: 'minhavez-api',
+      } as jwt.SignOptions);
+
+      return {
+        accessToken,
+        refreshToken,
+        expiresIn: process.env.JWT_EXPIRATION || '1h',
+      };
+    } catch {
+      throw new Error('Invalid refresh token');
+    }
   }
 
   async getUserFromToken(token: string): Promise<string | null> {
     try {
-      const decoded = Buffer.from(token, 'base64').toString('utf8');
-      const [userId, expiresAtRaw] = decoded.split('|');
-      const expiresAt = new Date(expiresAtRaw);
-      if (isNaN(expiresAt.getTime()) || expiresAt < new Date()) {
-        return null;
+      const secret = process.env.JWT_SECRET;
+      if (!secret) {
+        throw new Error('JWT_SECRET not configured');
       }
-      return userId;
+      const decoded = jwt.verify(token, secret) as IAuthPayload;
+      return decoded.sub;
     } catch {
       return null;
+    }
+  }
+
+  async validateToken(token: string): Promise<boolean> {
+    try {
+      const secret = process.env.JWT_SECRET;
+      if (!secret) {
+        return false;
+      }
+      jwt.verify(token, secret);
+      return true;
+    } catch {
+      return false;
     }
   }
 }
