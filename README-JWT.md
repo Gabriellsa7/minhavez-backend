@@ -724,66 +724,6 @@ REFRESH_TOKEN_EXPIRATION=7d # Refresh: 7 dias
 NODE_ENV=production
 ```
 
-## � Troubleshooting Detalhado
-
-### Problema: "Invalid refresh token"
-
-**Possíveis causas:**
-
-1. Token expirado (> 7 dias)
-2. Secret do REFRESH_TOKEN_SECRET mudou
-3. Token foi alterado/corrompido
-4. Usuário foi deletado do banco
-
-**Soluções:**
-
-```bash
-# 1. Verificar expiração do token
-node -e "
-const jwt = require('jsonwebtoken');
-const token = 'seu_refresh_token';
-const decoded = jwt.decode(token);
-console.log('Expira em:', new Date(decoded.exp * 1000));
-"
-
-# 2. Fazer novo login
-curl -X POST http://localhost:3004/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password"}'
-```
-
-### Problema: "Authorization header required"
-
-**Causas:**
-
-1. Header `Authorization` não enviado
-2. Formato incorreto (deve ser `Bearer {token}`)
-
-**Soluções:**
-
-```bash
-# Correto
-curl -H "Authorization: Bearer eyJhbGci..." http://localhost:3004/users/me
-
-# Incorreto
-curl -H "Authorization: eyJhbGci..." http://localhost:3004/users/me
-```
-
-### Problema: "Token expired"
-
-**Solução:** Usar refresh token para obter novos tokens
-
-```bash
-curl -X POST http://localhost:3004/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"seu_refresh_token"}'
-```
-
-### Problema: Porta incorreta
-
-**Sintomas:** `Connection refused`
-**Solução:** Verificar porta no `.env` (atualmente 3004)
-
 ## 📱 Exemplos Práticos de Integração
 
 ### Frontend - React com Axios
@@ -795,7 +735,7 @@ curl -X POST http://localhost:3004/auth/refresh \
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3004',
+  baseURL: 'http://localhost:3001',
 });
 
 // Interceptor para adicionar token automaticamente
