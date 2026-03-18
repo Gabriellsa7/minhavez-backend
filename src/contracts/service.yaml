@@ -1630,6 +1630,12 @@ components:
         active:
           type: boolean
           description: Whether the user is active
+        role:
+          type: string
+          enum:
+            - USER
+            - ADMIN
+          description: User or Admin
         createdAt:
           type: string
           format: date-time
@@ -1656,6 +1662,9 @@ components:
           description: The user's password
         role:
           type: string
+          enum:
+            - USER
+            - ADMIN
           description: The user's role (e.g., admin, user)
     UpdateUser:
       type: object
@@ -2047,11 +2056,11 @@ components:
           description: The health unit identifier associated with the queue entry
         status:
           type: string
-          enum: [OPEN, PAUSED, CLOSED]
+          enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue entry
         type:
           type: string
-          enum: [WALK_IN, SCHEDULED]
+          enum: [SPONTANEOUS, SCHEDULED]
           description: The type of the queue entry
         openedAt:
           type: string
@@ -2085,7 +2094,7 @@ components:
           description: The health unit identifier associated with the queue entry
         type:
           type: string
-          enum: [WALK_IN, SCHEDULED]
+          enum: [SPONTANEOUS, SCHEDULED]
           description: The type of the queue entry
     UpdateQueue:
       type: object
@@ -2098,11 +2107,11 @@ components:
           description: The health unit identifier associated with the queue entry
         status:
           type: string
-          enum: [OPEN, PAUSED, CLOSED]
+          enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue entry
         type:
           type: string
-          enum: [WALK_IN, SCHEDULED]
+          enum: [SPONTANEOUS, SCHEDULED]
           description: The type of the queue entry
     QueueItem:
       type: object
@@ -2125,7 +2134,7 @@ components:
           description: The priority level of the patient (1-5)
         status:
           type: string
-          enum: [WAITING, CALLED, FINISHED]
+          enum: [WAITING, IN_SERVICE, FINISHED]
           description: The status of the queue item
         checkInTime:
           type: string
@@ -2184,7 +2193,7 @@ components:
           description: The priority level of the patient
         status:
           type: string
-          enum: [WAITING, CALLED, FINISHED]
+          enum: [WAITING, IN_SERVICE, FINISHED]
           description: The status of the queue item
         checkInTime:
           type: string
@@ -2212,6 +2221,13 @@ components:
         title:
           type: string
           description: The title of the notification
+        type:
+          type: string
+          enum:
+            - REMINDER
+            - QUEUE_NEAR
+            - QUEUE_NEXT
+            - QUEUE_CALLED
         message:
           type: string
           description: The content of the notification
