@@ -2296,16 +2296,15 @@ components:
           description: The unique identifier of the appointment
         patientId:
           type: string
-          format: uuid
           description: The patient identifier associated with the appointment
         professionalId:
           type: string
-          format: uuid
           description: The professional identifier associated with the appointment
         healthUnitId:
           type: string
-          format: uuid
           description: The health unit identifier associated with the appointment
+        queueItemId:
+          type: string
         dateTime:
           type: string
           format: date-time
@@ -2341,20 +2340,20 @@ components:
         - patientId
         - professionalId
         - healthUnitId
+        - queueItemId
         - dateTime
       properties:
         patientId:
           type: string
-          format: uuid
           description: The patient identifier associated with the appointment
         professionalId:
           type: string
-          format: uuid
           description: The professional identifier associated with the appointment
         healthUnitId:
           type: string
-          format: uuid
           description: The health unit identifier associated with the appointment
+        queueItemId:
+          type: string
         dateTime:
           type: string
           format: date-time
@@ -2367,16 +2366,15 @@ components:
       properties:
         patientId:
           type: string
-          format: uuid
           description: The patient identifier associated with the appointment
         professionalId:
           type: string
-          format: uuid
           description: The professional identifier associated with the appointment
         healthUnitId:
           type: string
-          format: uuid
           description: The health unit identifier associated with the appointment
+        queueItemId:
+          type: string
         dateTime:
           type: string
           format: date-time

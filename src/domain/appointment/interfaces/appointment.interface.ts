@@ -3,6 +3,7 @@ export interface IAppointment {
   patientId: string;
   professionalId: string;
   healthUnitId: string;
+  queueItemId: string;
   dateTime: Date;
   status: EAppointmentStatus;
   notes?: string;
