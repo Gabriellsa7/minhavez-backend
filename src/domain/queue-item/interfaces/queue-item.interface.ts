@@ -20,6 +20,6 @@ export enum EQueueItemPriority {
 
 export enum EQueueItemStatus {
   WAITING = 'WAITING',
-  CALLED = 'CALLED',
+  IN_SERVICE = 'IN_SERVICE',
   FINISHED = 'FINISHED',
 }
