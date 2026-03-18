@@ -7,6 +7,16 @@ export const notificationSchema = new mongoose.Schema(
       ref: 'Patient',
       required: true,
     },
+    queueItemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'QueueItem',
+      required: false,
+    },
+    appointmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Appointment',
+      require: false,
+    },
     title: {
       type: String,
       required: true,
@@ -32,6 +42,8 @@ export const notificationSchema = new mongoose.Schema(
 
 export interface INotificationSchema {
   patientId: mongoose.Types.ObjectId;
+  queueItemId: mongoose.Types.ObjectId;
+  appointmentId: mongoose.Types.ObjectId;
   title: string;
   message: string;
   read: boolean;

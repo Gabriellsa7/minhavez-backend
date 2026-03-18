@@ -2218,6 +2218,10 @@ components:
         patientId:
           type: string
           description: The patient identifier associated with the notification
+        queueItemId:
+          type: string
+        appointmentId:
+          type: string
         title:
           type: string
           description: The title of the notification
