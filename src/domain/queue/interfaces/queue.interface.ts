@@ -12,11 +12,11 @@ export interface IQueue {
 
 export enum EQueueStatus {
   OPEN = 'OPEN',
-  PAUSED = 'PAUSED',
+  IN_PROGRESS = 'IN_PROGRESS',
   CLOSED = 'CLOSED',
 }
 
 export enum EQueueType {
-  WALK_IN = 'WALK_IN',
+  WALK_IN = 'SPONTANEOUS',
   SCHEDULED = 'SCHEDULED',
 }
