@@ -6,7 +6,7 @@ import {
   IParamsUpdateQueueItem,
   IQueueItemRepository,
 } from '../../../domain/queue-item/repository/queue-item.repository.interface';
-import { Muser } from '../../db/mongo/models/queue-item.model';
+import { MQueueItem } from '../../db/mongo/models/queue-item.model';
 
 export class QueueItemRepository implements IQueueItemRepository {
   private mapToDomain(
@@ -31,7 +31,7 @@ export class QueueItemRepository implements IQueueItemRepository {
     queueItemData: IParamsCreateQueueItem,
   ): Promise<IQueueItem> {
     try {
-      const queueItemDoc = await Muser.create(queueItemData);
+      const queueItemDoc = await MQueueItem.create(queueItemData);
       return this.mapToDomain(queueItemDoc);
     } catch (error) {
       throw new Error(`Error creating queue item: ${(error as Error).message}`);
@@ -43,7 +43,7 @@ export class QueueItemRepository implements IQueueItemRepository {
     params: IParamsUpdateQueueItem,
   ): Promise<IQueueItem | null> {
     try {
-      const queueItemDoc = await Muser.findByIdAndUpdate(id, params, {
+      const queueItemDoc = await MQueueItem.findByIdAndUpdate(id, params, {
         new: true,
       });
 
@@ -59,7 +59,7 @@ export class QueueItemRepository implements IQueueItemRepository {
 
   async deleteQueueItemById(id: string): Promise<IQueueItem | null> {
     try {
-      const queueItemDoc = await Muser.findByIdAndDelete(id);
+      const queueItemDoc = await MQueueItem.findByIdAndDelete(id);
       if (!queueItemDoc) return null;
 
       return this.mapToDomain(queueItemDoc);
@@ -72,7 +72,7 @@ export class QueueItemRepository implements IQueueItemRepository {
 
   async getQueueItemById(id: string): Promise<IQueueItem | null> {
     try {
-      const queueItemDoc = await Muser.findById(id);
+      const queueItemDoc = await MQueueItem.findById(id);
       if (!queueItemDoc) return null;
 
       return this.mapToDomain(queueItemDoc);
@@ -85,7 +85,7 @@ export class QueueItemRepository implements IQueueItemRepository {
 
   async getQueueItemByPatientId(patientId: string): Promise<IQueueItem | null> {
     try {
-      const queueItemDoc = await Muser.findOne({ patientId });
+      const queueItemDoc = await MQueueItem.findOne({ patientId });
       if (!queueItemDoc) return null;
 
       return this.mapToDomain(queueItemDoc);
@@ -98,7 +98,7 @@ export class QueueItemRepository implements IQueueItemRepository {
 
   async getQueueItemByQueueId(queueId: string): Promise<IQueueItem | null> {
     try {
-      const queueItemDoc = await Muser.findOne({ queueId });
+      const queueItemDoc = await MQueueItem.findOne({ queueId });
       if (!queueItemDoc) return null;
 
       return this.mapToDomain(queueItemDoc);
@@ -111,7 +111,7 @@ export class QueueItemRepository implements IQueueItemRepository {
 
   async listQueueItems(filter: Partial<IQueueItem>): Promise<IQueueItem[]> {
     try {
-      const queueItemDocs = await Muser.find(filter);
+      const queueItemDocs = await MQueueItem.find(filter);
       return queueItemDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing queue items: ${(error as Error).message}`);
