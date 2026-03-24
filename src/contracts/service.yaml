@@ -2058,10 +2058,6 @@ components:
           type: string
           enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue entry
-        type:
-          type: string
-          enum: [SPONTANEOUS, SCHEDULED]
-          description: The type of the queue entry
         openedAt:
           type: string
           format: date-time
@@ -2092,10 +2088,6 @@ components:
         healthUnitId:
           type: string
           description: The health unit identifier associated with the queue entry
-        type:
-          type: string
-          enum: [SPONTANEOUS, SCHEDULED]
-          description: The type of the queue entry
     UpdateQueue:
       type: object
       properties:
@@ -2109,10 +2101,6 @@ components:
           type: string
           enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue entry
-        type:
-          type: string
-          enum: [SPONTANEOUS, SCHEDULED]
-          description: The type of the queue entry
     QueueItem:
       type: object
       properties:
