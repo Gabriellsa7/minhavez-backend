@@ -18,6 +18,11 @@ export const appointmentSchema = new mongoose.Schema(
       ref: 'HealthUnit',
       required: true,
     },
+    queueItemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'QueueItem',
+      required: true,
+    },
     dateTime: {
       type: Date,
       required: true,
@@ -50,6 +55,7 @@ export interface IAppointmentSchema {
   patientId: mongoose.Types.ObjectId;
   professionalId: mongoose.Types.ObjectId;
   healthUnitId: mongoose.Types.ObjectId;
+  queueItemId: mongoose.Types.ObjectId;
   dateTime: Date;
   status: EAppointmentStatus;
   notes?: string;

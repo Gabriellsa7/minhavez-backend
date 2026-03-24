@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ENotificationType } from '../../../../domain/notification/interfaces/notification.interface';
 
 export const notificationSchema = new mongoose.Schema(
   {
@@ -16,6 +17,10 @@ export const notificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Appointment',
       require: false,
+    },
+    type: {
+      type: String,
+      enum: ENotificationType,
     },
     title: {
       type: String,
@@ -45,6 +50,7 @@ export interface INotificationSchema {
   queueItemId: mongoose.Types.ObjectId;
   appointmentId: mongoose.Types.ObjectId;
   title: string;
+  type: ENotificationType;
   message: string;
   read: boolean;
   sentAt?: Date | null;

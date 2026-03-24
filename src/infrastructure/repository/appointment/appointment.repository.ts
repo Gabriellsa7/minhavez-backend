@@ -16,6 +16,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       _id: appointmentDoc._id.toString(),
       patientId: appointmentDoc.patientId.toString(),
       professionalId: appointmentDoc.professionalId.toString(),
+      queueItemId: appointmentDoc.queueItemId.toString(),
       healthUnitId: appointmentDoc.healthUnitId.toString(),
       dateTime: appointmentDoc.dateTime,
       status: appointmentDoc.status,

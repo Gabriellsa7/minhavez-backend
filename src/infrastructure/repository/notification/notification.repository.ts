@@ -16,6 +16,7 @@ export class NotificationRepository implements INotificationRepository {
       _id: notificationDoc._id.toString(),
       patientId: notificationDoc.patientId.toString(),
       title: notificationDoc.title,
+      type: notificationDoc.type,
       message: notificationDoc.message,
       read: notificationDoc.read,
       sentAt: notificationDoc.sentAt,
