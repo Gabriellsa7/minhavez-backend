@@ -1,11 +1,11 @@
 import supertest from 'supertest';
 import { app } from '../../../jest/setup-integration-tests';
-import { Muser } from '../../infrastructure/db/mongo/models/user.model';
+import { MUser } from '../../infrastructure/db/mongo/models/user.model';
 import { IParamsCreateUser } from '../../domain/user/repository/user.repository.interface';
 let paramsCreate: IParamsCreateUser;
 
 beforeEach(async () => {
-  await Muser.deleteMany({});
+  await MUser.deleteMany({});
   paramsCreate = {
     email: 'whitebeard@email.com',
     name: 'Whitebeard',
@@ -19,7 +19,7 @@ describe('When we try to create a valid user', () => {
       .post(`/users`)
       .send(paramsCreate);
 
-    const userInDb = await Muser.findOne({
+    const userInDb = await MUser.findOne({
       email: paramsCreate.email,
     });
 
