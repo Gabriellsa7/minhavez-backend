@@ -4,5 +4,5 @@ import {
   appointmentSchema,
 } from '../schema/appointment.schema';
 
-export const Muser: Model<IAppointmentSchema> =
+export const MAppointment: Model<IAppointmentSchema> =
   mongoose.model<IAppointmentSchema>('appointment', appointmentSchema);

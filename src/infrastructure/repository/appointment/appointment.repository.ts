@@ -6,7 +6,7 @@ import {
   IParamsUpdateAppointment,
   IAppointmentRepository,
 } from '../../../domain/appointment/repository/appointment.repository.interface';
-import { Muser } from '../../db/mongo/models/appointment.model';
+import { MAppointment } from '../../db/mongo/models/appointment.model';
 
 export class AppointmentRepository implements IAppointmentRepository {
   private mapToDomain(
@@ -32,7 +32,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     appointmentData: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
-      const appointmentDoc = await Muser.create(appointmentData);
+      const appointmentDoc = await MAppointment.create(appointmentData);
       return this.mapToDomain(appointmentDoc);
     } catch (error) {
       throw new Error(
@@ -46,7 +46,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     params: IParamsUpdateAppointment,
   ): Promise<IAppointment | null> {
     try {
-      const appointmentDoc = await Muser.findByIdAndUpdate(id, params, {
+      const appointmentDoc = await MAppointment.findByIdAndUpdate(id, params, {
         new: true,
       });
 
@@ -62,7 +62,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async deleteAppointmentById(id: string): Promise<IAppointment | null> {
     try {
-      const appointmentDoc = await Muser.findByIdAndDelete(id);
+      const appointmentDoc = await MAppointment.findByIdAndDelete(id);
       if (!appointmentDoc) return null;
 
       return this.mapToDomain(appointmentDoc);
@@ -75,7 +75,7 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async getAppointmentById(id: string): Promise<IAppointment | null> {
     try {
-      const appointmentDoc = await Muser.findById(id);
+      const appointmentDoc = await MAppointment.findById(id);
       if (!appointmentDoc) return null;
 
       return this.mapToDomain(appointmentDoc);
@@ -90,7 +90,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     filter: Partial<IAppointment>,
   ): Promise<IAppointment[]> {
     try {
-      const appointmentDocs = await Muser.find(filter);
+      const appointmentDocs = await MAppointment.find(filter);
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -103,7 +103,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     patientId: string,
   ): Promise<IAppointment[]> {
     try {
-      const appointmentDocs = await Muser.find({ patientId });
+      const appointmentDocs = await MAppointment.find({ patientId });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -116,7 +116,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     healthUnitId: string,
   ): Promise<IAppointment[]> {
     try {
-      const appointmentDocs = await Muser.find({ healthUnitId });
+      const appointmentDocs = await MAppointment.find({ healthUnitId });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -129,7 +129,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     professionalId: string,
   ): Promise<IAppointment[]> {
     try {
-      const appointmentDocs = await Muser.find({ professionalId });
+      const appointmentDocs = await MAppointment.find({ professionalId });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
