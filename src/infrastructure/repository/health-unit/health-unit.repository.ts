@@ -6,7 +6,7 @@ import {
 } from '../../../domain/health-unit/repository/health-unit.repository.interface';
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitSchema } from '../../db/mongo/schema/health-unit.schema';
-import { Muser } from '../../db/mongo/models/health-unit.model';
+import { MHealthUnit } from '../../db/mongo/models/health-unit.model';
 
 export class HealthUnitRepository implements IHealthUnitRepository {
   private mapToDomain(
@@ -24,7 +24,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
 
   async createHealthUnit(healthUnitData: IHealthUnit) {
     try {
-      const healthUnitDoc = await Muser.create(healthUnitData);
+      const healthUnitDoc = await MHealthUnit.create(healthUnitData);
       return this.mapToDomain(healthUnitDoc);
     } catch (error) {
       throw new Error(
@@ -35,7 +35,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
 
   async getHealthUnitByEmail(email: string): Promise<IHealthUnit | null> {
     try {
-      const healthUnitDoc = await Muser.findOne({ email });
+      const healthUnitDoc = await MHealthUnit.findOne({ email });
       if (healthUnitDoc) {
         return this.mapToDomain(healthUnitDoc);
       }
@@ -49,7 +49,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
 
   async getHealthUnitById(_id: string): Promise<IHealthUnit | null> {
     try {
-      const healthUnitDoc = await Muser.findById(_id);
+      const healthUnitDoc = await MHealthUnit.findById(_id);
       if (healthUnitDoc) {
         return this.mapToDomain(healthUnitDoc);
       }
@@ -66,9 +66,13 @@ export class HealthUnitRepository implements IHealthUnitRepository {
     updateData: IParamsUpdateHealthUnit,
   ): Promise<IHealthUnit | null> {
     try {
-      const healthUnitDoc = await Muser.findByIdAndUpdate(_id, updateData, {
-        new: true,
-      });
+      const healthUnitDoc = await MHealthUnit.findByIdAndUpdate(
+        _id,
+        updateData,
+        {
+          new: true,
+        },
+      );
       if (healthUnitDoc) {
         return this.mapToDomain(healthUnitDoc);
       }
@@ -82,7 +86,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
 
   async deleteHealthUnitById(_id: string): Promise<IHealthUnit | null> {
     try {
-      const healthUnitDoc = await Muser.findByIdAndDelete(_id);
+      const healthUnitDoc = await MHealthUnit.findByIdAndDelete(_id);
       if (healthUnitDoc) {
         return this.mapToDomain(healthUnitDoc);
       }
@@ -96,7 +100,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
 
   async listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]> {
     try {
-      const healthUnitsDocs = await Muser.find(filter);
+      const healthUnitsDocs = await MHealthUnit.find(filter);
       return healthUnitsDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
