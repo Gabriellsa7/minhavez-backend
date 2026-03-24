@@ -5,7 +5,7 @@ import {
   IParamsCreateHealthProfessional,
   IParamsUpdateHealthProfessional,
 } from '../../../domain/health-professional.ts/repository/health-professional.repository.interface';
-import { Muser } from '../../db/mongo/models/health-professional.model';
+import { MHealthProfessional } from '../../db/mongo/models/health-professional.model';
 
 export class HealthProfessionalRepository {
   private mapToDomain(
@@ -27,7 +27,9 @@ export class HealthProfessionalRepository {
     healthProfessionalData: IParamsCreateHealthProfessional,
   ): Promise<IHealthProfessional> {
     try {
-      const healthProfessionalDoc = await Muser.create(healthProfessionalData);
+      const healthProfessionalDoc = await MHealthProfessional.create(
+        healthProfessionalData,
+      );
       return this.mapToDomain(healthProfessionalDoc);
     } catch (error) {
       throw new Error(
@@ -41,9 +43,13 @@ export class HealthProfessionalRepository {
     params: IParamsUpdateHealthProfessional,
   ): Promise<IHealthProfessional | null> {
     try {
-      const healthProfessionalDoc = await Muser.findByIdAndUpdate(_id, params, {
-        new: true,
-      });
+      const healthProfessionalDoc = await MHealthProfessional.findByIdAndUpdate(
+        _id,
+        params,
+        {
+          new: true,
+        },
+      );
 
       if (!healthProfessionalDoc) return null;
 
@@ -59,7 +65,8 @@ export class HealthProfessionalRepository {
     id: string,
   ): Promise<IHealthProfessional | null> {
     try {
-      const healthProfessionalDoc = await Muser.findByIdAndDelete(id);
+      const healthProfessionalDoc =
+        await MHealthProfessional.findByIdAndDelete(id);
 
       if (!healthProfessionalDoc) return null;
 
@@ -75,7 +82,7 @@ export class HealthProfessionalRepository {
     id: string,
   ): Promise<IHealthProfessional | null> {
     try {
-      const healthProfessionalDoc = await Muser.findById(id);
+      const healthProfessionalDoc = await MHealthProfessional.findById(id);
 
       if (!healthProfessionalDoc) return null;
 
@@ -91,7 +98,9 @@ export class HealthProfessionalRepository {
     userId: string,
   ): Promise<IHealthProfessional | null> {
     try {
-      const healthProfessionalDoc = await Muser.findOne({ userId });
+      const healthProfessionalDoc = await MHealthProfessional.findOne({
+        userId,
+      });
 
       if (!healthProfessionalDoc) return null;
 
@@ -107,7 +116,9 @@ export class HealthProfessionalRepository {
     healthUnitId: string,
   ): Promise<IHealthProfessional[]> {
     try {
-      const healthProfessionalDocs = await Muser.find({ healthUnitId });
+      const healthProfessionalDocs = await MHealthProfessional.find({
+        healthUnitId,
+      });
 
       return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
@@ -119,7 +130,7 @@ export class HealthProfessionalRepository {
 
   async listHealthProfessionals(): Promise<IHealthProfessional[]> {
     try {
-      const healthProfessionalDocs = await Muser.find();
+      const healthProfessionalDocs = await MHealthProfessional.find();
 
       return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {

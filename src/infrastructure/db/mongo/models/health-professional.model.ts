@@ -4,7 +4,7 @@ import {
   IHealthProfessionalSchema,
 } from '../schema/health-professional.schema';
 
-export const Muser: Model<IHealthProfessionalSchema> =
+export const MHealthProfessional: Model<IHealthProfessionalSchema> =
   mongoose.model<IHealthProfessionalSchema>(
     'healthProfessional',
     healthProfessionalSchema,
