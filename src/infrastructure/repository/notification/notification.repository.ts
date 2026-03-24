@@ -6,7 +6,7 @@ import {
   IParamsUpdateNotification,
   INotificationRepository,
 } from '../../../domain/notification/repository/notification.repository.interface';
-import { Muser } from '../../db/mongo/models/notification.model';
+import { MNotification } from '../../db/mongo/models/notification.model';
 
 export class NotificationRepository implements INotificationRepository {
   private mapToDomain(
@@ -29,7 +29,7 @@ export class NotificationRepository implements INotificationRepository {
     notificationData: IParamsCreateNotification,
   ): Promise<INotification> {
     try {
-      const notificationDoc = await Muser.create(notificationData);
+      const notificationDoc = await MNotification.create(notificationData);
       return this.mapToDomain(notificationDoc);
     } catch (error) {
       throw new Error(
@@ -43,9 +43,13 @@ export class NotificationRepository implements INotificationRepository {
     params: IParamsUpdateNotification,
   ): Promise<INotification | null> {
     try {
-      const notificationDoc = await Muser.findByIdAndUpdate(id, params, {
-        new: true,
-      });
+      const notificationDoc = await MNotification.findByIdAndUpdate(
+        id,
+        params,
+        {
+          new: true,
+        },
+      );
 
       if (!notificationDoc) return null;
 
@@ -59,7 +63,7 @@ export class NotificationRepository implements INotificationRepository {
 
   async deleteNotificationById(id: string): Promise<INotification | null> {
     try {
-      const notificationDoc = await Muser.findByIdAndDelete(id);
+      const notificationDoc = await MNotification.findByIdAndDelete(id);
       if (!notificationDoc) return null;
 
       return this.mapToDomain(notificationDoc);
@@ -72,7 +76,7 @@ export class NotificationRepository implements INotificationRepository {
 
   async getNotificationById(id: string): Promise<INotification | null> {
     try {
-      const notificationDoc = await Muser.findById(id);
+      const notificationDoc = await MNotification.findById(id);
       if (!notificationDoc) return null;
 
       return this.mapToDomain(notificationDoc);
@@ -87,7 +91,7 @@ export class NotificationRepository implements INotificationRepository {
     filter: Partial<INotification>,
   ): Promise<INotification[]> {
     try {
-      const notificationDocs = await Muser.find(filter);
+      const notificationDocs = await MNotification.find(filter);
       return notificationDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -98,7 +102,7 @@ export class NotificationRepository implements INotificationRepository {
 
   async markNotificationRead(id: string): Promise<INotification | null> {
     try {
-      const notificationDoc = await Muser.findByIdAndUpdate(
+      const notificationDoc = await MNotification.findByIdAndUpdate(
         id,
         { read: true },
         { new: true },

@@ -4,5 +4,5 @@ import {
   notificationSchema,
 } from '../schema/notification.schema';
 
-export const Muser: Model<INotificationSchema> =
+export const MNotification: Model<INotificationSchema> =
   mongoose.model<INotificationSchema>('notification', notificationSchema);
