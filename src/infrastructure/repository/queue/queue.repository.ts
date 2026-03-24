@@ -6,7 +6,7 @@ import {
   IParamsUpdateQueue,
   IQueueRepository,
 } from '../../../domain/queue/repository/queue.repository.interface';
-import { Muser } from '../../db/mongo/models/queue.model';
+import { MQueue } from '../../db/mongo/models/queue.model';
 
 export class QueueRepository implements IQueueRepository {
   private mapToDomain(queueDoc: HydratedDocument<IQueueSchema>): IQueue {
@@ -24,7 +24,7 @@ export class QueueRepository implements IQueueRepository {
 
   async createQueue(queueData: IParamsCreateQueue): Promise<IQueue> {
     try {
-      const queueDoc = await Muser.create(queueData);
+      const queueDoc = await MQueue.create(queueData);
       return this.mapToDomain(queueDoc);
     } catch (error) {
       throw new Error(`Error creating queue: ${(error as Error).message}`);
@@ -36,7 +36,7 @@ export class QueueRepository implements IQueueRepository {
     params: IParamsUpdateQueue,
   ): Promise<IQueue | null> {
     try {
-      const queueDoc = await Muser.findByIdAndUpdate(_id, params, {
+      const queueDoc = await MQueue.findByIdAndUpdate(_id, params, {
         new: true,
       });
 
@@ -50,7 +50,7 @@ export class QueueRepository implements IQueueRepository {
 
   async deleteQueueById(id: string): Promise<IQueue | null> {
     try {
-      const queueDoc = await Muser.findByIdAndDelete(id);
+      const queueDoc = await MQueue.findByIdAndDelete(id);
 
       if (!queueDoc) return null;
 
@@ -62,7 +62,7 @@ export class QueueRepository implements IQueueRepository {
 
   async getQueueById(id: string): Promise<IQueue | null> {
     try {
-      const queueDoc = await Muser.findById(id);
+      const queueDoc = await MQueue.findById(id);
 
       if (!queueDoc) return null;
 
@@ -76,7 +76,7 @@ export class QueueRepository implements IQueueRepository {
 
   async listQueues(filter: Partial<IQueue>): Promise<IQueue[]> {
     try {
-      const queueDocs = await Muser.find(filter);
+      const queueDocs = await MQueue.find(filter);
       return queueDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing queues: ${(error as Error).message}`);
