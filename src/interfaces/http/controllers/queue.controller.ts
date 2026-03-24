@@ -54,7 +54,6 @@ export class QueueController implements IController {
         professionalId: data.professionalId,
         healthUnitId: data.healthUnitId,
         status: data.status,
-        type: data.type,
       });
 
       res.status(201).json(newQueueItem);
@@ -76,13 +75,19 @@ export class QueueController implements IController {
     const { id } = req.params;
     try {
       const deletedQueueItem = await this.queueService.deleteQueueById(id);
+
       if (!deletedQueueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Queue not found' });
         return;
       }
-      res.status(200).json(deletedQueueItem);
+
+      res.status(200).json({
+        message: 'Queue deleted successfully',
+      });
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({
+        message: (error as Error).message || 'Internal server error',
+      });
     }
   };
 

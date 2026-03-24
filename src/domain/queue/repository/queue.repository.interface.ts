@@ -1,14 +1,9 @@
-import {
-  EQueueStatus,
-  EQueueType,
-  IQueue,
-} from '../interfaces/queue.interface';
+import { EQueueStatus, IQueue } from '../interfaces/queue.interface';
 
 export interface IParamsCreateQueue {
   professionalId: string;
   healthUnitId: string;
   status: EQueueStatus;
-  type: EQueueType;
 }
 
 export interface IParamsUpdateQueue {
