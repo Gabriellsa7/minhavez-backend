@@ -6,7 +6,7 @@ import {
   IParamsUpdatePatient,
   IPatientRepository,
 } from '../../../domain/patient/repository/patient.repository.interface';
-import { Muser } from '../../db/mongo/models/patient.model';
+import { MPatient } from '../../db/mongo/models/patient.model';
 
 export class PatientRepository implements IPatientRepository {
   private mapToDomain(patientDoc: HydratedDocument<IPatientSchema>): IPatient {
@@ -24,7 +24,7 @@ export class PatientRepository implements IPatientRepository {
 
   async createPatient(patientDate: IParamsCreatePatient): Promise<IPatient> {
     try {
-      const patientDoc = await Muser.create(patientDate);
+      const patientDoc = await MPatient.create(patientDate);
       return this.mapToDomain(patientDoc);
     } catch (error) {
       throw new Error(`Error creating patient: ${(error as Error).message}`);
@@ -36,7 +36,7 @@ export class PatientRepository implements IPatientRepository {
     params: IParamsUpdatePatient,
   ): Promise<IPatient | null> {
     try {
-      const patientDoc = await Muser.findByIdAndUpdate(_id, params, {
+      const patientDoc = await MPatient.findByIdAndUpdate(_id, params, {
         new: true,
       });
 
@@ -50,7 +50,7 @@ export class PatientRepository implements IPatientRepository {
 
   async deletePatientById(id: string): Promise<IPatient | null> {
     try {
-      const patientDoc = await Muser.findByIdAndDelete(id);
+      const patientDoc = await MPatient.findByIdAndDelete(id);
 
       if (!patientDoc) return null;
 
@@ -62,7 +62,7 @@ export class PatientRepository implements IPatientRepository {
 
   async getPatientById(id: string): Promise<IPatient | null> {
     try {
-      const patientDoc = await Muser.findById(id);
+      const patientDoc = await MPatient.findById(id);
 
       if (!patientDoc) return null;
 
@@ -74,7 +74,7 @@ export class PatientRepository implements IPatientRepository {
 
   async getPatientByCpf(cpf: string): Promise<IPatient | null> {
     try {
-      const patientDoc = await Muser.findOne({ cpf });
+      const patientDoc = await MPatient.findOne({ cpf });
 
       if (!patientDoc) return null;
 
@@ -88,7 +88,7 @@ export class PatientRepository implements IPatientRepository {
 
   async getPatientByUserId(userId: string): Promise<IPatient | null> {
     try {
-      const patientDoc = await Muser.findOne({ userId });
+      const patientDoc = await MPatient.findOne({ userId });
 
       if (!patientDoc) return null;
 
@@ -102,7 +102,7 @@ export class PatientRepository implements IPatientRepository {
 
   async listPatients(filter: Partial<IPatient>): Promise<IPatient[]> {
     try {
-      const patientDocs = await Muser.find(filter);
+      const patientDocs = await MPatient.find(filter);
       return patientDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing patients: ${(error as Error).message}`);
