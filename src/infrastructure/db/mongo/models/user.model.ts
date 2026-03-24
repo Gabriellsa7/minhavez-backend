@@ -1,4 +1,4 @@
 import mongoose from 'mongoose';
 import { userSchema } from '../schema/user.schema';
 
-export const Muser = mongoose.model('user', userSchema);
+export const MUser = mongoose.model('user', userSchema);

@@ -1,6 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { IUser } from '../../../domain/user/interfaces/user.interface';
-import { Muser } from '../../db/mongo/models/user.model';
+import { MUser } from '../../db/mongo/models/user.model';
 import { IUserSchema } from '../../db/mongo/schema/user.schema';
 import {
   IParamsCreateUser,
@@ -22,7 +22,7 @@ export class UserRepository implements IUserRepository {
 
   async createUser(userData: IParamsCreateUser): Promise<IUser> {
     try {
-      const userDoc = await Muser.create(userData);
+      const userDoc = await MUser.create(userData);
       return this.mapToDomain(userDoc);
     } catch (error) {
       throw new Error(`Error creating user: ${(error as Error).message}`);
@@ -34,7 +34,7 @@ export class UserRepository implements IUserRepository {
     params: IParamsUpdateUser,
   ): Promise<IUser | null> {
     try {
-      const userDoc = await Muser.findByIdAndUpdate(_id, params, {
+      const userDoc = await MUser.findByIdAndUpdate(_id, params, {
         new: true,
       });
 
@@ -48,7 +48,7 @@ export class UserRepository implements IUserRepository {
 
   async deleteUserById(id: string): Promise<IUser | null> {
     try {
-      const userDoc = await Muser.findByIdAndDelete(id);
+      const userDoc = await MUser.findByIdAndDelete(id);
 
       if (!userDoc) return null;
 
@@ -60,7 +60,7 @@ export class UserRepository implements IUserRepository {
 
   async findById(id: string): Promise<IUser | null> {
     try {
-      const userDoc = await Muser.findById(id);
+      const userDoc = await MUser.findById(id);
       if (!userDoc) return null;
       return this.mapToDomain(userDoc);
     } catch (error) {
@@ -74,7 +74,7 @@ export class UserRepository implements IUserRepository {
 
   async findUserByEmail(email: string): Promise<IUser | null> {
     try {
-      return await Muser.findOne({ email });
+      return await MUser.findOne({ email });
     } catch (error) {
       throw new Error(
         `Error finding user by email: ${(error as Error).message}`,
@@ -86,7 +86,7 @@ export class UserRepository implements IUserRepository {
     email: string,
   ): Promise<(IUser & { password: string }) | null> {
     try {
-      const userDoc = await Muser.findOne({ email }).select('+password');
+      const userDoc = await MUser.findOne({ email }).select('+password');
       if (!userDoc) return null;
 
       return {
@@ -107,7 +107,7 @@ export class UserRepository implements IUserRepository {
 
   async listUsers(filter: Partial<IUser>): Promise<IUser[]> {
     try {
-      return await Muser.find(filter);
+      return await MUser.find(filter);
     } catch (error) {
       throw new Error(`Error listing users: ${(error as Error).message}`);
     }
