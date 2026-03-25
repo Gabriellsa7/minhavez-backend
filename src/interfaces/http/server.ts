@@ -53,8 +53,10 @@ export class Server {
       res.status(200).json({ status: 'OK' });
     });
 
-    this.middlewares(this.middleWaresToStart);
-
+    this.middlewares([
+      ...(appInit.middlewaresToStart || []),
+      ...this.middleWaresToStart,
+    ]);
     this.routes(appInit.controllers || []);
 
     this.customizers();
@@ -62,6 +64,9 @@ export class Server {
 
   private middlewares(middleWares: Array<RequestHandler>) {
     middleWares.forEach((middleWare) => this.app.use(middleWare));
+
+    this.app.options('*', middleWares);
+
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: this.apiSpecLocation || '',

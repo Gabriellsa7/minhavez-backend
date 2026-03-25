@@ -28,6 +28,7 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongodb-memory-server": "^2.3.0",
@@ -54,6 +55,7 @@
   "repository": "git@github.com:whitebeardit/node-boilerplate.git",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "express-openapi-validator": "^4.13.8",
