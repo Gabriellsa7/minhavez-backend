@@ -20,6 +20,23 @@ export class AppointmentService implements IAppointmentService {
     params: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
+      if (!params.queueItemId) {
+        throw new Error(
+          'Appointment must be created from a queue item (queueItemId is required)',
+        );
+      }
+
+      const existingAppointmentWithQueueItemId =
+        await this.appointmentRepository.listAppointments({
+          queueItemId: params.queueItemId,
+        });
+
+      if (existingAppointmentWithQueueItemId.length > 0) {
+        {
+          throw new Error('Already exist an appointment with de queueItemId');
+        }
+      }
+
       return await this.appointmentRepository.createAppointment(params);
     } catch (error) {
       throw new Error(
