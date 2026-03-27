@@ -1,6 +1,11 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { IAuthTokenResponse, IAuthPayload, ILoginRequest, IRefreshTokenRequest } from '../interfaces/auth.interface';
+import {
+  IAuthTokenResponse,
+  IAuthPayload,
+  ILoginRequest,
+  IRefreshTokenRequest,
+} from '../interfaces/auth.interface';
 import { IAuthService } from '../interfaces/auth.service.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 
@@ -26,6 +31,7 @@ export class AuthService implements IAuthService {
 
     const payload: IAuthPayload = {
       sub: user._id.toString(),
+      name: user.name,
       email: user.email,
       role: user.role || 'USER',
     };
@@ -57,9 +63,14 @@ export class AuthService implements IAuthService {
     };
   }
 
-  async refreshToken(params: IRefreshTokenRequest): Promise<IAuthTokenResponse> {
+  async refreshToken(
+    params: IRefreshTokenRequest,
+  ): Promise<IAuthTokenResponse> {
     try {
-      const decoded = jwt.verify(params.refreshToken, process.env.REFRESH_TOKEN_SECRET!) as IAuthPayload;
+      const decoded = jwt.verify(
+        params.refreshToken,
+        process.env.REFRESH_TOKEN_SECRET!,
+      ) as IAuthPayload;
 
       // Verificar se o usuário ainda existe
       const user = await this.userRepository.findById(decoded.sub);
@@ -69,6 +80,7 @@ export class AuthService implements IAuthService {
 
       const payload: IAuthPayload = {
         sub: user._id.toString(),
+        name: user.name,
         email: user.email,
         role: user.role || 'USER',
       };

@@ -17,6 +17,7 @@ export interface IAuthTokenResponse {
 export interface IAuthPayload {
   sub: string; // user id
   email: string;
+  name: string;
   role: string;
   iat?: number;
   exp?: number;

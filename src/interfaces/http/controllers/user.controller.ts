@@ -104,6 +104,7 @@ export class UserController implements IController {
       res.status(200).json({
         id: user.sub,
         email: user.email,
+        name: user.name,
         role: user.role,
       });
     } catch (error) {
