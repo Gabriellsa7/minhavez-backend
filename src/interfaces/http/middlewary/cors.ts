@@ -2,6 +2,7 @@ import cors, { CorsOptions } from 'cors';
 
 const allowedOrigins = [
   'http://localhost:3001',
+  'http://192.168.0.12:3001',
   'http://10.1.73.233:8081',
   'http://localhost:8081',
 ];

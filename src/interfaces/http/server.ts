@@ -83,7 +83,10 @@ export class Server {
           if (err.status === 500) {
             Logger.error(JSON.stringify(err));
           }
-          res.status(err.status).json({ message: err.message });
+          res.status(err.status).json({
+            status: err.status,
+            message: err.message,
+          });
           return;
         }
         if (err instanceof Error) {
@@ -96,6 +99,7 @@ export class Server {
           );
         }
         res.status(500).json({
+          status: 500,
           message: 'Internal Server Error',
         });
       },

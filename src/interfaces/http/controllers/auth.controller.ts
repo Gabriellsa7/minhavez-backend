@@ -25,9 +25,16 @@ export class AuthController implements IController {
     const data: ILoginRequest = req.body;
     try {
       const tokens = await this.authService.login(data);
-      res.status(200).json(tokens);
+      res.status(200).json({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn,
+      });
     } catch (error) {
-      res.status(401).json({ error: (error as Error).message });
+      res.status(401).json({
+        status: 401,
+        message: (error as Error).message,
+      });
     }
   };
 
