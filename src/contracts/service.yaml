@@ -2080,7 +2080,6 @@ components:
       required:
         - professionalId
         - healthUnitId
-        - type
       properties:
         professionalId:
           type: string
