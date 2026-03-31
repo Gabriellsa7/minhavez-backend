@@ -102,7 +102,7 @@ export class UserController implements IController {
       // User data is attached by authMiddleware
       const user = req.user!;
       res.status(200).json({
-        id: user.sub,
+        _id: user.sub,
         email: user.email,
         name: user.name,
         role: user.role,
