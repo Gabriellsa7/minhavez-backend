@@ -1,5 +1,8 @@
 import { EQueueStatus, IQueue } from '../interfaces/queue.interface';
-import { IQueueService, IQueueWithDetails } from '../interfaces/queue.service.interface';
+import {
+  IQueueService,
+  IQueueWithDetails,
+} from '../interfaces/queue.service.interface';
 import {
   IParamsCreateQueue,
   IParamsUpdateQueue,
@@ -73,28 +76,34 @@ export class QueueService implements IQueueService {
     }
   }
 
-  async getQueuesWithDetailsByPatientId(patientId: string): Promise<IQueueWithDetails[]> {
+  async getQueuesWithDetailsByPatientId(
+    patientId: string,
+  ): Promise<IQueueWithDetails[]> {
     try {
-      const queueItems = await this.queueItemRepository.getQueueItemsByPatientId(patientId);
-      const queueIds = [...new Set(queueItems.map(item => item.queueId))];
+      const queueItems =
+        await this.queueItemRepository.getQueueItemsByPatientId(patientId);
+      const queueIds = [...new Set(queueItems.map((item) => item.queueId))];
 
       const queuesWithDetails = await Promise.all(
         queueIds.map(async (queueId) => {
           const queue = await this.queueRepository.getQueueById(queueId);
           if (!queue) return null;
 
-          const healthUnit = await this.healthUnitRepository.getHealthUnitById(queue.healthUnitId);
-          const queueItemsInQueue = await this.queueItemRepository.listQueueItems({ queueId });
+          const healthUnit = await this.healthUnitRepository.getHealthUnitById(
+            queue.healthUnitId,
+          );
+          const queueItemsInQueue =
+            await this.queueItemRepository.listQueueItems({ queueId });
 
           return {
             ...queue,
             healthUnitName: healthUnit?.name || 'Unknown',
             queueSize: queueItemsInQueue.length,
           };
-        })
+        }),
       );
 
-      return queuesWithDetails.filter(q => q !== null) as IQueueWithDetails[];
+      return queuesWithDetails.filter((q) => q !== null) as IQueueWithDetails[];
     } catch (error) {
       throw new Error(
         `Error retrieving queues with details by patient ID: ${(error as Error).message}`,

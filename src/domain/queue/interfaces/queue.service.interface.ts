@@ -17,7 +17,9 @@ export interface IQueueService {
   createQueue(params: IParamsCreateQueue): Promise<IQueue>;
   getQueueById(_id: string): Promise<IQueue | null>;
   getQueuesByPatientId(patientId: string): Promise<IQueue[]>;
-  getQueuesWithDetailsByPatientId(patientId: string): Promise<IQueueWithDetails[]>;
+  getQueuesWithDetailsByPatientId(
+    patientId: string,
+  ): Promise<IQueueWithDetails[]>;
   updateQueueById(
     _id: string,
     params: IParamsUpdateQueue,
