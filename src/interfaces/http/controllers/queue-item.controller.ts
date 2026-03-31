@@ -61,13 +61,9 @@ export class QueueItemController implements IController {
   ): Promise<void> => {
     const { patientId } = req.params;
     try {
-      const queueItem =
-        await this.queueItemService.getQueueItemByPatientId(patientId);
-      if (!queueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
-        return;
-      }
-      res.status(200).json(queueItem);
+      const queueItems =
+        await this.queueItemService.getQueueItemsByPatientId(patientId);
+      res.status(200).json(queueItems);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
