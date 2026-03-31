@@ -17,6 +17,7 @@ export class QueueController implements IController {
     this.router.get('/queues', this.getQueue);
     this.router.get('/queues/:id', this.getQueueById);
     this.router.get('/queues/patient/:patientId', this.getQueueByPatientId);
+    this.router.get('/queues/patient/:patientId/details', this.getQueuesWithDetailsByPatientId);
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
     this.router.put('/queues/:id', this.updateQueueById);
@@ -24,7 +25,7 @@ export class QueueController implements IController {
 
   getQueue = async (req: Request, res: Response): Promise<void> => {
     try {
-      const queue = await this.queueService.listQueues();
+      const queue = await this.queueService.listQueues({});
       res.status(200).json(queue);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -38,6 +39,19 @@ export class QueueController implements IController {
     const { patientId } = req.params;
     try {
       const queues = await this.queueService.getQueuesByPatientId(patientId);
+      res.status(200).json(queues);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getQueuesWithDetailsByPatientId = async (
+    req: Request<{ patientId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { patientId } = req.params;
+    try {
+      const queues = await this.queueService.getQueuesWithDetailsByPatientId(patientId);
       res.status(200).json(queues);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

@@ -907,6 +907,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /queues/patient/{id}/details:
+    get:
+      tags:
+        - QueuesByPatient
+      summary: Get queues with details by patient ID
+      operationId: getQueuesWithDetailsByPatientId
+      description: Retrieve queues by patient ID with health unit name and queue size.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the patient
+      responses:
+        '200':
+          description: Queues with details found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueueWithDetails'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /queue-items:
     get:
       tags:
@@ -2441,6 +2470,47 @@ components:
           format: date-time
           nullable: true
           description: The date and time the appointment was finished (null if not finished yet)
+
+    QueueWithDetails:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier of the queue
+        professionalId:
+          type: string
+          description: The ID of the health professional managing the queue
+        healthUnitId:
+          type: string
+          description: The ID of the health unit
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, CLOSED]
+          description: The status of the queue
+        openedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the queue was opened
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date and time the queue was closed
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the queue was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the queue was last updated
+        healthUnitName:
+          type: string
+          description: The name of the health unit
+        queueSize:
+          type: integer
+          description: The number of items in the queue
 
   securitySchemes:
     bearerAuth:
