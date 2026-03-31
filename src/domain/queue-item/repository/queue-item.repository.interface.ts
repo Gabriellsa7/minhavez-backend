@@ -24,7 +24,7 @@ export interface IQueueItemRepository {
   ): Promise<IQueueItem | null>;
   deleteQueueItemById(id: string): Promise<IQueueItem | null>;
   getQueueItemById(id: string): Promise<IQueueItem | null>;
-  getQueueItemByPatientId(patientId: string): Promise<IQueueItem | null>;
+  getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]>;
   getQueueItemByQueueId(queueId: string): Promise<IQueueItem | null>;
   listQueueItems(filter: Partial<IQueueItem>): Promise<IQueueItem[]>;
 }
