@@ -83,15 +83,13 @@ export class QueueItemRepository implements IQueueItemRepository {
     }
   }
 
-  async getQueueItemByPatientId(patientId: string): Promise<IQueueItem | null> {
+  async getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]> {
     try {
-      const queueItemDoc = await MQueueItem.findOne({ patientId });
-      if (!queueItemDoc) return null;
-
-      return this.mapToDomain(queueItemDoc);
+      const queueItemDocs = await MQueueItem.find({ patientId });
+      return queueItemDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
-        `Error retrieving queue item by patient ID: ${(error as Error).message}`,
+        `Error retrieving queue items by patient ID: ${(error as Error).message}`,
       );
     }
   }
