@@ -878,6 +878,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
+  /queues/patient/{id}:
+    get:
+      tags:
+        - QueuesByPatient
+      summary: Get queues by patient ID
+      operationId: getQueuesByPatientId
+      description: Retrieve queues by patient ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the patient
+      responses:
+        '200':
+          description: Queues found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Queue'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /queue-items:
     get:
       tags:
