@@ -39,18 +39,14 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  async getQueueItemByPatientId(patientId: string): Promise<IQueueItem | null> {
+  async getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]> {
     try {
-      const queueItem =
-        await this.queueItemRepository.getQueueItemByPatientId(patientId);
-      if (!queueItem) {
-        throw new Error('Queue item not found');
-      }
-
-      return queueItem;
+      const queueItems =
+        await this.queueItemRepository.getQueueItemsByPatientId(patientId);
+      return queueItems;
     } catch (error) {
       throw new Error(
-        `Error retrieving queue item by patient ID: ${(error as Error).message}`,
+        `Error retrieving queue items by patient ID: ${(error as Error).message}`,
       );
     }
   }
