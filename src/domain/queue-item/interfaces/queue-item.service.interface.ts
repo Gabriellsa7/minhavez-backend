@@ -12,7 +12,7 @@ export interface IParamsQueueItemService {
 export interface IQueueItemService {
   createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem>;
   getQueueItemById(_id: string): Promise<IQueueItem | null>;
-  getQueueItemByPatientId(patientId: string): Promise<IQueueItem | null>;
+  getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]>;
   getQueueItemByQueueId(queueId: string): Promise<IQueueItem | null>;
   updateQueueItemById(
     _id: string,
