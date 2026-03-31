@@ -5,12 +5,18 @@ import {
   IParamsUpdateQueue,
   IQueueRepository,
 } from '../repository/queue.repository.interface';
+import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 
 export class QueueService implements IQueueService {
   private queueRepository: IQueueRepository;
+  private queueItemRepository: IQueueItemRepository;
 
-  constructor(params: { queueRepository: IQueueRepository }) {
+  constructor(params: {
+    queueRepository: IQueueRepository;
+    queueItemRepository: IQueueItemRepository;
+  }) {
     this.queueRepository = params.queueRepository;
+    this.queueItemRepository = params.queueItemRepository;
   }
 
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
@@ -43,6 +49,22 @@ export class QueueService implements IQueueService {
     } catch (error) {
       throw new Error(
         `Error retrieving queue by ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async getQueuesByPatientId(patientId: string): Promise<IQueue[]> {
+    try {
+      const queueItems =
+        await this.queueItemRepository.getQueueItemsByPatientId(patientId);
+      const queueIds = [...new Set(queueItems.map((item) => item.queueId))];
+      const queues = await Promise.all(
+        queueIds.map((id) => this.queueRepository.getQueueById(id)),
+      );
+      return queues.filter((queue) => queue !== null) as IQueue[];
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queues by patient ID: ${(error as Error).message}`,
       );
     }
   }
