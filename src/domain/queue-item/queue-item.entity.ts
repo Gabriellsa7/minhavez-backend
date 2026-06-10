@@ -11,6 +11,8 @@ export class QueueItem implements IQueueItem {
 
   patientId: string;
 
+  code: string;
+
   position: number;
 
   priority: EQueueItemPriority;
@@ -31,6 +33,7 @@ export class QueueItem implements IQueueItem {
     this._id = data._id;
     this.queueId = data.queueId;
     this.patientId = data.patientId;
+    this.code = data.code;
     this.position = data.position;
     this.priority = data.priority;
     this.status = data.status;
