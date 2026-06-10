@@ -99,6 +99,9 @@ export class QueueService implements IQueueService {
             ...queue,
             healthUnitName: healthUnit?.name || 'Unknown',
             queueSize: queueItemsInQueue.length,
+            patientCode: queueItems.find(
+              (queueItem) => queueItem.queueId === queueId,
+            )?.code,
           };
         }),
       );
