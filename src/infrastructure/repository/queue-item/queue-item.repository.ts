@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { HydratedDocument } from 'mongoose';
 import { IQueueItem } from '../../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemSchema } from '../../db/mongo/schema/queue-item.schema';
@@ -16,6 +17,7 @@ export class QueueItemRepository implements IQueueItemRepository {
       _id: queueItemDoc._id.toString(),
       queueId: queueItemDoc.queueId.toString(),
       patientId: queueItemDoc.patientId.toString(),
+      code: queueItemDoc.code,
       position: queueItemDoc.position,
       priority: queueItemDoc.priority,
       status: queueItemDoc.status,
@@ -27,15 +29,38 @@ export class QueueItemRepository implements IQueueItemRepository {
     };
   }
 
+  private generateQueueItemCode(): string {
+    return crypto.randomBytes(3).toString('hex').toUpperCase();
+  }
+
   async createQueueItem(
     queueItemData: IParamsCreateQueueItem,
   ): Promise<IQueueItem> {
-    try {
-      const queueItemDoc = await MQueueItem.create(queueItemData);
-      return this.mapToDomain(queueItemDoc);
-    } catch (error) {
-      throw new Error(`Error creating queue item: ${(error as Error).message}`);
+    const maxAttempts = 5;
+    let attempt = 0;
+
+    while (attempt < maxAttempts) {
+      try {
+        const queueItemDoc = await MQueueItem.create({
+          ...queueItemData,
+          code: queueItemData.code ?? this.generateQueueItemCode(),
+        });
+
+        return this.mapToDomain(queueItemDoc);
+      } catch (error) {
+        const queueError = error as { code?: number };
+        const duplicateKey = queueError.code === 11000;
+
+        if (duplicateKey && attempt < maxAttempts - 1) {
+          attempt += 1;
+          continue;
+        }
+
+        throw new Error(`Error creating queue item: ${(error as Error).message}`);
+      }
     }
+
+    throw new Error('Failed to generate a unique queue item code');
   }
 
   async updateQueueItemById(
