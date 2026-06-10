@@ -18,6 +18,12 @@ export const queueItemSchema = new mongoose.Schema(
       required: true,
     },
 
+    code: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
     position: {
       type: Number,
       required: true,
@@ -59,6 +65,7 @@ export interface IQueueItemSchema {
   position: number;
   priority: EQueueItemPriority;
   status: EQueueItemStatus;
+  code: string;
   checkInTime?: Date;
   calledAt?: Date;
   finishedAt?: Date;
