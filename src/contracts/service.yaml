@@ -2199,6 +2199,9 @@ components:
         patientId:
           type: string
           description: The patient identifier associated with the queue item
+        code:
+          type: string
+          description: The unique code assigned to the patient in this queue
         position:
           type: integer
           description: The position of the queue item in the queue
@@ -2483,6 +2486,9 @@ components:
         healthUnitId:
           type: string
           description: The ID of the health unit
+        patientCode:
+          type: string
+          description: The unique code assigned to the patient in this queue
         status:
           type: string
           enum: [OPEN, IN_PROGRESS, CLOSED]
