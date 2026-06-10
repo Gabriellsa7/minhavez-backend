@@ -2,6 +2,7 @@ export interface IQueueItem {
   _id: string;
   queueId: string;
   patientId: string;
+  code: string;
   position: number;
   priority: EQueueItemPriority;
   status: EQueueItemStatus;
