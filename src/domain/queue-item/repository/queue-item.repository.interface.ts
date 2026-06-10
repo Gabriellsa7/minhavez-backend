@@ -7,6 +7,7 @@ import {
 export interface IParamsCreateQueueItem {
   queueId: string;
   patientId: string;
+  code?: string;
   position: number;
   priority: EQueueItemPriority;
   status: EQueueItemStatus;
