@@ -1,9 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { HealthUnit } from '../../../domain/health-unit/health-unit.entity';
-import {
-  IHealthUnitRepository,
-  IParamsUpdateHealthUnit,
-} from '../../../domain/health-unit/repository/health-unit.repository.interface';
+import { IHealthUnitRepository, IParamsCreateHealthUnit } from '../../../domain/health-unit/repository/health-unit.repository.interface';
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitSchema } from '../../db/mongo/schema/health-unit.schema';
 import { MHealthUnit } from '../../db/mongo/models/health-unit.model';
@@ -18,11 +15,12 @@ export class HealthUnitRepository implements IHealthUnitRepository {
       address: healthUnitDoc.address,
       phone: healthUnitDoc.phone,
       email: healthUnitDoc.email,
+      img: healthUnitDoc.img ?? undefined,
       createdAt: healthUnitDoc.createdAt,
     });
   }
 
-  async createHealthUnit(healthUnitData: IHealthUnit) {
+  async createHealthUnit(healthUnitData: IParamsCreateHealthUnit) {
     try {
       const healthUnitDoc = await MHealthUnit.create(healthUnitData);
       return this.mapToDomain(healthUnitDoc);
@@ -61,10 +59,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
     }
   }
 
-  async updateHealthUnitById(
-    _id: string,
-    updateData: IParamsUpdateHealthUnit,
-  ): Promise<IHealthUnit | null> {
+  async updateHealthUnitById(_id: string, updateData: Partial<IHealthUnit>): Promise<IHealthUnit | null> {
     try {
       const healthUnitDoc = await MHealthUnit.findByIdAndUpdate(
         _id,
