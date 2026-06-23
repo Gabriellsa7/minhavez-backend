@@ -4,6 +4,7 @@ export interface IHealthUnit {
   address: IHealthUnitAddress;
   phone: string;
   email: string;
+  img?: string;
   createdAt: Date;
 }
 
