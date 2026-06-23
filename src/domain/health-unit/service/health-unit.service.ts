@@ -6,8 +6,9 @@ import {
 import {
   IHealthUnitRepository,
   IParamsCreateHealthUnit,
-  IParamsUpdateHealthUnit,
 } from '../repository/health-unit.repository.interface';
+import { uploadImageToCloudinary } from '../../../infrastructure/external/cloudinary/cloudinary-upload';
+import { IHealthUnitImageUploadParams } from '../interfaces/health-unit.service.interface';
 
 export class HealthUnitService implements IHealthUnitService {
   private healthUnitRepository: IHealthUnitRepository;
@@ -70,7 +71,7 @@ export class HealthUnitService implements IHealthUnitService {
 
   async updateHealthUnitById(
     _id: string,
-    params: IParamsUpdateHealthUnit,
+    params: Partial<IHealthUnit>,
   ): Promise<IHealthUnit | null> {
     try {
       const existingUnit = await this.getHealthUnitById(_id);
@@ -83,6 +84,35 @@ export class HealthUnitService implements IHealthUnitService {
     } catch (error) {
       throw new Error(
         `Error updating health unit: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async uploadHealthUnitImage(
+    _id: string,
+    params: IHealthUnitImageUploadParams,
+  ): Promise<IHealthUnit | null> {
+    try {
+      const existingUnit = await this.healthUnitRepository.getHealthUnitById(
+        _id,
+      );
+
+      if (!existingUnit) {
+        throw new Error('Health unit not found');
+      }
+
+      const uploadedImage = await uploadImageToCloudinary({
+        imageBase64: params.imageBase64,
+        fileName: params.fileName,
+        mimeType: params.mimeType,
+      });
+
+      return await this.healthUnitRepository.updateHealthUnitById(_id, {
+        img: uploadedImage.secureUrl,
+      });
+    } catch (error) {
+      throw new Error(
+        `Error uploading health unit image: ${(error as Error).message}`,
       );
     }
   }
