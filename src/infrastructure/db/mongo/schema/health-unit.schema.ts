@@ -28,6 +28,12 @@ export const healthUnitSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email'],
     },
+
+    img: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   {
     _id: true,
@@ -40,6 +46,7 @@ export interface IHealthUnitSchema {
   address: IHealthUnitAddress;
   phone: string;
   email: string;
+  img?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
