@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { IController } from './IController';
 import { HealthUnitService } from '../../../domain/health-unit/service/health-unit.service';
+import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 
 export class HealthUnitController implements IController {
   router: Router;
@@ -17,6 +18,7 @@ export class HealthUnitController implements IController {
     this.router.get('/health-units/:id', this.getHealthUnitById);
     this.router.post('/health-units', this.createHealthUnit);
     this.router.put('/health-units/:id', this.updateHealthUnit);
+    this.router.post('/health-units/:id/image', this.uploadHealthUnitImage);
     this.router.delete('/health-units/:id', this.deleteHealthUnit);
   }
 
@@ -44,13 +46,14 @@ export class HealthUnitController implements IController {
   };
 
   createHealthUnit = async (req: Request, res: Response): Promise<void> => {
-    const { name, address, phone, email } = req.body;
+    const { name, address, phone, email, img } = req.body;
     try {
       const newHealthUnit = await this.healthUnitService.createHealthUnit({
         name,
         address,
         phone,
         email,
+        img,
       });
       res.status(201).json(newHealthUnit);
     } catch (error) {
@@ -63,7 +66,7 @@ export class HealthUnitController implements IController {
     res: Response,
   ): Promise<void> => {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = req.body as Partial<IHealthUnit>;
     try {
       const updatedHealthUnit =
         await this.healthUnitService.updateHealthUnitById(id, updateData);
@@ -71,6 +74,34 @@ export class HealthUnitController implements IController {
         res.status(404).json({ message: 'Health unit not found' });
         return;
       }
+      res.status(200).json(updatedHealthUnit);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  uploadHealthUnitImage = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+    const { imageBase64, fileName, mimeType } = req.body;
+
+    try {
+      const updatedHealthUnit = await this.healthUnitService.uploadHealthUnitImage(
+        id,
+        {
+          imageBase64,
+          fileName,
+          mimeType,
+        },
+      );
+
+      if (!updatedHealthUnit) {
+        res.status(404).json({ message: 'Health unit not found' });
+        return;
+      }
+
       res.status(200).json(updatedHealthUnit);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
