@@ -14,6 +14,8 @@ export class HealthUnit implements IHealthUnit {
 
   email: string;
 
+  img?: string;
+
   createdAt: Date;
 
   constructor(data: IHealthUnit) {
@@ -22,6 +24,7 @@ export class HealthUnit implements IHealthUnit {
     this.address = data.address;
     this.phone = data.phone;
     this.email = data.email;
+    this.img = data.img;
     this.createdAt = data.createdAt;
   }
 }
