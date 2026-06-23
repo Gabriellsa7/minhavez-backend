@@ -8,10 +8,7 @@ export interface IParamsCreateHealthUnit {
   address: IHealthUnitAddress;
   phone: string;
   email: string;
-}
-
-export interface IParamsUpdateHealthUnit {
-  healthUnitData: Partial<IHealthUnit>;
+  img?: string;
 }
 
 export interface IHealthUnitRepository {
@@ -20,7 +17,7 @@ export interface IHealthUnitRepository {
   ): Promise<IHealthUnit>;
   updateHealthUnitById(
     id: string,
-    params: IParamsUpdateHealthUnit,
+    params: Partial<IHealthUnit>,
   ): Promise<IHealthUnit | null>;
   deleteHealthUnitById(id: string): Promise<IHealthUnit | null>;
   getHealthUnitByEmail(email: string): Promise<IHealthUnit | null>;
