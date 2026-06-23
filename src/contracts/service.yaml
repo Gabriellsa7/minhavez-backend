@@ -242,6 +242,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /health-units/{id}/image:
+    post:
+      tags:
+        - HealthUnits
+      summary: Upload a health unit image
+      operationId: uploadHealthUnitImage
+      description: Upload an image to Cloudinary and attach the resulting URL to the health unit.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadHealthUnitImage'
+      responses:
+        '200':
+          description: Health unit image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthUnit'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Health unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /health-units/{id}:
     get:
       tags:
@@ -1898,6 +1938,10 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+        img:
+          type: string
+          nullable: true
+          description: The image URL of the health unit
         createdAt:
           type: string
           format: date-time
@@ -1951,6 +1995,10 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+        img:
+          type: string
+          nullable: true
+          description: The image URL of the health unit
     UpdateHealthUnit:
       type: object
       properties:
@@ -1966,6 +2014,24 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+        img:
+          type: string
+          nullable: true
+          description: The image URL of the health unit
+    UploadHealthUnitImage:
+      type: object
+      required:
+        - imageBase64
+      properties:
+        imageBase64:
+          type: string
+          description: Base64 encoded image data, optionally as a data URI
+        fileName:
+          type: string
+          description: Original file name used for the upload
+        mimeType:
+          type: string
+          description: Mime type of the image being uploaded
     Patient:
       type: object
       properties:
