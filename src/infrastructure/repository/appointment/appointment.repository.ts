@@ -1,5 +1,5 @@
 import { HydratedDocument } from 'mongoose';
-import { Types } from 'mongoose';
+import { Types, FilterQuery } from 'mongoose';
 import { IAppointment } from '../../../domain/appointment/interfaces/appointment.interface';
 import { IAppointmentSchema } from '../../db/mongo/schema/appointment.schema';
 import {
@@ -116,7 +116,7 @@ export class AppointmentRepository implements IAppointmentRepository {
   ): Promise<IAppointment[]> {
     try {
       // Convert string IDs in filter to ObjectIds for proper Mongoose queries
-      const mongoFilter: any = { ...filter };
+      const mongoFilter: FilterQuery<IAppointmentSchema> = {};
       
       if (filter.patientId) {
         mongoFilter.patientId = new Types.ObjectId(filter.patientId as string);
