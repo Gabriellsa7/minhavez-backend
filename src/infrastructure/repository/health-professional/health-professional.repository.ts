@@ -1,4 +1,4 @@
-import { HydratedDocument } from 'mongoose';
+import  { HydratedDocument, FilterQuery } from 'mongoose';
 import { IHealthProfessionalSchema } from '../../db/mongo/schema/health-professional.schema';
 import { IHealthProfessional } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 import {
@@ -134,7 +134,7 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
   ): Promise<IHealthProfessional[]> {
     try {
       // Convert string IDs from filter to ObjectIds for Mongoose queries
-      const mongoFilter: any = { ...filter };
+      const mongoFilter: FilterQuery<IHealthProfessionalSchema> = {};
       
       if (filter._id) {
         mongoFilter._id = filter._id;
