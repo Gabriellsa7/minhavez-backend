@@ -12,7 +12,7 @@ export class Appointment implements IAppointment {
 
   professionalId: string;
 
-  queueItemId: string;
+  queueItemId?: string | null;
 
   status: EAppointmentStatus;
 

@@ -4,10 +4,11 @@ import { IHealthProfessional } from '../../../domain/health-professional.ts/inte
 import {
   IParamsCreateHealthProfessional,
   IParamsUpdateHealthProfessional,
+  IHealthProfessionalRepository,
 } from '../../../domain/health-professional.ts/repository/health-professional.repository.interface';
 import { MHealthProfessional } from '../../db/mongo/models/health-professional.model';
 
-export class HealthProfessionalRepository {
+export class HealthProfessionalRepository implements IHealthProfessionalRepository {
   private mapToDomain(
     healthProfessionalDoc: HydratedDocument<IHealthProfessionalSchema>,
   ): IHealthProfessional {
@@ -128,9 +129,24 @@ export class HealthProfessionalRepository {
     }
   }
 
-  async listHealthProfessionals(): Promise<IHealthProfessional[]> {
+  async listHealthProfessionals(
+    filter: Partial<IHealthProfessional>,
+  ): Promise<IHealthProfessional[]> {
     try {
-      const healthProfessionalDocs = await MHealthProfessional.find();
+      // Convert string IDs from filter to ObjectIds for Mongoose queries
+      const mongoFilter: any = { ...filter };
+      
+      if (filter._id) {
+        mongoFilter._id = filter._id;
+      }
+      if (filter.healthUnitId) {
+        mongoFilter.healthUnitId = filter.healthUnitId;
+      }
+      if (filter.userId) {
+        mongoFilter.userId = filter.userId;
+      }
+      
+      const healthProfessionalDocs = await MHealthProfessional.find(mongoFilter);
 
       return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {

@@ -4,7 +4,7 @@ export interface IParamsCreateAppointment {
   patientId: string;
   professionalId: string;
   healthUnitId: string;
-  queueItemId: string;
+  queueItemId?: string | null;
   dateTime: string;
   notes?: string;
 }
