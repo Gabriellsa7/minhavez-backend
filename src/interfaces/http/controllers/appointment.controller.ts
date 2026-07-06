@@ -107,11 +107,42 @@ export class AppointmentController implements IController {
   createAppointment = async (req: Request, res: Response): Promise<void> => {
     const data: IParamsCreateAppointment = req.body;
     try {
+      console.log('='.repeat(80));
+      console.log('[AppointmentController] POST /appointments');
+      console.log('Request body:', JSON.stringify(data, null, 2));
+      console.log('='.repeat(80));
+
+      // Validate required fields
+      const requiredFields = ['patientId', 'professionalId', 'healthUnitId', 'dateTime'];
+      const missingFields = requiredFields.filter(field => !data[field as keyof IParamsCreateAppointment]);
+      
+      if (missingFields.length > 0) {
+        console.error('[AppointmentController] Missing required fields:', missingFields);
+        res.status(400).json({
+          error: `Missing required fields: ${missingFields.join(', ')}`,
+        });
+        return;
+      }
+
       const newAppointment =
         await this.appointmentService.createAppointment(data);
+      console.log('[AppointmentController] Appointment created successfully:', newAppointment._id);
       res.status(201).json(newAppointment);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      console.error('[AppointmentController] Error creating appointment:', error);
+      res.status(400).json({
+        message: (error as Error).message,
+        status: 400,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        errors: [
+          {
+            field: 'appointment',
+            message: (error as Error).message,
+            value: JSON.stringify(req.body),
+          },
+        ],
+      });
     }
   };
 

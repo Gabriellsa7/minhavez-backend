@@ -20,7 +20,10 @@ export class AppointmentService implements IAppointmentService {
     params: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
+      console.log('[AppointmentService] createAppointment params:', JSON.stringify(params, null, 2));
+
       if (params.queueItemId) {
+        console.log('[AppointmentService] Checking for existing appointments with queueItemId:', params.queueItemId);
         const existingAppointmentWithQueueItemId =
           await this.appointmentRepository.listAppointments({
             queueItemId: params.queueItemId,
@@ -31,18 +34,49 @@ export class AppointmentService implements IAppointmentService {
         }
       }
 
+      // Check for conflicts at the same time for the professional
+      // Use a time range query instead of exact match to account for timing variations
+      const appointmentDateTime = new Date(params.dateTime);
+      console.log('[AppointmentService] appointmentDateTime:', appointmentDateTime, 'UTC:', appointmentDateTime.toISOString());
+      
       const existingAppointmentAtSameTime =
         await this.appointmentRepository.listAppointments({
           professionalId: params.professionalId,
-          dateTime: new Date(params.dateTime),
         });
 
-      if (existingAppointmentAtSameTime.length > 0) {
+      console.log('[AppointmentService] Found', existingAppointmentAtSameTime.length, 'existing appointments for professional', params.professionalId);
+
+      const hasConflict = existingAppointmentAtSameTime.some((apt) => {
+        const aptTime = new Date(apt.dateTime);
+        const sameYear = aptTime.getFullYear() === appointmentDateTime.getFullYear();
+        const sameMonth = aptTime.getMonth() === appointmentDateTime.getMonth();
+        const sameDate = aptTime.getDate() === appointmentDateTime.getDate();
+        const sameHour = aptTime.getHours() === appointmentDateTime.getHours();
+        const isActiveAppointment =
+          apt.status !== 'COMPLETED' && apt.status !== 'CANCELED';
+
+        const hasConflictFlag =
+          isActiveAppointment && sameYear && sameMonth && sameDate && sameHour;
+
+        console.log('[AppointmentService] Comparing appointment times:');
+        console.log('  Existing:', aptTime.toISOString(), '- Status:', apt.status, '- Year:', sameYear, 'Month:', sameMonth, 'Date:', sameDate, 'Hour:', sameHour, 'Conflict:', hasConflictFlag);
+
+        return hasConflictFlag;
+      });
+
+      if (hasConflict) {
         throw new Error('This professional already has an appointment at this time');
       }
 
+      console.log('[AppointmentService] No conflicts found. Creating appointment with params:', params);
       return await this.appointmentRepository.createAppointment(params);
     } catch (error) {
+      console.error('[AppointmentService] Error creating appointment:', error);
+      // If it's an Error thrown intentionally (business validation), rethrow it
+      if (error instanceof Error) {
+        throw error;
+      }
+      // For non-Error exceptions, wrap to preserve context
       throw new Error(
         `Error creating appointment: ${(error as Error).message}`,
       );

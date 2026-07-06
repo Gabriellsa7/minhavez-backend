@@ -2363,6 +2363,7 @@ components:
           description: The patient identifier associated with the notification
         queueItemId:
           type: string
+          nullable: true
         appointmentId:
           type: string
         title:
@@ -2448,6 +2449,7 @@ components:
           description: The health unit identifier associated with the appointment
         queueItemId:
           type: string
+          nullable: true
         dateTime:
           type: string
           format: date-time
@@ -2483,7 +2485,6 @@ components:
         - patientId
         - professionalId
         - healthUnitId
-        - queueItemId
         - dateTime
       properties:
         patientId:
@@ -2497,6 +2498,7 @@ components:
           description: The health unit identifier associated with the appointment
         queueItemId:
           type: string
+          nullable: true
         dateTime:
           type: string
           format: date-time
@@ -2518,6 +2520,7 @@ components:
           description: The health unit identifier associated with the appointment
         queueItemId:
           type: string
+          nullable: true
         dateTime:
           type: string
           format: date-time
