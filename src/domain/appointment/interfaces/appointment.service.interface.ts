@@ -3,10 +3,14 @@ import {
   IParamsUpdateAppointment,
   IAppointmentRepository,
 } from '../repository/appointment.repository.interface';
+import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
+import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IAppointment } from './appointment.interface';
 
 export interface IParamsAppointmentService {
   appointmentRepository: IAppointmentRepository;
+  queueRepository: IQueueRepository;
+  queueItemRepository: IQueueItemRepository;
 }
 
 export interface IAppointmentService {

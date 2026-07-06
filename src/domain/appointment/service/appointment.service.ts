@@ -1,9 +1,16 @@
 import { IAppointment } from '../interfaces/appointment.interface';
+import { EQueueStatus } from '../../queue/interfaces/queue.interface';
+import {
+  EQueueItemPriority,
+  EQueueItemStatus,
+} from '../../queue-item/interfaces/queue-item.interface';
 import {
   IParamsCreateAppointment,
   IParamsUpdateAppointment,
   IAppointmentRepository,
 } from '../repository/appointment.repository.interface';
+import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
+import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import {
   IAppointmentService,
   IParamsAppointmentService,
@@ -11,9 +18,13 @@ import {
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
+  private queueRepository: IQueueRepository;
+  private queueItemRepository: IQueueItemRepository;
 
   constructor(params: IParamsAppointmentService) {
     this.appointmentRepository = params.appointmentRepository;
+    this.queueRepository = params.queueRepository;
+    this.queueItemRepository = params.queueItemRepository;
   }
 
   async createAppointment(
@@ -68,8 +79,45 @@ export class AppointmentService implements IAppointmentService {
         throw new Error('This professional already has an appointment at this time');
       }
 
+      const openQueues = await this.queueRepository.listQueues({
+        professionalId: params.professionalId,
+        healthUnitId: params.healthUnitId,
+        status: EQueueStatus.OPEN,
+      });
+
+      const queue =
+        openQueues[0] ??
+        (await this.queueRepository.createQueue({
+          professionalId: params.professionalId,
+          healthUnitId: params.healthUnitId,
+          status: EQueueStatus.OPEN,
+        }));
+
+      const queueItems = await this.queueItemRepository.listQueueItems({
+        queueId: queue._id,
+      });
+
+      const existingQueueItem = queueItems.find(
+        (queueItem) =>
+          queueItem.patientId === params.patientId &&
+          queueItem.status !== EQueueItemStatus.FINISHED,
+      );
+
+      const queueItem =
+        existingQueueItem ??
+        (await this.queueItemRepository.createQueueItem({
+          queueId: queue._id,
+          patientId: params.patientId,
+          position: queueItems.length + 1,
+          priority: EQueueItemPriority.MEDIUM,
+          status: EQueueItemStatus.WAITING,
+        }));
+
       console.log('[AppointmentService] No conflicts found. Creating appointment with params:', params);
-      return await this.appointmentRepository.createAppointment(params);
+      return await this.appointmentRepository.createAppointment({
+        ...params,
+        queueItemId: queueItem._id,
+      });
     } catch (error) {
       console.error('[AppointmentService] Error creating appointment:', error);
       // If it's an Error thrown intentionally (business validation), rethrow it
