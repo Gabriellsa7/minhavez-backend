@@ -2140,6 +2140,15 @@ components:
         healthUnitId:
           type: string
           description: The health unit identifier of the health professional
+        name:
+          type: string
+          description: The name of the health professional
+        email:
+          type: string
+          description: The email address of the health professional
+        password:
+          type: string
+          description: The password of the health professional
         specialty:
           type: string
           description: The specialty of the health professional
@@ -2170,6 +2179,15 @@ components:
         healthUnitId:
           type: string
           description: The health unit identifier of the health professional
+        name:
+          type: string
+          description: The name of the health professional
+        email:
+          type: string
+          description: The email address of the health professional
+        password:
+          type: string
+          description: The password of the health professional
         specialty:
           type: string
           description: The specialty of the health professional
@@ -2188,6 +2206,15 @@ components:
         specialty:
           type: string
           description: The specialty of the health professional
+        name:
+          type: string
+          description: The name of the health professional
+        email:
+          type: string
+          description: The email address of the health professional
+        password:
+          type: string
+          description: The password of the health professional
         professionalLicense:
           type: string
           description: The professional license number of the health professional

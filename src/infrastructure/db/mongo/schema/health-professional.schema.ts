@@ -19,6 +19,22 @@ export const healthProfessionalSchema = new mongoose.Schema(
       required: true,
     },
 
+    name: {
+      type: String,
+      required: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+    },
+
     professionalLicense: {
       type: String,
       required: true,
@@ -40,6 +56,9 @@ export interface IHealthProfessionalSchema {
   userId?: mongoose.Types.ObjectId;
   healthUnitId: mongoose.Types.ObjectId;
   specialty: string;
+  name: string;
+  email: string;
+  password: string;
   professionalLicense: string;
   active: boolean;
   createdAt: Date;

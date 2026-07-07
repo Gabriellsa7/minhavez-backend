@@ -3,6 +3,9 @@ export interface IHealthProfessional {
   userId?: string;
   healthUnitId: string;
   specialty: string;
+  name:string;
+  email:string;
+  password:string;
   professionalLicense: string;
   active: boolean;
   createdAt: Date;

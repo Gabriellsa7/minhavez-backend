@@ -4,6 +4,9 @@ export interface IParamsCreateHealthProfessional {
   userId?: string;
   healthUnitId: string;
   specialty: string;
+  name:string;
+  email:string;
+  password:string;
   professionalLicense: string;
 }
 

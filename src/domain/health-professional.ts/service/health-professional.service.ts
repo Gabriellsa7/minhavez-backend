@@ -3,6 +3,7 @@ import {
   IHealthProfessionalService,
   IParamsHealthProfessionalService,
 } from '../interfaces/health-professional.service.interface';
+import bcrypt from 'bcrypt';
 import {
   IParamsCreateHealthProfessional,
   IParamsUpdateHealthProfessional,
@@ -20,8 +21,14 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     params: IParamsCreateHealthProfessional,
   ): Promise<IHealthProfessional> {
     try {
+
+      const hashedPassword = await bcrypt.hash(params.password, 10);
+
       return await this.healthProfessionalRepository.createHealthProfessional(
-        params,
+        {
+          ...params,
+          password: hashedPassword,
+        },
       );
     } catch (error) {
       throw new Error(
