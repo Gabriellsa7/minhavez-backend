@@ -5,7 +5,7 @@ export const healthProfessionalSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
     },
 
     healthUnitId: {
@@ -37,7 +37,7 @@ export const healthProfessionalSchema = new mongoose.Schema(
 );
 
 export interface IHealthProfessionalSchema {
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
   healthUnitId: mongoose.Types.ObjectId;
   specialty: string;
   professionalLicense: string;

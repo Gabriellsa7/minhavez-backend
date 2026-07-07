@@ -14,7 +14,7 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
   ): IHealthProfessional {
     return {
       _id: healthProfessionalDoc._id.toString(),
-      userId: healthProfessionalDoc.userId.toString(),
+      userId: healthProfessionalDoc.userId?.toString() || '',
       healthUnitId: healthProfessionalDoc.healthUnitId.toString(),
       specialty: healthProfessionalDoc.specialty,
       professionalLicense: healthProfessionalDoc.professionalLicense,

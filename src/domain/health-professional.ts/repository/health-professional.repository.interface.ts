@@ -1,7 +1,7 @@
 import { IHealthProfessional } from '../interfaces/health-professional.interface';
 
 export interface IParamsCreateHealthProfessional {
-  userId: string;
+  userId?: string;
   healthUnitId: string;
   specialty: string;
   professionalLicense: string;

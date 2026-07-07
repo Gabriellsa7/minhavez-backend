@@ -60,6 +60,14 @@ export class AuthService implements IAuthService {
       accessToken,
       refreshToken,
       expiresIn: process.env.JWT_EXPIRATION || '1h',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+        createdAt: user.createdAt,
+      },
     };
   }
 
@@ -109,6 +117,14 @@ export class AuthService implements IAuthService {
         accessToken,
         refreshToken,
         expiresIn: process.env.JWT_EXPIRATION || '1h',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          active: user.active,
+          createdAt: user.createdAt,
+        },
       };
     } catch {
       throw new Error('Invalid refresh token');

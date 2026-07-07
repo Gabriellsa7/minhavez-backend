@@ -22,21 +22,19 @@ export class AuthController implements IController {
   }
 
   login = async (req: Request, res: Response): Promise<void> => {
-    const data: ILoginRequest = req.body;
-    try {
-      const tokens = await this.authService.login(data);
-      res.status(200).json({
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        expiresIn: tokens.expiresIn,
-      });
-    } catch (error) {
-      res.status(401).json({
-        status: 401,
-        message: (error as Error).message,
-      });
-    }
-  };
+  const data: ILoginRequest = req.body;
+
+  try {
+    const response = await this.authService.login(data);
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(401).json({
+      status: 401,
+      message: (error as Error).message,
+    });
+  }
+};
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {
     const data: IRefreshTokenRequest = req.body;

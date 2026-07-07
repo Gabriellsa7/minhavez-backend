@@ -20,17 +20,6 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     params: IParamsCreateHealthProfessional,
   ): Promise<IHealthProfessional> {
     try {
-      const existingHealthProfessional =
-        await this.healthProfessionalRepository.getHealthProfessionalByUserId(
-          params.userId,
-        );
-
-      if (existingHealthProfessional) {
-        throw new Error(
-          'A health professional with this user ID already exists',
-        );
-      }
-
       return await this.healthProfessionalRepository.createHealthProfessional(
         params,
       );

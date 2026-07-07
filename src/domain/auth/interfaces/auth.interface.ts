@@ -1,3 +1,5 @@
+import { IUser } from "../../user/interfaces/user.interface";
+
 export interface ILoginRequest {
   email: string;
   password: string;
@@ -12,6 +14,7 @@ export interface IAuthTokenResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: string;
+  user?: IUser;
 }
 
 export interface IAuthPayload {
