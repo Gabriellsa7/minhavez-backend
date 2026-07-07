@@ -1,3 +1,4 @@
+import { IHealthProfessional } from "../../health-professional.ts/interfaces/health-professional.interface";
 import { IUser } from "../../user/interfaces/user.interface";
 
 export interface ILoginRequest {
@@ -15,6 +16,7 @@ export interface IAuthTokenResponse {
   refreshToken: string;
   expiresIn: string;
   user?: IUser;
+  healthProfessional?: IHealthProfessional | null;
 }
 
 export interface IAuthPayload {

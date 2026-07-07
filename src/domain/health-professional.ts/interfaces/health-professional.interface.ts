@@ -7,6 +7,7 @@ export interface IHealthProfessional {
   email:string;
   password:string;
   professionalLicense: string;
+  isDoctor: boolean;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

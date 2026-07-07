@@ -10,4 +10,5 @@ export interface IUser {
 export enum EUserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
+  DOCTOR = "DOCTOR",
 }

@@ -35,6 +35,14 @@ export const healthProfessionalSchema = new mongoose.Schema(
       required: true,
     },
 
+    
+    isDoctor: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    
+
     professionalLicense: {
       type: String,
       required: true,
@@ -55,6 +63,7 @@ export const healthProfessionalSchema = new mongoose.Schema(
 export interface IHealthProfessionalSchema {
   userId?: mongoose.Types.ObjectId;
   healthUnitId: mongoose.Types.ObjectId;
+  isDoctor: boolean;
   specialty: string;
   name: string;
   email: string;

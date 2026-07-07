@@ -30,4 +30,7 @@ export interface IHealthProfessionalRepository {
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
   ): Promise<IHealthProfessional[]>;
+  findHealthProfessionalByEmailWithPassword(
+    email: string,
+  ): Promise<(IHealthProfessional & { password: string }) | null>;
 }

@@ -20,6 +20,7 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
       name: healthProfessionalDoc.name,
       email: healthProfessionalDoc.email,
       password: healthProfessionalDoc.password,
+      isDoctor: healthProfessionalDoc.isDoctor,
       professionalLicense: healthProfessionalDoc.professionalLicense,
       active: healthProfessionalDoc.active,
       createdAt: healthProfessionalDoc.createdAt,
@@ -131,6 +132,39 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
       );
     }
   }
+
+  async findHealthProfessionalByEmailWithPassword(
+  email: string,
+): Promise<(IHealthProfessional & { password: string }) | null> {
+  try {
+    const professional = await MHealthProfessional
+      .findOne({ email })
+      .select('+password');
+
+    if (!professional) {
+      return null;
+    }
+
+    return {
+      _id: professional._id.toString(),
+      userId: professional.userId?.toString(),
+      healthUnitId: professional.healthUnitId.toString(),
+      specialty: professional.specialty,
+      name: professional.name,
+      email: professional.email,
+      password: professional.password,
+      professionalLicense: professional.professionalLicense,
+      isDoctor: professional.isDoctor,
+      active: professional.active,
+      createdAt: professional.createdAt,
+      updatedAt: professional.updatedAt,
+    };
+  } catch (error) {
+    throw new Error(
+      `Error finding health professional by email: ${(error as Error).message}`,
+    );
+  }
+}
 
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,

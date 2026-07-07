@@ -2155,6 +2155,9 @@ components:
         professionalLicense:
           type: string
           description: The professional license number of the health professional
+        isDoctor:
+          type: boolean
+          description: Whether the health professional is a doctor
         active:
           type: boolean
           description: Whether the health professional is active
