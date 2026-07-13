@@ -26,6 +26,7 @@ export class QueueService implements IQueueService {
     this.healthUnitRepository = params.healthUnitRepository;
   }
 
+  //Add a logic to allow a doctor to have open queues in different days, but just one for day
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
     try {
       if (params.status === 'OPEN') {
