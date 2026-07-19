@@ -2240,6 +2240,10 @@ components:
           type: string
           enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue entry
+        queueDate:
+          type: string
+          format: date
+          description: The date of the queue entry
         openedAt:
           type: string
           format: date-time
@@ -2269,6 +2273,10 @@ components:
         healthUnitId:
           type: string
           description: The health unit identifier associated with the queue entry
+        queueDate:
+          type: string
+          format: date
+          description: The date of the queue entry
     UpdateQueue:
       type: object
       properties:

@@ -10,6 +10,10 @@ export const queueSchema = new mongoose.Schema(
       enum: Object.values(EQueueStatus),
       required: true,
     },
+    queueDate: {
+      type: Date,
+      required: true,
+    },
     openedAt: { type: Date, required: false },
     closedAt: { type: Date, required: false },
   },
@@ -20,6 +24,7 @@ export interface IQueueSchema {
   professionalId: string;
   healthUnitId: string;
   status: EQueueStatus;
+  queueDate: Date; 
   openedAt?: Date | null;
   closedAt?: Date | null;
   createdAt: Date;

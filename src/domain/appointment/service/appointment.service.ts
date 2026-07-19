@@ -84,13 +84,18 @@ export class AppointmentService implements IAppointmentService {
         healthUnitId: params.healthUnitId,
         status: EQueueStatus.OPEN,
       });
-
+     
       const queue =
-        openQueues[0] ??
+        openQueues.find(queue =>
+          queue.queueDate.getFullYear() === appointmentDateTime.getFullYear() &&
+          queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
+          queue.queueDate.getDate() === appointmentDateTime.getDate(),
+        ) ??
         (await this.queueRepository.createQueue({
           professionalId: params.professionalId,
           healthUnitId: params.healthUnitId,
           status: EQueueStatus.OPEN,
+          queueDate: appointmentDateTime,
         }));
 
       const queueItems = await this.queueItemRepository.listQueueItems({

@@ -4,6 +4,7 @@ export interface IParamsCreateQueue {
   professionalId: string;
   healthUnitId: string;
   status: EQueueStatus;
+  queueDate?: Date;
 }
 
 export interface IParamsUpdateQueue {

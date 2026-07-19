@@ -26,19 +26,27 @@ export class QueueService implements IQueueService {
     this.healthUnitRepository = params.healthUnitRepository;
   }
 
-  //Add a logic to allow a doctor to have open queues in different days, but just one for day
+  //Add a logic to allow a doctor to have just one open queue for day
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
     try {
-      if (params.status === 'OPEN') {
-        const existingOpenQueue = await this.queueRepository.listQueues({
-          professionalId: params.professionalId,
-          status: EQueueStatus.OPEN,
-        });
+     if (params.status === EQueueStatus.OPEN) {
+  const existingOpenQueues = await this.queueRepository.listQueues({
+    professionalId: params.professionalId,
+    status: EQueueStatus.OPEN,
+  });
 
-        if (existingOpenQueue.length > 0) {
-          throw new Error('Already has an open queue');
-        }
-      }
+  const alreadyHasQueueForDay = existingOpenQueues.some(queue => {
+    return (
+      queue.queueDate.getFullYear() === params.queueDate?.getFullYear() &&
+      queue.queueDate.getMonth() === params.queueDate?.getMonth() &&
+      queue.queueDate.getDate() === params.queueDate?.getDate()
+    );
+  });
+
+  if (alreadyHasQueueForDay) {
+    throw new Error('Already has an open queue for this day');
+  }
+}
       return await this.queueRepository.createQueue(params);
     } catch (error) {
       throw new Error(`Error creating queue: ${(error as Error).message}`);

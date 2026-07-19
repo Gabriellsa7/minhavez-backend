@@ -15,6 +15,7 @@ export class QueueRepository implements IQueueRepository {
       professionalId: queueDoc.professionalId.toString(),
       healthUnitId: queueDoc.healthUnitId.toString(),
       status: queueDoc.status,
+      queueDate: queueDoc.queueDate,
       openedAt: queueDoc.openedAt,
       closedAt: queueDoc.closedAt,
       createdAt: queueDoc.createdAt,
