@@ -14,9 +14,20 @@ export class HealthUnitRepository implements IHealthUnitRepository {
       name: healthUnitDoc.name,
       address: healthUnitDoc.address,
       phone: healthUnitDoc.phone,
+      description: healthUnitDoc.description,
+      services: healthUnitDoc.services.map((service) => ({
+        _id: service._id.toString(),
+        name: service.name,
+        description: service.description,
+        duration: service.duration,
+        price: service.price,
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt,
+      })),
       email: healthUnitDoc.email,
       img: healthUnitDoc.img ?? undefined,
       createdAt: healthUnitDoc.createdAt,
+      updateAt: healthUnitDoc.updatedAt,
     });
   }
 

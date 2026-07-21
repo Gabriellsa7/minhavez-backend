@@ -46,18 +46,26 @@ export class HealthUnitController implements IController {
   };
 
   createHealthUnit = async (req: Request, res: Response): Promise<void> => {
-    const { name, address, phone, email, img } = req.body;
+    const { name, address, phone, description, services , email, img } = req.body;
     try {
       const newHealthUnit = await this.healthUnitService.createHealthUnit({
         name,
         address,
         phone,
+        description,
+        services,
         email,
         img,
       });
       res.status(201).json(newHealthUnit);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      console.error(error);
+
+      res.status(400).json({
+        message: (error as Error).message,
+        status: 400,
+        errors: [],
+      });
     }
   };
 
