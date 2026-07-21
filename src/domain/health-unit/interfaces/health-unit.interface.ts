@@ -3,9 +3,22 @@ export interface IHealthUnit {
   name: string;
   address: IHealthUnitAddress;
   phone: string;
+  description?: string;
+  services: IService[]
   email: string;
   img?: string;
-  createdAt: Date;
+  createdAt?: Date;
+  updateAt?: Date;
+}
+
+export interface IService {
+  _id: string;
+  name: string;
+  description?: string;
+  duration?: number; //minutes
+  price?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IHealthUnitAddress {
