@@ -1931,13 +1931,19 @@ components:
           description: The name of the health unit
         address:
           $ref: '#/components/schemas/HealthUnitAddress'
-          description: The address of the health unit
         phone:
           type: string
           description: The contact phone number of the health unit
         email:
           type: string
           description: The contact email address of the health unit
+        description:
+          type: string
+          description: The description of the health unit
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
         img:
           type: string
           nullable: true
@@ -1945,11 +1951,37 @@ components:
         createdAt:
           type: string
           format: date-time
-          description: The date and time the health unit was created
         updatedAt:
           type: string
           format: date-time
-          description: The date and time the health unit was last updated
+    Service:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the service
+        name:
+          type: string
+          description: The service name
+        description:
+          type: string
+          nullable: true
+          description: The service description
+        duration:
+          type: integer
+          description: Duration in minutes
+        price:
+          type: number
+          format: float
+          description: Service price
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     HealthUnitAddress:
       type: object
       required:
@@ -1982,6 +2014,7 @@ components:
         - address
         - phone
         - email
+        - services
       properties:
         name:
           type: string
@@ -1995,6 +2028,13 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+        description:
+          type: string
+          description: The description of the health unit
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
         img:
           type: string
           nullable: true
@@ -2014,6 +2054,12 @@ components:
         email:
           type: string
           description: The contact email address of the health unit
+        description:
+          type: string
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
         img:
           type: string
           nullable: true
