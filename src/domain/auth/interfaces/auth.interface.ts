@@ -1,5 +1,5 @@
-import { IHealthProfessional } from "../../health-professional.ts/interfaces/health-professional.interface";
-import { IUser } from "../../user/interfaces/user.interface";
+import { IHealthProfessional } from '../../health-professional.ts/interfaces/health-professional.interface';
+import { IUser } from '../../user/interfaces/user.interface';
 
 export interface ILoginRequest {
   email: string;
