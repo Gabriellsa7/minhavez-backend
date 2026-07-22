@@ -5,123 +5,132 @@ import {
   IAuthPayload,
   ILoginRequest,
   IRefreshTokenRequest,
+  EPrincipalType,
 } from '../interfaces/auth.interface';
 import { IAuthService } from '../interfaces/auth.service.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { EUserRole } from '../../user/interfaces/user.interface';
 
 export class AuthService implements IAuthService {
   private userRepository: IUserRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
 
-  constructor(userRepository: IUserRepository, healthProfessionalRepository: IHealthProfessionalRepository) {
+  constructor(
+    userRepository: IUserRepository,
+    healthProfessionalRepository: IHealthProfessionalRepository,
+  ) {
     this.userRepository = userRepository;
     this.healthProfessionalRepository = healthProfessionalRepository;
   }
 
-  async login(params: ILoginRequest): Promise<IAuthTokenResponse> {
-  const secret = process.env.JWT_SECRET;
-  const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
+  private generateTokens(payload: IAuthPayload) {
+    const secret = process.env.JWT_SECRET;
+    const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
 
-  if (!secret) {
-    throw new Error('JWT_SECRET not configured');
-  }
-
-  if (!refreshSecret) {
-    throw new Error('REFRESH_TOKEN_SECRET not configured');
-  }
-
-  // ==========================
-  // Tenta autenticar um User
-  // ==========================
-  const user = await this.userRepository.findUserByEmailWithPassword(
-    params.email,
-  );
-
-  if (user) {
-    const isMatch = await bcrypt.compare(params.password, user.password);
-
-    if (!isMatch) {
-      throw new Error('Invalid email or password');
+    if (!secret) {
+      throw new Error('JWT_SECRET not configured');
     }
 
-    const payload: IAuthPayload = {
-      sub: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      role: user.role || 'USER',
-    };
-
-    const accessToken = jwt.sign(payload, secret, {
-      expiresIn: process.env.JWT_EXPIRATION || '1h',
-      issuer: 'minhavez-api',
-    } as jwt.SignOptions);
-
-    const refreshToken = jwt.sign(payload, refreshSecret, {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRATION || '7d',
-      issuer: 'minhavez-api',
-    } as jwt.SignOptions);
+    if (!refreshSecret) {
+      throw new Error('REFRESH_TOKEN_SECRET not configured');
+    }
 
     return {
-      accessToken,
-      refreshToken,
-      expiresIn: process.env.JWT_EXPIRATION || '1h',
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        active: user.active,
-        createdAt: user.createdAt,
-      },
+      accessToken: jwt.sign(payload, secret, {
+        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+        issuer: 'minhavez-api',
+      } as jwt.SignOptions),
+
+      refreshToken: jwt.sign(payload, refreshSecret, {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+        issuer: 'minhavez-api',
+      } as jwt.SignOptions),
+
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
     };
   }
+  async login(data: ILoginRequest): Promise<IAuthTokenResponse> {
+    const { email, password } = data;
 
-  // =====================================
-  // Não é User -> tenta HealthProfessional
-  // =====================================
-  const professional =
-    await this.healthProfessionalRepository.findHealthProfessionalByEmailWithPassword(
-      params.email,
-    );
+    const user = await this.userRepository.findUserByEmailWithPassword(email);
 
-  if (!professional) {
-    throw new Error('Invalid email or password');
+    if (user) {
+      const validPassword = await bcrypt.compare(password, user.password);
+
+      if (!validPassword) {
+        throw new Error('Invalid credentials');
+      }
+
+      const payload: IAuthPayload = {
+        sub: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        principalType: EPrincipalType.USER,
+        role: user.role ?? EUserRole.USER,
+      };
+
+      const { accessToken, refreshToken, expiresIn } =
+        this.generateTokens(payload);
+
+      return {
+        accessToken,
+        refreshToken,
+        expiresIn,
+
+        principalType: EPrincipalType.USER,
+
+        principal: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role ?? EUserRole.USER,
+        },
+      };
+    }
+
+    const professional =
+      await this.healthProfessionalRepository.findHealthProfessionalByEmailWithPassword(
+        email,
+      );
+
+    if (professional) {
+      const validPassword = await bcrypt.compare(
+        password,
+        professional.password,
+      );
+
+      if (!validPassword) {
+        throw new Error('Invalid credentials');
+      }
+
+      const payload: IAuthPayload = {
+        sub: professional._id.toString(),
+        email: professional.email,
+        name: professional.name,
+        principalType: EPrincipalType.HEALTH_PROFESSIONAL,
+      };
+
+      const { accessToken, refreshToken, expiresIn } =
+        this.generateTokens(payload);
+
+      return {
+        accessToken,
+        refreshToken,
+        expiresIn,
+
+        principalType: EPrincipalType.HEALTH_PROFESSIONAL,
+
+        principal: {
+          id: professional._id.toString(),
+          name: professional.name,
+          email: professional.email,
+        },
+      };
+    }
+
+    throw new Error('Invalid credentials');
   }
-
-  const isMatch = await bcrypt.compare(
-    params.password,
-    professional.password,
-  );
-
-  if (!isMatch) {
-    throw new Error('Invalid email or password');
-  }
-
-  const payload: IAuthPayload = {
-    sub: professional._id.toString(),
-    name: professional.name,
-    email: professional.email,
-    role: 'DOCTOR',
-  };
-
-  const accessToken = jwt.sign(payload, secret, {
-    expiresIn: process.env.JWT_EXPIRATION || '1h',
-    issuer: 'minhavez-api',
-  } as jwt.SignOptions);
-
-  const refreshToken = jwt.sign(payload, refreshSecret, {
-    expiresIn: process.env.REFRESH_TOKEN_EXPIRATION || '7d',
-    issuer: 'minhavez-api',
-  } as jwt.SignOptions);
-
-  return {
-    accessToken,
-    refreshToken,
-    expiresIn: process.env.JWT_EXPIRATION || '1h',
-    healthProfessional: professional,
-  };
-}
 
   async refreshToken(
     params: IRefreshTokenRequest,
@@ -132,50 +141,69 @@ export class AuthService implements IAuthService {
         process.env.REFRESH_TOKEN_SECRET!,
       ) as IAuthPayload;
 
-      // Verificar se o usuário ainda existe
-      const user = await this.userRepository.findById(decoded.sub);
-      if (!user) {
-        throw new Error('User not found');
-      }
+      let payload: IAuthPayload;
 
-      const payload: IAuthPayload = {
-        sub: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role || 'USER',
+      let principal: {
+        _id: string;
+        name: string;
+        email: string;
+        role?: EUserRole;
       };
 
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        throw new Error('JWT_SECRET not configured');
+      if (decoded.principalType === EPrincipalType.HEALTH_PROFESSIONAL) {
+        const professional =
+          await this.healthProfessionalRepository.getHealthProfessionalById(
+            decoded.sub,
+          );
+
+        if (!professional) {
+          throw new Error('Health professional not found');
+        }
+
+        principal = professional;
+
+        payload = {
+          sub: professional._id.toString(),
+          name: professional.name,
+          email: professional.email,
+
+          principalType: EPrincipalType.HEALTH_PROFESSIONAL,
+        };
+      } else {
+        const user = await this.userRepository.findById(decoded.sub);
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        principal = user;
+
+        payload = {
+          sub: user._id.toString(),
+          name: user.name,
+          email: user.email,
+
+          principalType: EPrincipalType.USER,
+
+          role: user.role ?? EUserRole.USER,
+        };
       }
 
-      const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
-      if (!refreshSecret) {
-        throw new Error('REFRESH_TOKEN_SECRET not configured');
-      }
-
-      const accessToken = jwt.sign(payload, secret, {
-        expiresIn: process.env.JWT_EXPIRATION || '1h',
-        issuer: 'minhavez-api',
-      } as jwt.SignOptions);
-
-      const refreshToken = jwt.sign(payload, refreshSecret, {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRATION || '7d',
-        issuer: 'minhavez-api',
-      } as jwt.SignOptions);
+      const { accessToken, refreshToken, expiresIn } =
+        this.generateTokens(payload);
 
       return {
         accessToken,
         refreshToken,
-        expiresIn: process.env.JWT_EXPIRATION || '1h',
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          active: user.active,
-          createdAt: user.createdAt,
+        expiresIn,
+
+        principalType: payload.principalType,
+
+        principal: {
+          id: principal._id.toString(),
+          name: principal.name,
+          email: principal.email,
+          role: payload.role,
         },
       };
     } catch {

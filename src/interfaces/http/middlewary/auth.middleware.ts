@@ -1,15 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { IAuthPayload } from '../../../domain/auth/interfaces/auth.interface';
-
-// Extend Express Request to include user
+import {
+  EPrincipalType,
+  IAuthPayload,
+} from '../../../domain/auth/interfaces/auth.interface';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 declare module 'express' {
   interface Request {
     user?: IAuthPayload;
   }
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -36,3 +42,21 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     return;
   }
 };
+
+export const authorize =
+  (...roles: EUserRole[]) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (req.user.principalType !== EPrincipalType.USER) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (!req.user.role || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    next();
+  };

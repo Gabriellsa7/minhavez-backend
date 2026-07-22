@@ -99,16 +99,19 @@ export class UserController implements IController {
 
   getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      // User data is attached by authMiddleware
       const user = req.user!;
       res.status(200).json({
         _id: user.sub,
         email: user.email,
         name: user.name,
+        principalType: user.principalType,
         role: user.role,
       });
     } catch (error) {
-      res.status(500).json({ message: (error as Error).message });
+      res.status(500).json({
+        status: 500,
+        message: (error as Error).message,
+      });
     }
   };
 

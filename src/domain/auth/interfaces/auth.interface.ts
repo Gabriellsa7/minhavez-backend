@@ -1,5 +1,4 @@
-import { IHealthProfessional } from '../../health-professional.ts/interfaces/health-professional.interface';
-import { IUser } from '../../user/interfaces/user.interface';
+import { EUserRole } from '../../user/interfaces/user.interface';
 
 export interface ILoginRequest {
   email: string;
@@ -11,19 +10,35 @@ export interface IAuthToken {
   expiresAt: Date;
 }
 
+export enum EPrincipalType {
+  USER = 'USER',
+  HEALTH_PROFESSIONAL = 'HEALTH_PROFESSIONAL',
+}
+
+export interface IAuthPrincipal {
+  id: string;
+  name: string;
+  email: string;
+  role?: EUserRole;
+}
+
 export interface IAuthTokenResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: string;
-  user?: IUser;
-  healthProfessional?: IHealthProfessional | null;
+  principalType: EPrincipalType;
+  principal: IAuthPrincipal;
 }
 
 export interface IAuthPayload {
-  sub: string; // user id
+  sub: string;
   email: string;
   name: string;
-  role: string;
+
+  principalType: EPrincipalType;
+
+  role?: EUserRole;
+
   iat?: number;
   exp?: number;
   iss?: string;
