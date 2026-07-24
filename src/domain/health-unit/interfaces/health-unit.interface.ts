@@ -1,10 +1,11 @@
 export interface IHealthUnit {
   _id: string;
+  userId?: string;
   name: string;
   address: IHealthUnitAddress;
   phone: string;
   description?: string;
-  services: IService[]
+  services: IService[];
   email: string;
   img?: string;
   createdAt?: Date;

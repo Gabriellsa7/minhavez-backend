@@ -69,6 +69,16 @@ export class HealthUnitService implements IHealthUnitService {
     }
   }
 
+  async getHealthUnitsByUserId(userId: string): Promise<IHealthUnit[]> {
+    try {
+      return await this.healthUnitRepository.getHealthUnitsByUserId(userId);
+    } catch (error) {
+      throw new Error(
+        `Error retrieving health units by user ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async updateHealthUnitById(
     _id: string,
     params: Partial<IHealthUnit>,
@@ -93,9 +103,8 @@ export class HealthUnitService implements IHealthUnitService {
     params: IHealthUnitImageUploadParams,
   ): Promise<IHealthUnit | null> {
     try {
-      const existingUnit = await this.healthUnitRepository.getHealthUnitById(
-        _id,
-      );
+      const existingUnit =
+        await this.healthUnitRepository.getHealthUnitById(_id);
 
       if (!existingUnit) {
         throw new Error('Health unit not found');

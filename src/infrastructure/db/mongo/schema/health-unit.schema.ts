@@ -4,6 +4,13 @@ import { IServiceSchema, serviceSchema } from './service.schema';
 
 export const healthUnitSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+      required: true,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
@@ -18,7 +25,7 @@ export const healthUnitSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      required: false
+      required: false,
     },
 
     services: {
@@ -53,11 +60,12 @@ export const healthUnitSchema = new mongoose.Schema(
 );
 
 export interface IHealthUnitSchema {
+  userId?: mongoose.Types.ObjectId;
   name: string;
   address: IHealthUnitAddress;
   phone: string;
-  description: string,
-  services: IServiceSchema[],
+  description: string;
+  services: IServiceSchema[];
   email: string;
   img?: string | null;
   createdAt: Date;

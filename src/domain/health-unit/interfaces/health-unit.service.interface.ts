@@ -10,7 +10,10 @@ export interface IParamsHealthUnitService {
 
 export interface IHealthUnitService {
   createHealthUnit(params: IParamsCreateHealthUnit): Promise<IHealthUnit>;
-  updateHealthUnitById(id: string, params: Partial<IHealthUnit>): Promise<IHealthUnit | null>;
+  updateHealthUnitById(
+    id: string,
+    params: Partial<IHealthUnit>,
+  ): Promise<IHealthUnit | null>;
   uploadHealthUnitImage(
     id: string,
     params: IHealthUnitImageUploadParams,
@@ -18,6 +21,7 @@ export interface IHealthUnitService {
   deleteHealthUnitById(id: string): Promise<IHealthUnit | null>;
   getHealthUnitByEmail(email: string): Promise<IHealthUnit | null>;
   getHealthUnitById(id: string): Promise<IHealthUnit | null>;
+  getHealthUnitsByUserId(userId: string): Promise<IHealthUnit[]>;
   listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]>;
 }
 

@@ -242,6 +242,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /health-units/user/{userId}:
+    get:
+      tags:
+        - HealthUnits
+      summary: Get health units created by a user
+      operationId: getHealthUnitsByUserId
+      description: Retrieve all health units created by the specified user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user who created the health units
+      responses:
+        '200':
+          description: A list of health units created by the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthUnit'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /health-units/{id}/image:
     post:
       tags:
@@ -1923,6 +1953,9 @@ components:
     HealthUnit:
       type: object
       properties:
+        userId:
+          type: string
+          description: The ID of the user who created the health unit
         id:
           type: string
           description: The unique identifier of the health unit
@@ -2010,12 +2043,16 @@ components:
     CreateHealthUnit:
       type: object
       required:
+        - userId
         - name
         - address
         - phone
         - email
         - services
       properties:
+        userId:
+          type: string
+          description: The ID of the user who created the health unit
         name:
           type: string
           description: The name of the health unit

@@ -15,6 +15,7 @@ export class HealthUnitController implements IController {
 
   initRoutes() {
     this.router.get('/health-units', this.getHealthUnits);
+    this.router.get('/health-units/user/:userId', this.getHealthUnitsByUserId);
     this.router.get('/health-units/:id', this.getHealthUnitById);
     this.router.post('/health-units', this.createHealthUnit);
     this.router.put('/health-units/:id', this.updateHealthUnit);
@@ -25,6 +26,20 @@ export class HealthUnitController implements IController {
   getHealthUnits = async (req: Request, res: Response): Promise<void> => {
     try {
       const healthUnits = await this.healthUnitService.listHealthUnits({});
+      res.status(200).json(healthUnits);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getHealthUnitsByUserId = async (
+    req: Request<{ userId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const healthUnits = await this.healthUnitService.getHealthUnitsByUserId(
+        req.params.userId,
+      );
       res.status(200).json(healthUnits);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -46,9 +61,11 @@ export class HealthUnitController implements IController {
   };
 
   createHealthUnit = async (req: Request, res: Response): Promise<void> => {
-    const { name, address, phone, description, services , email, img } = req.body;
+    const { userId, name, address, phone, description, services, email, img } =
+      req.body;
     try {
       const newHealthUnit = await this.healthUnitService.createHealthUnit({
+        userId,
         name,
         address,
         phone,
@@ -96,14 +113,12 @@ export class HealthUnitController implements IController {
     const { imageBase64, fileName, mimeType } = req.body;
 
     try {
-      const updatedHealthUnit = await this.healthUnitService.uploadHealthUnitImage(
-        id,
-        {
+      const updatedHealthUnit =
+        await this.healthUnitService.uploadHealthUnitImage(id, {
           imageBase64,
           fileName,
           mimeType,
-        },
-      );
+        });
 
       if (!updatedHealthUnit) {
         res.status(404).json({ message: 'Health unit not found' });

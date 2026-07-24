@@ -1,6 +1,9 @@
 import { HydratedDocument } from 'mongoose';
 import { HealthUnit } from '../../../domain/health-unit/health-unit.entity';
-import { IHealthUnitRepository, IParamsCreateHealthUnit } from '../../../domain/health-unit/repository/health-unit.repository.interface';
+import {
+  IHealthUnitRepository,
+  IParamsCreateHealthUnit,
+} from '../../../domain/health-unit/repository/health-unit.repository.interface';
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitSchema } from '../../db/mongo/schema/health-unit.schema';
 import { MHealthUnit } from '../../db/mongo/models/health-unit.model';
@@ -11,6 +14,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
   ): IHealthUnit {
     return new HealthUnit({
       _id: healthUnitDoc._id.toString(),
+      userId: healthUnitDoc.userId?.toString(),
       name: healthUnitDoc.name,
       address: healthUnitDoc.address,
       phone: healthUnitDoc.phone,
@@ -70,7 +74,21 @@ export class HealthUnitRepository implements IHealthUnitRepository {
     }
   }
 
-  async updateHealthUnitById(_id: string, updateData: Partial<IHealthUnit>): Promise<IHealthUnit | null> {
+  async getHealthUnitsByUserId(userId: string): Promise<IHealthUnit[]> {
+    try {
+      const healthUnitDocs = await MHealthUnit.find({ userId });
+      return healthUnitDocs.map((doc) => this.mapToDomain(doc));
+    } catch (error) {
+      throw new Error(
+        `Error getting health units by user ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async updateHealthUnitById(
+    _id: string,
+    updateData: Partial<IHealthUnit>,
+  ): Promise<IHealthUnit | null> {
     try {
       const healthUnitDoc = await MHealthUnit.findByIdAndUpdate(
         _id,

@@ -5,6 +5,7 @@ import {
 } from '../interfaces/health-unit.interface';
 
 export interface IParamsCreateHealthUnit {
+  userId: string;
   name: string;
   address: IHealthUnitAddress;
   phone: string;
@@ -25,5 +26,6 @@ export interface IHealthUnitRepository {
   deleteHealthUnitById(id: string): Promise<IHealthUnit | null>;
   getHealthUnitByEmail(email: string): Promise<IHealthUnit | null>;
   getHealthUnitById(id: string): Promise<IHealthUnit | null>;
+  getHealthUnitsByUserId(userId: string): Promise<IHealthUnit[]>;
   listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]>;
 }
