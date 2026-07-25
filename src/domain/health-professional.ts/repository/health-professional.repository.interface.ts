@@ -1,12 +1,12 @@
 import { IHealthProfessional } from '../interfaces/health-professional.interface';
 
 export interface IParamsCreateHealthProfessional {
-  userId?: string;
+  userId: string;
   healthUnitId: string;
   specialty: string;
-  name:string;
-  email:string;
-  password:string;
+  name: string;
+  email: string;
+  password: string;
   professionalLicense: string;
 }
 
@@ -24,9 +24,7 @@ export interface IHealthProfessionalRepository {
   ): Promise<IHealthProfessional | null>;
   deleteHealthProfessionalById(id: string): Promise<IHealthProfessional | null>;
   getHealthProfessionalById(id: string): Promise<IHealthProfessional | null>;
-  getHealthProfessionalByUserId(
-    userId: string,
-  ): Promise<IHealthProfessional | null>;
+  getHealthProfessionalByUserId(userId: string): Promise<IHealthProfessional[]>;
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
   ): Promise<IHealthProfessional[]>;

@@ -5,6 +5,9 @@ export class HealthProfessional implements IHealthProfessional {
   userId: string;
   healthUnitId: string;
   specialty: string;
+  email: string;
+  name: string;
+  password: string;
   professionalLicense: string;
   active: boolean;
   createdAt: Date;
@@ -13,6 +16,9 @@ export class HealthProfessional implements IHealthProfessional {
   constructor(data: IHealthProfessional) {
     this._id = data._id;
     this.userId = data.userId;
+    this.name = data.name;
+    this.email = data.email;
+    this.password = data.password;
     this.healthUnitId = data.healthUnitId;
     this.specialty = data.specialty;
     this.professionalLicense = data.professionalLicense;

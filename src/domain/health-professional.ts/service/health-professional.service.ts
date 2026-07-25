@@ -21,15 +21,12 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     params: IParamsCreateHealthProfessional,
   ): Promise<IHealthProfessional> {
     try {
-
       const hashedPassword = await bcrypt.hash(params.password, 10);
 
-      return await this.healthProfessionalRepository.createHealthProfessional(
-        {
-          ...params,
-          password: hashedPassword,
-        },
-      );
+      return await this.healthProfessionalRepository.createHealthProfessional({
+        ...params,
+        password: hashedPassword,
+      });
     } catch (error) {
       throw new Error(
         `Error creating health professional: ${(error as Error).message}`,
@@ -37,10 +34,12 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     }
   }
 
-  getHealthProfessionalById(_id: string): Promise<IHealthProfessional | null> {
+  async getHealthProfessionalById(
+    _id: string,
+  ): Promise<IHealthProfessional | null> {
     try {
       const healthProfessional =
-        this.healthProfessionalRepository.getHealthProfessionalById(_id);
+        await this.healthProfessionalRepository.getHealthProfessionalById(_id);
 
       if (!healthProfessional) {
         throw new Error('Health professional not found');
@@ -54,18 +53,13 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     }
   }
 
-  getHealthProfessionalByUserId(
+  async getHealthProfessionalByUserId(
     userId: string,
-  ): Promise<IHealthProfessional | null> {
+  ): Promise<IHealthProfessional[]> {
     try {
-      const healthProfessional =
-        this.healthProfessionalRepository.getHealthProfessionalByUserId(userId);
-
-      if (!healthProfessional) {
-        throw new Error('Health professional not found');
-      }
-
-      return healthProfessional;
+      return await this.healthProfessionalRepository.getHealthProfessionalByUserId(
+        userId,
+      );
     } catch (error) {
       throw new Error(
         `Error retrieving health professional by user ID: ${(error as Error).message}`,

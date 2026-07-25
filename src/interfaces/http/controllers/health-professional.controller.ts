@@ -15,6 +15,10 @@ export class HealthProfessionalController implements IController {
   initRoutes() {
     this.router.get('/health-professionals', this.getHealthProfessionals);
     this.router.get(
+      '/health-professionals/user/:userId',
+      this.getHealthProfessionalByUserId,
+    );
+    this.router.get(
       '/health-professionals/:id',
       this.getHealthProfessionalById,
     );
@@ -100,6 +104,22 @@ export class HealthProfessionalController implements IController {
         res.status(404).json({ message: 'Health professional not found' });
         return;
       }
+      res.status(200).json(healthProfessional);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getHealthProfessionalByUserId = async (
+    req: Request<{ userId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { userId } = req.params;
+    try {
+      const healthProfessional =
+        await this.healthProfessionalService.getHealthProfessionalByUserId(
+          userId,
+        );
       res.status(200).json(healthProfessional);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

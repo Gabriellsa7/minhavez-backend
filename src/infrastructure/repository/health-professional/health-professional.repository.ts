@@ -1,4 +1,4 @@
-import  { HydratedDocument, FilterQuery } from 'mongoose';
+import { HydratedDocument, FilterQuery } from 'mongoose';
 import { IHealthProfessionalSchema } from '../../db/mongo/schema/health-professional.schema';
 import { IHealthProfessional } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 import {
@@ -8,7 +8,9 @@ import {
 } from '../../../domain/health-professional.ts/repository/health-professional.repository.interface';
 import { MHealthProfessional } from '../../db/mongo/models/health-professional.model';
 
-export class HealthProfessionalRepository implements IHealthProfessionalRepository {
+export class HealthProfessionalRepository
+  implements IHealthProfessionalRepository
+{
   private mapToDomain(
     healthProfessionalDoc: HydratedDocument<IHealthProfessionalSchema>,
   ): IHealthProfessional {
@@ -20,7 +22,6 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
       name: healthProfessionalDoc.name,
       email: healthProfessionalDoc.email,
       password: healthProfessionalDoc.password,
-      isDoctor: healthProfessionalDoc.isDoctor,
       professionalLicense: healthProfessionalDoc.professionalLicense,
       active: healthProfessionalDoc.active,
       createdAt: healthProfessionalDoc.createdAt,
@@ -101,22 +102,19 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
 
   async getHealthProfessionalByUserId(
     userId: string,
-  ): Promise<IHealthProfessional | null> {
+  ): Promise<IHealthProfessional[]> {
     try {
-      const healthProfessionalDoc = await MHealthProfessional.findOne({
+      const healthProfessionalDocs = await MHealthProfessional.find({
         userId,
       });
 
-      if (!healthProfessionalDoc) return null;
-
-      return this.mapToDomain(healthProfessionalDoc);
+      return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
         `Error fetching health professional by user ID: ${(error as Error).message}`,
       );
     }
   }
-
   async getHealthProfessionalsByHealthUnitId(
     healthUnitId: string,
   ): Promise<IHealthProfessional[]> {
@@ -134,37 +132,36 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
   }
 
   async findHealthProfessionalByEmailWithPassword(
-  email: string,
-): Promise<(IHealthProfessional & { password: string }) | null> {
-  try {
-    const professional = await MHealthProfessional
-      .findOne({ email })
-      .select('+password');
+    email: string,
+  ): Promise<(IHealthProfessional & { password: string }) | null> {
+    try {
+      const professional = await MHealthProfessional.findOne({ email }).select(
+        '+password',
+      );
 
-    if (!professional) {
-      return null;
+      if (!professional) {
+        return null;
+      }
+
+      return {
+        _id: professional._id.toString(),
+        userId: professional.userId?.toString(),
+        healthUnitId: professional.healthUnitId.toString(),
+        specialty: professional.specialty,
+        name: professional.name,
+        email: professional.email,
+        password: professional.password,
+        professionalLicense: professional.professionalLicense,
+        active: professional.active,
+        createdAt: professional.createdAt,
+        updatedAt: professional.updatedAt,
+      };
+    } catch (error) {
+      throw new Error(
+        `Error finding health professional by email: ${(error as Error).message}`,
+      );
     }
-
-    return {
-      _id: professional._id.toString(),
-      userId: professional.userId?.toString(),
-      healthUnitId: professional.healthUnitId.toString(),
-      specialty: professional.specialty,
-      name: professional.name,
-      email: professional.email,
-      password: professional.password,
-      professionalLicense: professional.professionalLicense,
-      isDoctor: professional.isDoctor,
-      active: professional.active,
-      createdAt: professional.createdAt,
-      updatedAt: professional.updatedAt,
-    };
-  } catch (error) {
-    throw new Error(
-      `Error finding health professional by email: ${(error as Error).message}`,
-    );
   }
-}
 
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
@@ -172,7 +169,7 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
     try {
       // Convert string IDs from filter to ObjectIds for Mongoose queries
       const mongoFilter: FilterQuery<IHealthProfessionalSchema> = {};
-      
+
       if (filter._id) {
         mongoFilter._id = filter._id;
       }
@@ -182,8 +179,9 @@ export class HealthProfessionalRepository implements IHealthProfessionalReposito
       if (filter.userId) {
         mongoFilter.userId = filter.userId;
       }
-      
-      const healthProfessionalDocs = await MHealthProfessional.find(mongoFilter);
+
+      const healthProfessionalDocs =
+        await MHealthProfessional.find(mongoFilter);
 
       return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {

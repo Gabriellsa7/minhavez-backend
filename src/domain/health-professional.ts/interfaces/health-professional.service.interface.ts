@@ -14,9 +14,7 @@ export interface IHealthProfessionalService {
     params: IParamsCreateHealthProfessional,
   ): Promise<IHealthProfessional>;
   getHealthProfessionalById(_id: string): Promise<IHealthProfessional | null>;
-  getHealthProfessionalByUserId(
-    userId: string,
-  ): Promise<IHealthProfessional | null>;
+  getHealthProfessionalByUserId(userId: string): Promise<IHealthProfessional[]>;
   updateHealthProfessionalById(
     _id: string,
     params: IParamsUpdateHealthProfessional,
