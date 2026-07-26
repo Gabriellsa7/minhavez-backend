@@ -1176,6 +1176,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
+
   /queue-items/patient/{id}:
     get:
       tags:
@@ -1190,6 +1191,36 @@ paths:
           schema:
             type: string
           description: The ID of the patient
+      responses:
+        '200':
+          description: Queue items found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueueItem'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue-items/professionals/{id}:
+    get:
+      tags:
+        - QueueItemsByProfessional
+      summary: Get queue items by professional ID
+      operationId: getQueueItemsByProfessionalId
+      description: Retrieve queue items by professional ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the professional
       responses:
         '200':
           description: Queue items found

@@ -56,7 +56,9 @@ export class QueueItemRepository implements IQueueItemRepository {
           continue;
         }
 
-        throw new Error(`Error creating queue item: ${(error as Error).message}`);
+        throw new Error(
+          `Error creating queue item: ${(error as Error).message}`,
+        );
       }
     }
 
@@ -125,6 +127,19 @@ export class QueueItemRepository implements IQueueItemRepository {
       if (!queueItemDoc) return null;
 
       return this.mapToDomain(queueItemDoc);
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue item by queue ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async getQueueItemByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueItem[] | null> {
+    try {
+      const queueItemDocs = await MQueueItem.find({ professionalId });
+      return queueItemDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
         `Error retrieving queue item by queue ID: ${(error as Error).message}`,

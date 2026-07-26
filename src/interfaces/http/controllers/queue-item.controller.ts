@@ -23,6 +23,10 @@ export class QueueItemController implements IController {
       '/queue-items/patient/:patientId',
       this.getQueueItemByPatientId,
     );
+    this.router.get(
+      '/queue-items/professionals/:professionalId',
+      this.getQueueProfissionalById,
+    );
     this.router.get('/queue-items/queue/:queueId', this.getQueueItemByQueueId);
     this.router.post('/queue-items', this.createQueueItem);
     this.router.put('/queue-items/:id', this.updateQueueItem);
@@ -81,6 +85,28 @@ export class QueueItemController implements IController {
         res.status(404).json({ message: 'Queue item not found' });
         return;
       }
+      res.status(200).json(queueItem);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getQueueProfissionalById = async (
+    req: Request<{ professionalId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { professionalId } = req.params;
+    try {
+      const queueItem =
+        await this.queueItemService.getQueueItemByProfessionalId(
+          professionalId,
+        );
+
+      if (!queueItem) {
+        res.status(404).json({ message: 'Queue item not found' });
+        return;
+      }
+
       res.status(200).json(queueItem);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

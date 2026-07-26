@@ -14,6 +14,9 @@ export interface IQueueItemService {
   getQueueItemById(_id: string): Promise<IQueueItem | null>;
   getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]>;
   getQueueItemByQueueId(queueId: string): Promise<IQueueItem | null>;
+  getQueueItemByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueItem[] | null>;
   updateQueueItemById(
     _id: string,
     params: IParamsUpdateQueueItem,

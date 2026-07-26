@@ -51,6 +51,23 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
+  async getQueueItemByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueItem[] | null> {
+    try {
+      const queueItems =
+        await this.queueItemRepository.getQueueItemByProfessionalId(
+          professionalId,
+        );
+
+      return queueItems;
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue items by patient ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async getQueueItemByQueueId(queueId: string): Promise<IQueueItem | null> {
     try {
       const queueItem =
