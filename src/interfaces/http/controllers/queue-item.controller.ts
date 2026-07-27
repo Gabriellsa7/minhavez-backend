@@ -27,7 +27,7 @@ export class QueueItemController implements IController {
       '/queue-items/professionals/:professionalId',
       this.getQueueProfissionalById,
     );
-    this.router.get('/queue-items/queue/:queueId', this.getQueueItemByQueueId);
+    this.router.get('/queue-items/queues/:queueId', this.getQueueItemByQueueId);
     this.router.post('/queue-items', this.createQueueItem);
     this.router.put('/queue-items/:id', this.updateQueueItem);
     this.router.delete('/queue-items/:id', this.deleteQueueItem);

@@ -1271,6 +1271,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /queue-items/queues/{id}:
+    get:
+      tags:
+        - QueueItemsByQueueId
+      summary: Get queue items by queues ID
+      operationId: getQueueItemsByQueueId
+      description: Retrieve queue items by queues ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the queues
+      responses:
+        '200':
+          description: Queue items found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueueItem'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /notifications:
     get:
       tags:
