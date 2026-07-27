@@ -1,3 +1,4 @@
+import { IQueueManagement } from '../interfaces/queue-management.interface';
 import { EQueueStatus, IQueue } from '../interfaces/queue.interface';
 
 export interface IParamsCreateQueue {
@@ -21,6 +22,9 @@ export interface IQueueRepository {
   ): Promise<IQueue | null>;
   deleteQueueById(id: string): Promise<IQueue | null>;
   getQueueByProfessionalId(professionalId: string): Promise<IQueue | null>;
+  getQueueManagementByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueManagement | null>;
   getQueueById(id: string): Promise<IQueue | null>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
 }

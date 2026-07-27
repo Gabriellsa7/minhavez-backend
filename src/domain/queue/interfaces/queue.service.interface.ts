@@ -6,6 +6,7 @@ import {
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IQueue } from './queue.interface';
+import { IQueueManagement } from './queue-management.interface';
 
 export interface IParamsService {
   queueRepository: IQueueRepository;
@@ -21,6 +22,9 @@ export interface IQueueService {
     patientId: string,
   ): Promise<IQueueWithDetails[]>;
   getQueueByProfessionalId(professionalId: string): Promise<IQueue | null>;
+  getQueueManagementByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueManagement | null>;
   updateQueueById(
     _id: string,
     params: IParamsUpdateQueue,
