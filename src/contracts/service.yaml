@@ -948,6 +948,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
+
+  /queue/professional/{id}:
+    get:
+      tags:
+        - Queues
+      summary: Get a queue by professional ID
+      operationId: getQueueById
+      description: Retrieve a queue by professional unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the professional
+      responses:
+        '200':
+          description: Queue found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+        '404':
+          description: Queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /queues/patient/{id}:
     get:
       tags:

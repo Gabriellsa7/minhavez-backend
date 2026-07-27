@@ -21,6 +21,10 @@ export class QueueController implements IController {
       '/queues/patient/:patientId/details',
       this.getQueuesWithDetailsByPatientId,
     );
+    this.router.get(
+      '/queue/professional/:professionalId',
+      this.getQueueByProfessionalId,
+    );
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
     this.router.put('/queues/:id', this.updateQueueById);
@@ -116,6 +120,29 @@ export class QueueController implements IController {
       res.status(200).json({
         message: 'Queue deleted successfully',
       });
+    } catch (error) {
+      res.status(500).json({
+        message: (error as Error).message || 'Internal server error',
+      });
+    }
+  };
+
+  getQueueByProfessionalId = async (
+    req: Request<{ professionalId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { professionalId } = req.params;
+
+    try {
+      const queue =
+        await this.queueService.getQueueByProfessionalId(professionalId);
+
+      if (!queue) {
+        res.status(404).json({ message: 'Queue not found' });
+        return;
+      }
+
+      res.status(200).json(queue);
     } catch (error) {
       res.status(500).json({
         message: (error as Error).message || 'Internal server error',
