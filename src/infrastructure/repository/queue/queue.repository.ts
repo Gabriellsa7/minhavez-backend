@@ -75,6 +75,22 @@ export class QueueRepository implements IQueueRepository {
     }
   }
 
+  async getQueueByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueue | null> {
+    try {
+      const queueDoc = await MQueue.findOne({ professionalId });
+
+      if (!queueDoc) return null;
+
+      return this.mapToDomain(queueDoc);
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue by ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async listQueues(filter: Partial<IQueue>): Promise<IQueue[]> {
     try {
       const queueDocs = await MQueue.find(filter);
