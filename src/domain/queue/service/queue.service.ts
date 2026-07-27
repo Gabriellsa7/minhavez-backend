@@ -10,6 +10,7 @@ import {
 } from '../repository/queue.repository.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
+import { IQueueManagement } from '../interfaces/queue-management.interface';
 
 export class QueueService implements IQueueService {
   private queueRepository: IQueueRepository;
@@ -171,6 +172,20 @@ export class QueueService implements IQueueService {
     } catch (error) {
       throw new Error(
         `Error retrieving queue by ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async getQueueManagementByProfessionalId(
+    professionalId: string,
+  ): Promise<IQueueManagement | null> {
+    try {
+      return await this.queueRepository.getQueueManagementByProfessionalId(
+        professionalId,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue management: ${(error as Error).message}`,
       );
     }
   }
