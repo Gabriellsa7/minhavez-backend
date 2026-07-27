@@ -20,6 +20,7 @@ export interface IQueueRepository {
     params: IParamsUpdateQueue,
   ): Promise<IQueue | null>;
   deleteQueueById(id: string): Promise<IQueue | null>;
+  getQueueByProfessionalId(professionalId: string): Promise<IQueue | null>;
   getQueueById(id: string): Promise<IQueue | null>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
 }

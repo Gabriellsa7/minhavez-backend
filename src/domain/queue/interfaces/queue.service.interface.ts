@@ -20,6 +20,7 @@ export interface IQueueService {
   getQueuesWithDetailsByPatientId(
     patientId: string,
   ): Promise<IQueueWithDetails[]>;
+  getQueueByProfessionalId(professionalId: string): Promise<IQueue | null>;
   updateQueueById(
     _id: string,
     params: IParamsUpdateQueue,
