@@ -25,6 +25,10 @@ export class QueueController implements IController {
       '/queue/professional/:professionalId',
       this.getQueueByProfessionalId,
     );
+    this.router.get(
+      '/queue/professional/:professionalId/management',
+      this.getQueueManagementByProfessionalId,
+    );
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
     this.router.put('/queues/:id', this.updateQueueById);
@@ -146,6 +150,35 @@ export class QueueController implements IController {
     } catch (error) {
       res.status(500).json({
         message: (error as Error).message || 'Internal server error',
+      });
+    }
+  };
+
+  getQueueManagementByProfessionalId = async (
+    req: Request<{ professionalId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { professionalId } = req.params;
+
+    try {
+      const queueManagement =
+        await this.queueService.getQueueManagementByProfessionalId(
+          professionalId,
+        );
+
+      if (!queueManagement) {
+        res.status(404).json({
+          message: 'Queue not found',
+        });
+
+        return;
+      }
+
+      res.status(200).json(queueManagement);
+    } catch (error) {
+      res.status(500).json({
+        message:
+          (error as Error).message ?? 'Error retrieving queue management',
       });
     }
   };
