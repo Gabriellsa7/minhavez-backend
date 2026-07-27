@@ -229,6 +229,28 @@ export class QueueRepository implements IQueueRepository {
             },
           },
         },
+
+        {
+          $project: {
+            _id: 0,
+            queue: 1,
+            items: 1,
+            currentItem: {
+              $first: {
+                $filter: {
+                  input: '$items',
+                  as: 'item',
+                  cond: {
+                    $eq: [
+                      '$$item.queueItem.status',
+                      EQueueItemStatus.IN_SERVICE,
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
       ]);
 
       if (!result.length) {

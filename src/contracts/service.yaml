@@ -1046,6 +1046,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
   /queues/patient/{id}/details:
     get:
       tags:
@@ -2870,6 +2871,9 @@ components:
       properties:
         queue:
           $ref: '#/components/schemas/Queue'
+
+        currentItem:
+          $ref: '#/components/schemas/QueueManagementItem'
 
         items:
           type: array

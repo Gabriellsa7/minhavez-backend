@@ -5,6 +5,7 @@ import { IQueue } from './queue.interface';
 
 export interface IQueueManagement {
   queue: IQueue;
+  currentItem: IQueueManagementItem | null;
   items: IQueueManagementItem[];
 }
 
