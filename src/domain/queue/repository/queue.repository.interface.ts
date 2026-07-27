@@ -9,9 +9,6 @@ export interface IParamsCreateQueue {
 }
 
 export type IParamsUpdateQueue = Partial<IQueue>;
-
-//TODO: Create a method to get a queue by professional Id
-// and use on front to list the queue and the items to the professional
 export interface IQueueRepository {
   createQueue(queueData: IParamsCreateQueue): Promise<IQueue>;
   updateQueueById(
