@@ -954,7 +954,7 @@ paths:
       tags:
         - Queues
       summary: Get a queue by professional ID
-      operationId: getQueueById
+      operationId: getQueueByProfessionalId
       description: Retrieve a queue by professional unique ID.
       parameters:
         - name: id
@@ -978,6 +978,40 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/professional/{professionalId}/management:
+    get:
+      tags:
+        - Queues
+      summary: Get professional queue management
+      operationId: getQueueManagementByProfessionalId
+      description: Retrieve the open queue and all patients waiting for the professional.
+      parameters:
+        - name: professionalId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Professional identifier.
+      responses:
+        '200':
+          description: Queue management retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueManagement'
+        '404':
+          description: Queue not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
           content:
             application/json:
               schema:
@@ -2830,6 +2864,29 @@ components:
         queueSize:
           type: integer
           description: The number of items in the queue
+
+    QueueManagement:
+      type: object
+      properties:
+        queue:
+          $ref: '#/components/schemas/Queue'
+
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueManagementItem'
+
+    QueueManagementItem:
+      type: object
+      properties:
+        queueItem:
+          $ref: '#/components/schemas/QueueItem'
+
+        patient:
+          $ref: '#/components/schemas/Patient'
+
+        user:
+          $ref: '#/components/schemas/User'
 
   securitySchemes:
     bearerAuth:
