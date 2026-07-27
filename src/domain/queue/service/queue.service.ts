@@ -190,6 +190,93 @@ export class QueueService implements IQueueService {
     }
   }
 
+  async openQueue(queueId: string): Promise<IQueue> {
+    try {
+      const queue = await this.queueRepository.getQueueById(queueId);
+
+      if (!queue) {
+        throw new Error('Queue not found');
+      }
+
+      if (queue.status === EQueueStatus.OPEN) {
+        throw new Error('Queue is already open');
+      }
+
+      const openedQueue =
+        await this.queueRepository.findOpenQueueByProfessionalId(
+          queue.professionalId,
+        );
+
+      if (openedQueue) {
+        throw new Error('Professional already has an open queue');
+      }
+
+      const today = new Date();
+
+      const isToday =
+        queue.queueDate.getFullYear() === today.getFullYear() &&
+        queue.queueDate.getMonth() === today.getMonth() &&
+        queue.queueDate.getDate() === today.getDate();
+
+      if (!isToday) {
+        throw new Error('Only today queue can be opened');
+      }
+
+      const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
+        status: EQueueStatus.OPEN,
+        openedAt: new Date(),
+        closedAt: null,
+      });
+
+      if (!updatedQueue) {
+        throw new Error('Queue not found');
+      }
+
+      return updatedQueue;
+    } catch (error) {
+      throw new Error(`Error opening queue: ${(error as Error).message}`);
+    }
+  }
+
+  async closeQueue(queueId: string): Promise<IQueue> {
+    try {
+      const queue = await this.queueRepository.getQueueById(queueId);
+
+      if (!queue) {
+        throw new Error('Queue not found');
+      }
+
+      if (queue.status === EQueueStatus.CLOSED) {
+        return queue;
+      }
+
+      const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
+        status: EQueueStatus.CLOSED,
+        closedAt: new Date(),
+      });
+
+      if (!updatedQueue) {
+        throw new Error('Queue not found');
+      }
+
+      return updatedQueue;
+    } catch (error) {
+      throw new Error(`Error closing queue: ${(error as Error).message}`);
+    }
+  }
+
+  async getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]> {
+    try {
+      return await this.queueRepository.getQueuesByProfessionalId(
+        professionalId,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queues by professional ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async listQueues(filter: Partial<IQueue>): Promise<IQueue[]> {
     try {
       return await this.queueRepository.listQueues(filter);

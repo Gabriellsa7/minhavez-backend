@@ -30,6 +30,9 @@ export class QueueItemController implements IController {
     this.router.get('/queue-items/queues/:queueId', this.getQueueItemByQueueId);
     this.router.post('/queue-items', this.createQueueItem);
     this.router.put('/queue-items/:id', this.updateQueueItem);
+    this.router.patch('/queue-items/:id/finish', this.finishQueueItem);
+
+    this.router.patch('/queue-items/:id/absent', this.markQueueItemAsAbsent);
     this.router.delete('/queue-items/:id', this.deleteQueueItem);
   }
 
@@ -128,7 +131,7 @@ export class QueueItemController implements IController {
     res: Response,
   ): Promise<void> => {
     const { id } = req.params;
-    const updateData: IParamsUpdateQueueItem = { queueItemData: req.body };
+    const updateData: IParamsUpdateQueueItem = req.body;
     try {
       const updatedQueueItem = await this.queueItemService.updateQueueItemById(
         id,
@@ -141,6 +144,40 @@ export class QueueItemController implements IController {
       res.status(200).json(updatedQueueItem);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  finishQueueItem = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const queueItem = await this.queueItemService.finishQueueItem(
+        req.params.id,
+      );
+
+      res.status(200).json(queueItem);
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+      });
+    }
+  };
+
+  markQueueItemAsAbsent = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const queueItem = await this.queueItemService.markQueueItemAsAbsent(
+        req.params.id,
+      );
+
+      res.status(200).json(queueItem);
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+      });
     }
   };
 

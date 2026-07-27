@@ -1,19 +1,26 @@
-import { IQueueItem } from '../interfaces/queue-item.interface';
+import {
+  EQueueItemStatus,
+  IQueueItem,
+} from '../interfaces/queue-item.interface';
 import {
   IParamsCreateQueueItem,
   IParamsUpdateQueueItem,
   IQueueItemRepository,
 } from '../repository/queue-item.repository.interface';
-import {
-  IParamsQueueItemService,
-  IQueueItemService,
-} from '../interfaces/queue-item.service.interface';
+import { IQueueItemService } from '../interfaces/queue-item.service.interface';
+import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
+import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
+  private queueRepository: IQueueRepository;
 
-  constructor(params: IParamsQueueItemService) {
+  constructor(params: {
+    queueItemRepository: IQueueItemRepository;
+    queueRepository: IQueueRepository;
+  }) {
     this.queueItemRepository = params.queueItemRepository;
+    this.queueRepository = params.queueRepository;
   }
 
   async createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem> {
@@ -114,6 +121,81 @@ export class QueueItemService implements IQueueItemService {
       return deletedQueueItem;
     } catch (error) {
       throw new Error(`Error deleting queue item: ${(error as Error).message}`);
+    }
+  }
+
+  private async closeQueueIfEmpty(queueId: string): Promise<void> {
+    try {
+      const queueItems = await this.queueItemRepository.listQueueItems({
+        queueId,
+      });
+
+      const hasPendingItems = queueItems.some(
+        (item) =>
+          item.status === EQueueItemStatus.WAITING ||
+          item.status === EQueueItemStatus.IN_SERVICE,
+      );
+
+      if (!hasPendingItems) {
+        await this.queueRepository.updateQueueById(queueId, {
+          status: EQueueStatus.CLOSED,
+          closedAt: new Date(),
+        });
+      }
+    } catch (error) {
+      throw new Error(
+        `Error finishing queue item: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async finishQueueItem(queueItemId: string): Promise<IQueueItem> {
+    try {
+      const queueItem =
+        await this.queueItemRepository.getQueueItemById(queueItemId);
+
+      if (!queueItem) {
+        throw new Error('Queue item not found');
+      }
+
+      const updatedQueueItem =
+        await this.queueItemRepository.updateQueueItemById(queueItemId, {
+          status: EQueueItemStatus.FINISHED,
+          finishedAt: new Date(),
+        });
+
+      await this.closeQueueIfEmpty(queueItem.queueId);
+
+      return updatedQueueItem!;
+    } catch (error) {
+      throw new Error(
+        `Error finishing queue item: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async markQueueItemAsAbsent(queueItemId: string): Promise<IQueueItem> {
+    try {
+      const queueItem =
+        await this.queueItemRepository.getQueueItemById(queueItemId);
+
+      if (!queueItem) {
+        throw new Error('Queue item not found');
+      }
+
+      const updatedQueueItem =
+        await this.queueItemRepository.updateQueueItemById(queueItemId, {
+          status: EQueueItemStatus.ABSENT,
+          finishedAt: new Date(),
+        });
+
+      await this.closeQueueIfEmpty(queueItem.queueId);
+
+      return updatedQueueItem!;
+    } catch (error) {
+      throw new Error(
+        `Error finishing queue item: ${(error as Error).message}`,
+      );
     }
   }
 

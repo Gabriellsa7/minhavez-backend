@@ -23,4 +23,5 @@ export enum EQueueItemStatus {
   WAITING = 'WAITING',
   IN_SERVICE = 'IN_SERVICE',
   FINISHED = 'FINISHED',
+  ABSENT = 'ABSENT',
 }

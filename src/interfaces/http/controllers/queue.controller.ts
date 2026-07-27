@@ -31,6 +31,11 @@ export class QueueController implements IController {
     );
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
+    this.router.patch('/queues/:id/open', this.openQueue);
+    this.router.get(
+      '/queues/professional/:professionalId',
+      this.getQueuesByProfessionalId,
+    );
     this.router.put('/queues/:id', this.updateQueueById);
   }
 
@@ -190,9 +195,10 @@ export class QueueController implements IController {
     const { id } = req.params;
     const updateData = req.body;
     try {
-      const updatedQueueItem = await this.queueService.updateQueueById(id, {
-        queueData: updateData,
-      });
+      const updatedQueueItem = await this.queueService.updateQueueById(
+        id,
+        updateData,
+      );
       if (!updatedQueueItem) {
         res.status(404).json({ message: 'Queue item not found' });
         return;
@@ -200,6 +206,42 @@ export class QueueController implements IController {
       res.status(200).json(updatedQueueItem);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  openQueue = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+      const queue = await this.queueService.openQueue(id);
+
+      res.status(200).json(queue);
+    } catch (error) {
+      res.status(400).json({
+        status: 400,
+        message: (error as Error).message,
+      });
+    }
+  };
+
+  getQueuesByProfessionalId = async (
+    req: Request<{ professionalId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { professionalId } = req.params;
+
+    try {
+      const queues =
+        await this.queueService.getQueuesByProfessionalId(professionalId);
+
+      res.status(200).json(queues);
+    } catch (error) {
+      res.status(500).json({
+        message: (error as Error).message,
+      });
     }
   };
 

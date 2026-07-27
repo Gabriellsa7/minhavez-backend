@@ -13,9 +13,7 @@ export interface IParamsCreateQueueItem {
   status: EQueueItemStatus;
 }
 
-export interface IParamsUpdateQueueItem {
-  queueItemData: Partial<IQueueItem>;
-}
+export type IParamsUpdateQueueItem = Partial<IQueueItem>;
 
 export interface IQueueItemRepository {
   createQueueItem(queueItemData: IParamsCreateQueueItem): Promise<IQueueItem>;

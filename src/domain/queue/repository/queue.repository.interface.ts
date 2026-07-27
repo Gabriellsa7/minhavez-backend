@@ -8,9 +8,7 @@ export interface IParamsCreateQueue {
   queueDate?: Date;
 }
 
-export interface IParamsUpdateQueue {
-  queueData: Partial<IParamsCreateQueue>;
-}
+export type IParamsUpdateQueue = Partial<IQueue>;
 
 //TODO: Create a method to get a queue by professional Id
 // and use on front to list the queue and the items to the professional
@@ -26,5 +24,7 @@ export interface IQueueRepository {
     professionalId: string,
   ): Promise<IQueueManagement | null>;
   getQueueById(id: string): Promise<IQueue | null>;
+  findOpenQueueByProfessionalId(professionalId: string): Promise<IQueue | null>;
+  getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
 }

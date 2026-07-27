@@ -31,10 +31,7 @@ export class AppointmentService implements IAppointmentService {
     params: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
-      console.log('[AppointmentService] createAppointment params:', JSON.stringify(params, null, 2));
-
       if (params.queueItemId) {
-        console.log('[AppointmentService] Checking for existing appointments with queueItemId:', params.queueItemId);
         const existingAppointmentWithQueueItemId =
           await this.appointmentRepository.listAppointments({
             queueItemId: params.queueItemId,
@@ -48,18 +45,23 @@ export class AppointmentService implements IAppointmentService {
       // Check for conflicts at the same time for the professional
       // Use a time range query instead of exact match to account for timing variations
       const appointmentDateTime = new Date(params.dateTime);
-      console.log('[AppointmentService] appointmentDateTime:', appointmentDateTime, 'UTC:', appointmentDateTime.toISOString());
-      
+
       const existingAppointmentAtSameTime =
         await this.appointmentRepository.listAppointments({
           professionalId: params.professionalId,
         });
 
-      console.log('[AppointmentService] Found', existingAppointmentAtSameTime.length, 'existing appointments for professional', params.professionalId);
+      console.log(
+        '[AppointmentService] Found',
+        existingAppointmentAtSameTime.length,
+        'existing appointments for professional',
+        params.professionalId,
+      );
 
       const hasConflict = existingAppointmentAtSameTime.some((apt) => {
         const aptTime = new Date(apt.dateTime);
-        const sameYear = aptTime.getFullYear() === appointmentDateTime.getFullYear();
+        const sameYear =
+          aptTime.getFullYear() === appointmentDateTime.getFullYear();
         const sameMonth = aptTime.getMonth() === appointmentDateTime.getMonth();
         const sameDate = aptTime.getDate() === appointmentDateTime.getDate();
         const sameHour = aptTime.getHours() === appointmentDateTime.getHours();
@@ -70,26 +72,45 @@ export class AppointmentService implements IAppointmentService {
           isActiveAppointment && sameYear && sameMonth && sameDate && sameHour;
 
         console.log('[AppointmentService] Comparing appointment times:');
-        console.log('  Existing:', aptTime.toISOString(), '- Status:', apt.status, '- Year:', sameYear, 'Month:', sameMonth, 'Date:', sameDate, 'Hour:', sameHour, 'Conflict:', hasConflictFlag);
+        console.log(
+          '  Existing:',
+          aptTime.toISOString(),
+          '- Status:',
+          apt.status,
+          '- Year:',
+          sameYear,
+          'Month:',
+          sameMonth,
+          'Date:',
+          sameDate,
+          'Hour:',
+          sameHour,
+          'Conflict:',
+          hasConflictFlag,
+        );
 
         return hasConflictFlag;
       });
 
       if (hasConflict) {
-        throw new Error('This professional already has an appointment at this time');
+        throw new Error(
+          'This professional already has an appointment at this time',
+        );
       }
 
       const openQueues = await this.queueRepository.listQueues({
         professionalId: params.professionalId,
         healthUnitId: params.healthUnitId,
-        status: EQueueStatus.OPEN,
+        status: EQueueStatus.CLOSED,
       });
-     
+
       const queue =
-        openQueues.find(queue =>
-          queue.queueDate.getFullYear() === appointmentDateTime.getFullYear() &&
-          queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
-          queue.queueDate.getDate() === appointmentDateTime.getDate(),
+        openQueues.find(
+          (queue) =>
+            queue.queueDate.getFullYear() ===
+              appointmentDateTime.getFullYear() &&
+            queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
+            queue.queueDate.getDate() === appointmentDateTime.getDate(),
         ) ??
         (await this.queueRepository.createQueue({
           professionalId: params.professionalId,
@@ -118,7 +139,10 @@ export class AppointmentService implements IAppointmentService {
           status: EQueueItemStatus.WAITING,
         }));
 
-      console.log('[AppointmentService] No conflicts found. Creating appointment with params:', params);
+      console.log(
+        '[AppointmentService] No conflicts found. Creating appointment with params:',
+        params,
+      );
       return await this.appointmentRepository.createAppointment({
         ...params,
         queueItemId: queueItem._id,
