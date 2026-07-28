@@ -33,8 +33,11 @@ export class AppointmentRepository implements IAppointmentRepository {
     appointmentData: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
-      console.log('[AppointmentRepository] Creating appointment:', appointmentData);
-      
+      console.log(
+        '[AppointmentRepository] Creating appointment:',
+        appointmentData,
+      );
+
       // Convert string IDs to Mongoose ObjectIds and ensure dateTime is a Date object
       try {
         const appointmentToCreate = {
@@ -48,18 +51,30 @@ export class AppointmentRepository implements IAppointmentRepository {
           notes: appointmentData.notes,
         };
 
-        console.log('[AppointmentRepository] appointmentToCreate:', appointmentToCreate);
+        console.log(
+          '[AppointmentRepository] appointmentToCreate:',
+          appointmentToCreate,
+        );
         const appointmentDoc = await MAppointment.create(appointmentToCreate);
-        console.log('[AppointmentRepository] Appointment created:', appointmentDoc);
+        console.log(
+          '[AppointmentRepository] Appointment created:',
+          appointmentDoc,
+        );
         return this.mapToDomain(appointmentDoc);
       } catch (conversionError) {
-        console.error('[AppointmentRepository] ID conversion error:', conversionError);
+        console.error(
+          '[AppointmentRepository] ID conversion error:',
+          conversionError,
+        );
         throw new Error(
           `Invalid ID format: ${(conversionError as Error).message}`,
         );
       }
     } catch (error) {
-      console.error('[AppointmentRepository] Error creating appointment:', error);
+      console.error(
+        '[AppointmentRepository] Error creating appointment:',
+        error,
+      );
       throw new Error(
         `Error creating appointment: ${(error as Error).message}`,
       );
@@ -117,20 +132,26 @@ export class AppointmentRepository implements IAppointmentRepository {
     try {
       // Convert string IDs in filter to ObjectIds for proper Mongoose queries
       const mongoFilter: FilterQuery<IAppointmentSchema> = {};
-      
+
       if (filter.patientId) {
         mongoFilter.patientId = new Types.ObjectId(filter.patientId as string);
       }
       if (filter.professionalId) {
-        mongoFilter.professionalId = new Types.ObjectId(filter.professionalId as string);
+        mongoFilter.professionalId = new Types.ObjectId(
+          filter.professionalId as string,
+        );
       }
       if (filter.healthUnitId) {
-        mongoFilter.healthUnitId = new Types.ObjectId(filter.healthUnitId as string);
+        mongoFilter.healthUnitId = new Types.ObjectId(
+          filter.healthUnitId as string,
+        );
       }
       if (filter.queueItemId) {
-        mongoFilter.queueItemId = new Types.ObjectId(filter.queueItemId as string);
+        mongoFilter.queueItemId = new Types.ObjectId(
+          filter.queueItemId as string,
+        );
       }
-      
+
       const appointmentDocs = await MAppointment.find(mongoFilter);
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
@@ -145,7 +166,9 @@ export class AppointmentRepository implements IAppointmentRepository {
   ): Promise<IAppointment[]> {
     try {
       const mongoPatientId = new Types.ObjectId(patientId);
-      const appointmentDocs = await MAppointment.find({ patientId: mongoPatientId });
+      const appointmentDocs = await MAppointment.find({
+        patientId: mongoPatientId,
+      });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -159,7 +182,9 @@ export class AppointmentRepository implements IAppointmentRepository {
   ): Promise<IAppointment[]> {
     try {
       const mongoHealthUnitId = new Types.ObjectId(healthUnitId);
-      const appointmentDocs = await MAppointment.find({ healthUnitId: mongoHealthUnitId });
+      const appointmentDocs = await MAppointment.find({
+        healthUnitId: mongoHealthUnitId,
+      });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(
@@ -173,7 +198,9 @@ export class AppointmentRepository implements IAppointmentRepository {
   ): Promise<IAppointment[]> {
     try {
       const mongoProfessionalId = new Types.ObjectId(professionalId);
-      const appointmentDocs = await MAppointment.find({ professionalId: mongoProfessionalId });
+      const appointmentDocs = await MAppointment.find({
+        professionalId: mongoProfessionalId,
+      });
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(

@@ -10,17 +10,22 @@ import {
 import { IQueueItemService } from '../interfaces/queue-item.service.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
 import { EQueueStatus } from '../../queue/interfaces/queue.interface';
+import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
+import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
   private queueRepository: IQueueRepository;
+  private appointmentRepository: IAppointmentRepository;
 
   constructor(params: {
     queueItemRepository: IQueueItemRepository;
     queueRepository: IQueueRepository;
+    appointmentRepository: IAppointmentRepository;
   }) {
     this.queueItemRepository = params.queueItemRepository;
     this.queueRepository = params.queueRepository;
+    this.appointmentRepository = params.appointmentRepository;
   }
 
   async createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem> {
@@ -168,6 +173,8 @@ export class QueueItemService implements IQueueItemService {
         },
       );
 
+      await this.completeAppointment(queueItemId);
+
       await this.advanceQueue(queueItem.queueId);
 
       return updated!;
@@ -280,6 +287,24 @@ export class QueueItemService implements IQueueItemService {
     } catch (error) {
       throw new Error(`Error calling queue item: ${(error as Error).message}`);
     }
+  }
+
+  private async completeAppointment(queueItemId: string): Promise<void> {
+    const appointments = await this.appointmentRepository.listAppointments({
+      queueItemId,
+    });
+
+    if (appointments.length === 0) {
+      return;
+    }
+
+    await this.appointmentRepository.updateAppointmentById(
+      appointments[0]._id,
+      {
+        status: EAppointmentStatus.COMPLETED,
+        finishedAt: new Date(),
+      },
+    );
   }
 
   async listQueueItem(filter: Partial<IQueueItem>): Promise<IQueueItem[]> {

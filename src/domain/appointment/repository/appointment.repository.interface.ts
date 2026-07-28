@@ -9,9 +9,7 @@ export interface IParamsCreateAppointment {
   notes?: string;
 }
 
-export interface IParamsUpdateAppointment {
-  appointmentData: Partial<IAppointment>;
-}
+export type IParamsUpdateAppointment = Partial<IAppointment>;
 
 export interface IAppointmentRepository {
   createAppointment(
