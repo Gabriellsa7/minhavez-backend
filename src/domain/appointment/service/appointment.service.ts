@@ -98,14 +98,13 @@ export class AppointmentService implements IAppointmentService {
         );
       }
 
-      const openQueues = await this.queueRepository.listQueues({
+      const queues = await this.queueRepository.listQueues({
         professionalId: params.professionalId,
         healthUnitId: params.healthUnitId,
-        status: EQueueStatus.CLOSED,
       });
 
       const queue =
-        openQueues.find(
+        queues.find(
           (queue) =>
             queue.queueDate.getFullYear() ===
               appointmentDateTime.getFullYear() &&
@@ -115,7 +114,7 @@ export class AppointmentService implements IAppointmentService {
         (await this.queueRepository.createQueue({
           professionalId: params.professionalId,
           healthUnitId: params.healthUnitId,
-          status: EQueueStatus.OPEN,
+          status: EQueueStatus.CLOSED,
           queueDate: appointmentDateTime,
         }));
 
