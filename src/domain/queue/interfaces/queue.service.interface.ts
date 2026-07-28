@@ -38,6 +38,8 @@ export interface IQueueService {
   //Change the logic of creating a queue, fordi nå, is created a queue for each appointment in diferent Tid of the day
 
   //TODO: Add new logic to not show appoitment on app whe is completed
+
+  //TODO: add status in all return on controller the same as in getQueuesByProfessionalId, better create a ErroHandle
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
