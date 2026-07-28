@@ -31,7 +31,6 @@ export class QueueItemController implements IController {
     this.router.post('/queue-items', this.createQueueItem);
     this.router.put('/queue-items/:id', this.updateQueueItem);
     this.router.patch('/queue-items/:id/finish', this.finishQueueItem);
-
     this.router.patch('/queue-items/:id/absent', this.markQueueItemAsAbsent);
     this.router.delete('/queue-items/:id', this.deleteQueueItem);
   }

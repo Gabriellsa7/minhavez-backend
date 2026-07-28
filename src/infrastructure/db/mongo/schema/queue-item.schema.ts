@@ -35,6 +35,11 @@ export const queueItemSchema = new mongoose.Schema(
       required: true,
     },
 
+    missedCalls: {
+      type: Number,
+      default: 0,
+    },
+
     status: {
       type: String,
       enum: Object.values(EQueueItemStatus),
@@ -64,6 +69,7 @@ export interface IQueueItemSchema {
   patientId: mongoose.Types.ObjectId;
   position: number;
   priority: EQueueItemPriority;
+  missedCalls: number;
   status: EQueueItemStatus;
   code: string;
   checkInTime?: Date;

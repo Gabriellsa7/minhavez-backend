@@ -154,23 +154,25 @@ export class QueueItemService implements IQueueItemService {
       const queueItem =
         await this.queueItemRepository.getQueueItemById(queueItemId);
 
-      if (!queueItem) {
-        throw new Error('Queue item not found');
-      }
+      if (!queueItem) throw new Error('Queue item not found');
 
-      const updatedQueueItem =
-        await this.queueItemRepository.updateQueueItemById(queueItemId, {
+      if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
+        throw new Error('Patient is not in service');
+
+      const updated = await this.queueItemRepository.updateQueueItemById(
+        queueItemId,
+        {
           status: EQueueItemStatus.FINISHED,
+
           finishedAt: new Date(),
-        });
-
-      await this.closeQueueIfEmpty(queueItem.queueId);
-
-      return updatedQueueItem!;
-    } catch (error) {
-      throw new Error(
-        `Error finishing queue item: ${(error as Error).message}`,
+        },
       );
+
+      await this.advanceQueue(queueItem.queueId);
+
+      return updated!;
+    } catch (error) {
+      throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }
   }
 
@@ -179,23 +181,76 @@ export class QueueItemService implements IQueueItemService {
       const queueItem =
         await this.queueItemRepository.getQueueItemById(queueItemId);
 
-      if (!queueItem) {
-        throw new Error('Queue item not found');
+      if (!queueItem) throw new Error('Queue item not found');
+
+      if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
+        throw new Error('Patient is not in service');
+
+      if (queueItem.missedCalls === 0) {
+        const lastPosition =
+          await this.queueItemRepository.getLastQueuePosition(
+            queueItem.queueId,
+          );
+
+        const updated = await this.queueItemRepository.updateQueueItemById(
+          queueItemId,
+          {
+            missedCalls: 1,
+
+            position: lastPosition + 1,
+
+            status: EQueueItemStatus.WAITING,
+
+            calledAt: undefined,
+          },
+        );
+
+        await this.advanceQueue(queueItem.queueId);
+
+        return updated!;
       }
 
-      const updatedQueueItem =
-        await this.queueItemRepository.updateQueueItemById(queueItemId, {
+      const updated = await this.queueItemRepository.updateQueueItemById(
+        queueItemId,
+        {
+          missedCalls: 2,
+
           status: EQueueItemStatus.ABSENT,
+
           finishedAt: new Date(),
+        },
+      );
+
+      await this.advanceQueue(queueItem.queueId);
+
+      return updated!;
+    } catch (error) {
+      throw new Error(`Error listing queue items: ${(error as Error).message}`);
+    }
+  }
+
+  private async advanceQueue(queueId: string): Promise<void> {
+    try {
+      const next =
+        await this.queueItemRepository.getNextWaitingQueueItem(queueId);
+
+      if (next) {
+        await this.queueItemRepository.updateQueueItemById(next._id, {
+          status: EQueueItemStatus.IN_SERVICE,
+
+          calledAt: new Date(),
         });
 
-      await this.closeQueueIfEmpty(queueItem.queueId);
+        return;
+      }
 
-      return updatedQueueItem!;
+      await this.queueRepository.updateQueueById(queueId, {
+        status: EQueueStatus.CLOSED,
+
+        closedAt: new Date(),
+      });
     } catch (error) {
-      throw new Error(
-        `Error finishing queue item: ${(error as Error).message}`,
-      );
+      throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }
   }
 

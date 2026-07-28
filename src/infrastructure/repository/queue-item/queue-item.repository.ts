@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import { HydratedDocument } from 'mongoose';
-import { IQueueItem } from '../../../domain/queue-item/interfaces/queue-item.interface';
+import {
+  EQueueItemStatus,
+  IQueueItem,
+} from '../../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemSchema } from '../../db/mongo/schema/queue-item.schema';
 import {
   IParamsCreateQueueItem,
@@ -20,6 +23,7 @@ export class QueueItemRepository implements IQueueItemRepository {
       code: queueItemDoc.code,
       position: queueItemDoc.position,
       priority: queueItemDoc.priority,
+      missedCalls: queueItemDoc.missedCalls,
       status: queueItemDoc.status,
       checkInTime: queueItemDoc.checkInTime,
       calledAt: queueItemDoc.calledAt,
@@ -145,6 +149,27 @@ export class QueueItemRepository implements IQueueItemRepository {
         `Error retrieving queue item by queue ID: ${(error as Error).message}`,
       );
     }
+  }
+
+  async getNextWaitingQueueItem(queueId: string): Promise<IQueueItem | null> {
+    const doc = await MQueueItem.findOne({
+      queueId,
+      status: EQueueItemStatus.WAITING,
+    }).sort({
+      position: 1,
+    });
+
+    return doc ? this.mapToDomain(doc) : null;
+  }
+
+  async getLastQueuePosition(queueId: string): Promise<number> {
+    const last = await MQueueItem.findOne({
+      queueId,
+    }).sort({
+      position: -1,
+    });
+
+    return last?.position ?? 0;
   }
 
   async listQueueItems(filter: Partial<IQueueItem>): Promise<IQueueItem[]> {

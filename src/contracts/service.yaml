@@ -1358,6 +1358,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /queue-items/{id}/finish:
+    patch:
+      summary: Finish queue item
+      description: Marks the current queue item as finished and automatically calls the next patient. If there are no more waiting patients, the queue is closed.
+      tags:
+        - Queue Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Queue item finished successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '404':
+          description: Queue item not found
+        '400':
+          description: Invalid request
+
+  /queue-items/{id}/absent:
+    patch:
+      summary: Mark queue item as absent
+      description: >
+        Marks the patient as absent. On the first absence the patient is moved
+        to the end of the queue. On the second absence the patient is marked as
+        ABSENT and removed from the active queue.
+      tags:
+        - Queue Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Queue item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '404':
+          description: Queue item not found
+        '400':
+          description: Invalid request
+
   /queue-items/professionals/{id}:
     get:
       tags:
@@ -2635,6 +2686,9 @@ components:
           type: string
           enum: [LOW, MEDIUM, HIGH]
           description: The priority level of the patient (1-5)
+        missedCalls:
+          type: number
+          description: The Missed Calls
         status:
           type: string
           enum: [WAITING, IN_SERVICE, FINISHED, ABSENT]
