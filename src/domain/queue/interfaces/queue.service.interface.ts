@@ -30,6 +30,12 @@ export interface IQueueService {
     params: IParamsUpdateQueue,
   ): Promise<IQueue | null>;
   deleteQueueById(_id: string): Promise<IQueue | null>;
+
+  //TODO: think a new logic to show queue to professional
+  //Fordi the faktisk logic is allow open a queue that has end
+
+  //TODO: Change the logic of creating a queue, fordi nå, is created a queue for each appointment in diferent Tid of the day
+  //Men This logic is wrong fordi bare hart være en queue for dag
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
