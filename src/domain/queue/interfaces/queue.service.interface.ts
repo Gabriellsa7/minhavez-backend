@@ -30,18 +30,6 @@ export interface IQueueService {
     params: IParamsUpdateQueue,
   ): Promise<IQueue | null>;
   deleteQueueById(_id: string): Promise<IQueue | null>;
-
-  //TODO: add logic to not allow a patient make an appointment in the same day, morning or afternoon after the queue be closed
-
-  //TODO: think a new logic to show queue to professional
-  //Fordi the faktisk logic is allow open a queue that has end, when have closedAt don't the queue
-
-  //TODO: Add a new logic to have just to queue in en dag one in the morning and another on afternoon, based on professional avaliable time
-  //Change the logic of creating a queue, fordi nå, is created a queue for each appointment in diferent Tid of the day
-
-  //TODO: Add new logic to not show appoitment on app whe is completed
-
-  //TODO: refactor all controllers and service to use the new error handle
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
