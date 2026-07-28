@@ -24,5 +24,6 @@ export interface IQueueItemService {
   deleteQueueItemById(_id: string): Promise<IQueueItem | null>;
   finishQueueItem(queueItemId: string): Promise<IQueueItem>;
   markQueueItemAsAbsent(queueItemId: string): Promise<IQueueItem>;
+  callQueueItem(id: string): Promise<IQueueItem>;
   listQueueItem(filter: Partial<IQueueItem>): Promise<IQueueItem[]>;
 }

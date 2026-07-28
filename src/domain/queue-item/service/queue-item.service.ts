@@ -254,6 +254,34 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
+  async callQueueItem(id: string): Promise<IQueueItem> {
+    try {
+      const queueItem = await this.queueItemRepository.getQueueItemById(id);
+
+      if (!queueItem) {
+        throw new Error('Queue item not found');
+      }
+
+      if (queueItem.status !== EQueueItemStatus.WAITING) {
+        throw new Error('Only waiting patients can be called');
+      }
+
+      const updatedQueueItem =
+        await this.queueItemRepository.updateQueueItemById(id, {
+          status: EQueueItemStatus.IN_SERVICE,
+          calledAt: new Date(),
+        });
+
+      if (!updatedQueueItem) {
+        throw new Error('Queue item not found');
+      }
+
+      return updatedQueueItem;
+    } catch (error) {
+      throw new Error(`Error calling queue item: ${(error as Error).message}`);
+    }
+  }
+
   async listQueueItem(filter: Partial<IQueueItem>): Promise<IQueueItem[]> {
     try {
       return await this.queueItemRepository.listQueueItems(filter);

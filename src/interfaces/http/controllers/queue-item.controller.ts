@@ -32,6 +32,7 @@ export class QueueItemController implements IController {
     this.router.put('/queue-items/:id', this.updateQueueItem);
     this.router.patch('/queue-items/:id/finish', this.finishQueueItem);
     this.router.patch('/queue-items/:id/absent', this.markQueueItemAsAbsent);
+    this.router.patch('/queue-items/:id/call', this.callQueueItem);
     this.router.delete('/queue-items/:id', this.deleteQueueItem);
   }
 
@@ -154,6 +155,23 @@ export class QueueItemController implements IController {
       const queueItem = await this.queueItemService.finishQueueItem(
         req.params.id,
       );
+
+      res.status(200).json(queueItem);
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+      });
+    }
+  };
+
+  callQueueItem = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const queueItem = await this.queueItemService.callQueueItem(id);
 
       res.status(200).json(queueItem);
     } catch (error) {

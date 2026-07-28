@@ -36,7 +36,6 @@ export interface IQueueService {
 
   //TODO: Add a new logic to have just to queue in en dag one in the morning and another on afternoon, based on professional avaliable time
   //TODO: When create a queue the default stats will be CLOSED nå
-
   //TODO: Change the logic of creating a queue, fordi nå, is created a queue for each appointment in diferent Tid of the day
   //Men This logic is wrong fordi bare hart være en queue for dag
   openQueue(queueId: string): Promise<IQueue>;

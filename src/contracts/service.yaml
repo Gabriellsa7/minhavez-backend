@@ -1409,6 +1409,33 @@ paths:
         '400':
           description: Invalid request
 
+  /queue-items/{id}/call:
+    patch:
+      tags:
+        - Queue Items
+      summary: Call a patient from the queue
+      operationId: callQueueItem
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Queue item ID
+      responses:
+        '200':
+          description: Queue item called successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '400':
+          description: Invalid request
+        '404':
+          description: Queue item not found
+        '500':
+          description: Internal server error
+
   /queue-items/professionals/{id}:
     get:
       tags:
