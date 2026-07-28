@@ -2,7 +2,6 @@ import express, {
   Request,
   Response,
   Application,
-  NextFunction,
   RequestHandler,
 } from 'express';
 import { ContextAsyncHooks, Logger } from 'traceability';
@@ -11,7 +10,7 @@ import { IController } from './controllers/IController';
 import mongoose from 'mongoose';
 import * as OpenApiValidator from 'express-openapi-validator';
 import helmet from 'helmet';
-import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import { errorHandler } from '../../shared/errors/error-handler';
 
 export class Server {
   public app: Application;
@@ -77,33 +76,7 @@ export class Server {
   }
 
   private customizers() {
-    this.app.use(
-      (err: Error, req: Request, res: Response, _next: NextFunction) => {
-        if (err instanceof HttpError) {
-          if (err.status === 500) {
-            Logger.error(JSON.stringify(err));
-          }
-          res.status(err.status).json({
-            status: err.status,
-            message: err.message,
-          });
-          return;
-        }
-        if (err instanceof Error) {
-          Logger.error(
-            JSON.stringify({
-              eventName: 'server.error',
-              message: err.message,
-              stack: err.stack,
-            }),
-          );
-        }
-        res.status(500).json({
-          status: 500,
-          message: 'Internal Server Error',
-        });
-      },
-    );
+    this.app.use(errorHandler);
   }
 
   private routes(controllers: Array<IController>, pathRoute = '/') {

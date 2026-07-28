@@ -11,6 +11,7 @@ import {
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IQueueManagement } from '../interfaces/queue-management.interface';
+import { AppError } from '../../../shared/errors/AppError';
 
 export class QueueService implements IQueueService {
   private queueRepository: IQueueRepository;
@@ -180,10 +181,21 @@ export class QueueService implements IQueueService {
     professionalId: string,
   ): Promise<IQueueManagement | null> {
     try {
-      return await this.queueRepository.getQueueManagementByProfessionalId(
-        professionalId,
-      );
+      const queueManagement =
+        await this.queueRepository.getQueueManagementByProfessionalId(
+          professionalId,
+        );
+
+      if (!queueManagement) {
+        throw new AppError(404, 'Queue not found');
+      }
+
+      return queueManagement;
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+
       throw new Error(
         `Error retrieving queue management: ${(error as Error).message}`,
       );

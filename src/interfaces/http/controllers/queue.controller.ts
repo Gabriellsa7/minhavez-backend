@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express';
+import { Request, Response, Router, NextFunction } from 'express';
 import { IController } from './IController';
 import { IQueueService } from '../../../domain/queue/interfaces/queue.service.interface';
 import { IParamsCreateQueue } from '../../../domain/queue/repository/queue.repository.interface';
@@ -162,6 +162,7 @@ export class QueueController implements IController {
   getQueueManagementByProfessionalId = async (
     req: Request<{ professionalId: string }>,
     res: Response,
+    next: NextFunction,
   ): Promise<void> => {
     const { professionalId } = req.params;
 
@@ -171,22 +172,9 @@ export class QueueController implements IController {
           professionalId,
         );
 
-      if (!queueManagement) {
-        res.status(404).json({
-          status: 404,
-          message: 'Queue not found',
-        });
-
-        return;
-      }
-
       res.status(200).json(queueManagement);
     } catch (error) {
-      res.status(500).json({
-        status: 500,
-        message:
-          (error as Error).message ?? 'Error retrieving queue management',
-      });
+      next(error);
     }
   };
 
