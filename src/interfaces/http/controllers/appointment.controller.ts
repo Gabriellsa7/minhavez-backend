@@ -113,11 +113,21 @@ export class AppointmentController implements IController {
       console.log('='.repeat(80));
 
       // Validate required fields
-      const requiredFields = ['patientId', 'professionalId', 'healthUnitId', 'dateTime'];
-      const missingFields = requiredFields.filter(field => !data[field as keyof IParamsCreateAppointment]);
-      
+      const requiredFields = [
+        'patientId',
+        'professionalId',
+        'healthUnitId',
+        'dateTime',
+      ];
+      const missingFields = requiredFields.filter(
+        (field) => !data[field as keyof IParamsCreateAppointment],
+      );
+
       if (missingFields.length > 0) {
-        console.error('[AppointmentController] Missing required fields:', missingFields);
+        console.error(
+          '[AppointmentController] Missing required fields:',
+          missingFields,
+        );
         res.status(400).json({
           error: `Missing required fields: ${missingFields.join(', ')}`,
         });
@@ -126,10 +136,16 @@ export class AppointmentController implements IController {
 
       const newAppointment =
         await this.appointmentService.createAppointment(data);
-      console.log('[AppointmentController] Appointment created successfully:', newAppointment._id);
+      console.log(
+        '[AppointmentController] Appointment created successfully:',
+        newAppointment._id,
+      );
       res.status(201).json(newAppointment);
     } catch (error) {
-      console.error('[AppointmentController] Error creating appointment:', error);
+      console.error(
+        '[AppointmentController] Error creating appointment:',
+        error,
+      );
       res.status(400).json({
         message: (error as Error).message,
         status: 400,
@@ -151,9 +167,7 @@ export class AppointmentController implements IController {
     res: Response,
   ): Promise<void> => {
     const { id } = req.params;
-    const updateData: IParamsUpdateAppointment = {
-      appointmentData: req.body,
-    };
+    const updateData: IParamsUpdateAppointment = req.body;
     try {
       const updatedAppointment =
         await this.appointmentService.updateAppointmentById(id, updateData);

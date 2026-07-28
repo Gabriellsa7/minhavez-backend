@@ -173,6 +173,7 @@ export class QueueController implements IController {
 
       if (!queueManagement) {
         res.status(404).json({
+          status: 404,
           message: 'Queue not found',
         });
 
@@ -182,6 +183,7 @@ export class QueueController implements IController {
       res.status(200).json(queueManagement);
     } catch (error) {
       res.status(500).json({
+        status: 500,
         message:
           (error as Error).message ?? 'Error retrieving queue management',
       });
