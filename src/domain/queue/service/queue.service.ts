@@ -36,15 +36,16 @@ export class QueueService implements IQueueService {
           status: EQueueStatus.OPEN,
         });
 
-        const alreadyHasQueueForDay = existingOpenQueues.some((queue) => {
+        const alreadyHasQueueForShift = existingOpenQueues.some((queue) => {
           return (
             queue.queueDate.getFullYear() === params.queueDate?.getFullYear() &&
             queue.queueDate.getMonth() === params.queueDate?.getMonth() &&
-            queue.queueDate.getDate() === params.queueDate?.getDate()
+            queue.queueDate.getDate() === params.queueDate?.getDate() &&
+            queue.shift === params.shift
           );
         });
 
-        if (alreadyHasQueueForDay) {
+        if (alreadyHasQueueForShift) {
           throw new Error('Already has an open queue for this day');
         }
       }
@@ -215,8 +216,9 @@ export class QueueService implements IQueueService {
       }
 
       const openedQueue =
-        await this.queueRepository.findOpenQueueByProfessionalId(
+        await this.queueRepository.findOpenQueueByProfessionalIdAndShift(
           queue.professionalId,
+          queue.shift,
         );
 
       if (openedQueue) {

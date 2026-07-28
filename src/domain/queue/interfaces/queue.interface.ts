@@ -3,6 +3,7 @@ export interface IQueue {
   professionalId: string;
   healthUnitId: string;
   status: EQueueStatus;
+  shift: EQueueShift;
   queueDate: Date;
   openedAt?: Date | null;
   closedAt?: Date | null;
@@ -14,4 +15,9 @@ export enum EQueueStatus {
   OPEN = 'OPEN',
   IN_PROGRESS = 'IN_PROGRESS',
   CLOSED = 'CLOSED',
+}
+
+export enum EQueueShift {
+  MORNING = 'MORNING',
+  AFTERNOON = 'AFTERNOON',
 }

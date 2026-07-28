@@ -15,6 +15,7 @@ import {
   IAppointmentService,
   IParamsAppointmentService,
 } from '../interfaces/appointment.service.interface';
+import { getQueueShift } from '../../../shared/utils/getQueueShift';
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
@@ -51,13 +52,6 @@ export class AppointmentService implements IAppointmentService {
           professionalId: params.professionalId,
         });
 
-      console.log(
-        '[AppointmentService] Found',
-        existingAppointmentAtSameTime.length,
-        'existing appointments for professional',
-        params.professionalId,
-      );
-
       const hasConflict = existingAppointmentAtSameTime.some((apt) => {
         const aptTime = new Date(apt.dateTime);
         const sameYear =
@@ -70,24 +64,6 @@ export class AppointmentService implements IAppointmentService {
 
         const hasConflictFlag =
           isActiveAppointment && sameYear && sameMonth && sameDate && sameHour;
-
-        console.log('[AppointmentService] Comparing appointment times:');
-        console.log(
-          '  Existing:',
-          aptTime.toISOString(),
-          '- Status:',
-          apt.status,
-          '- Year:',
-          sameYear,
-          'Month:',
-          sameMonth,
-          'Date:',
-          sameDate,
-          'Hour:',
-          sameHour,
-          'Conflict:',
-          hasConflictFlag,
-        );
 
         return hasConflictFlag;
       });
@@ -103,19 +79,23 @@ export class AppointmentService implements IAppointmentService {
         healthUnitId: params.healthUnitId,
       });
 
+      const queueShift = getQueueShift(appointmentDateTime);
+
       const queue =
         queues.find(
           (queue) =>
             queue.queueDate.getFullYear() ===
               appointmentDateTime.getFullYear() &&
             queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
-            queue.queueDate.getDate() === appointmentDateTime.getDate(),
+            queue.queueDate.getDate() === appointmentDateTime.getDate() &&
+            queue.shift === queueShift,
         ) ??
         (await this.queueRepository.createQueue({
           professionalId: params.professionalId,
           healthUnitId: params.healthUnitId,
           status: EQueueStatus.CLOSED,
           queueDate: appointmentDateTime,
+          shift: queueShift,
         }));
 
       const queueItems = await this.queueItemRepository.listQueueItems({

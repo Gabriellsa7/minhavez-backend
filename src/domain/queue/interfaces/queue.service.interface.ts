@@ -40,8 +40,6 @@ export interface IQueueService {
   //TODO: Add new logic to not show appoitment on app whe is completed
 
   //TODO: refactor all controllers and service to use the new error handle
-
-  //TODO: add status in all return on controller the same as in getQueuesByProfessionalId, better create a ErroHandle
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;

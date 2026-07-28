@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import {
+  EQueueShift,
   EQueueStatus,
   IQueue,
 } from '../../../domain/queue/interfaces/queue.interface';
@@ -20,6 +21,7 @@ export class QueueRepository implements IQueueRepository {
       professionalId: queueDoc.professionalId.toString(),
       healthUnitId: queueDoc.healthUnitId.toString(),
       status: queueDoc.status,
+      shift: queueDoc.shift,
       queueDate: queueDoc.queueDate,
       openedAt: queueDoc.openedAt,
       closedAt: queueDoc.closedAt,
@@ -168,6 +170,7 @@ export class QueueRepository implements IQueueRepository {
               professionalId: '$professionalId',
               healthUnitId: '$healthUnitId',
               status: '$status',
+              shift: '$shift',
               queueDate: '$queueDate',
               openedAt: '$openedAt',
               closedAt: '$closedAt',
@@ -265,12 +268,14 @@ export class QueueRepository implements IQueueRepository {
     }
   }
 
-  async findOpenQueueByProfessionalId(
+  async findOpenQueueByProfessionalIdAndShift(
     professionalId: string,
+    shift: EQueueShift,
   ): Promise<IQueue | null> {
     try {
       const queueDoc = await MQueue.findOne({
         professionalId,
+        shift,
         status: EQueueStatus.OPEN,
       });
 

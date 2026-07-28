@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
-import { EQueueStatus } from '../../../../domain/queue/interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+} from '../../../../domain/queue/interfaces/queue.interface';
 
 export const queueSchema = new mongoose.Schema(
   {
@@ -8,6 +11,11 @@ export const queueSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: Object.values(EQueueStatus),
+      required: true,
+    },
+    shift: {
+      type: String,
+      enum: Object.values(EQueueShift),
       required: true,
     },
     queueDate: {
@@ -24,7 +32,8 @@ export interface IQueueSchema {
   professionalId: string;
   healthUnitId: string;
   status: EQueueStatus;
-  queueDate: Date; 
+  shift: EQueueShift;
+  queueDate: Date;
   openedAt?: Date | null;
   closedAt?: Date | null;
   createdAt: Date;
