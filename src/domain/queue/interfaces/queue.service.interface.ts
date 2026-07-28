@@ -31,6 +31,8 @@ export interface IQueueService {
   ): Promise<IQueue | null>;
   deleteQueueById(_id: string): Promise<IQueue | null>;
 
+  //TODO: add logic to not allow a patient make an appointment in the same day, morning or afternoon after the queue be closed
+
   //TODO: think a new logic to show queue to professional
   //Fordi the faktisk logic is allow open a queue that has end, when have closedAt don't the queue
 
