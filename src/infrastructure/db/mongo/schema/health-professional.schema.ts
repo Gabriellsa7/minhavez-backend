@@ -1,4 +1,36 @@
 import mongoose from 'mongoose';
+import { IHealthProfessionalSchedule } from '../../../../domain/health-professional.ts/interfaces/health-professional.interface';
+
+const scheduleSchema = new mongoose.Schema(
+  {
+    appointmentDuration: {
+      type: Number,
+      required: true,
+      default: 30,
+    },
+
+    morning: {
+      start: {
+        type: String,
+      },
+      end: {
+        type: String,
+      },
+    },
+
+    afternoon: {
+      start: {
+        type: String,
+      },
+      end: {
+        type: String,
+      },
+    },
+  },
+  {
+    _id: false,
+  },
+);
 
 export const healthProfessionalSchema = new mongoose.Schema(
   {
@@ -45,6 +77,14 @@ export const healthProfessionalSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    schedule: {
+      type: scheduleSchema,
+      required: true,
+      default: {
+        appointmentDuration: 30,
+      },
+    },
   },
   {
     _id: true,
@@ -59,6 +99,7 @@ export interface IHealthProfessionalSchema {
   name: string;
   email: string;
   password: string;
+  schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
   active: boolean;
   createdAt: Date;

@@ -1,4 +1,7 @@
-import { IHealthProfessional } from '../interfaces/health-professional.interface';
+import {
+  IHealthProfessional,
+  IHealthProfessionalSchedule,
+} from '../interfaces/health-professional.interface';
 
 export interface IParamsCreateHealthProfessional {
   userId: string;
@@ -8,6 +11,7 @@ export interface IParamsCreateHealthProfessional {
   email: string;
   password: string;
   professionalLicense: string;
+  schedule: IHealthProfessionalSchedule;
 }
 
 export interface IParamsUpdateHealthProfessional {

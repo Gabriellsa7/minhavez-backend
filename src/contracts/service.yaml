@@ -2532,6 +2532,40 @@ components:
             - PREGNANT
             - DISABLED
           description: The priority level of the patient (1-5)
+    HealthProfessionalSchedule:
+      type: object
+      required:
+        - appointmentDuration
+      properties:
+        appointmentDuration:
+          type: integer
+          description: Duration of each appointment in minutes.
+          example: 30
+
+        morning:
+          type: object
+          properties:
+            start:
+              type: string
+              example: '08:00'
+              description: Morning shift start time.
+            end:
+              type: string
+              example: '12:00'
+              description: Morning shift end time.
+
+        afternoon:
+          type: object
+          properties:
+            start:
+              type: string
+              example: '13:00'
+              description: Afternoon shift start time.
+            end:
+              type: string
+              example: '17:00'
+              description: Afternoon shift end time.
+
     HealthProfessional:
       type: object
       properties:
@@ -2559,6 +2593,8 @@ components:
         professionalLicense:
           type: string
           description: The professional license number of the health professional
+        schedule:
+          $ref: '#/components/schemas/HealthProfessionalSchedule'
         active:
           type: boolean
           description: Whether the health professional is active
@@ -2577,6 +2613,7 @@ components:
         - specialty
         - professionalLicense
         - userId
+        - schedule
       properties:
         userId:
           type: string
@@ -2599,6 +2636,8 @@ components:
         professionalLicense:
           type: string
           description: The professional license number of the health professional
+        schedule:
+          $ref: '#/components/schemas/HealthProfessionalSchedule'
     UpdateHealthProfessional:
       type: object
       properties:
@@ -2626,6 +2665,8 @@ components:
         active:
           type: boolean
           description: Whether the health professional is active
+        schedule:
+          $ref: '#/components/schemas/HealthProfessionalSchedule'
     Queue:
       type: object
       properties:

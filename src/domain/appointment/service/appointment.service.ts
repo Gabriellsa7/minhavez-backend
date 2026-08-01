@@ -81,15 +81,25 @@ export class AppointmentService implements IAppointmentService {
 
       const queueShift = getQueueShift(appointmentDateTime);
 
+      const existingQueue = queues.find(
+        (queue) =>
+          queue.queueDate.getFullYear() === appointmentDateTime.getFullYear() &&
+          queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
+          queue.queueDate.getDate() === appointmentDateTime.getDate() &&
+          queue.shift === queueShift,
+      );
+
+      if (
+        existingQueue?.status === EQueueStatus.CLOSED &&
+        existingQueue.closedAt
+      ) {
+        throw new Error(
+          'The queue for this shift has already been closed. New appointments are not allowed.',
+        );
+      }
+
       const queue =
-        queues.find(
-          (queue) =>
-            queue.queueDate.getFullYear() ===
-              appointmentDateTime.getFullYear() &&
-            queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
-            queue.queueDate.getDate() === appointmentDateTime.getDate() &&
-            queue.shift === queueShift,
-        ) ??
+        existingQueue ??
         (await this.queueRepository.createQueue({
           professionalId: params.professionalId,
           healthUnitId: params.healthUnitId,
