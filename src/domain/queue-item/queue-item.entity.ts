@@ -21,6 +21,8 @@ export class QueueItem implements IQueueItem {
 
   checkInTime?: Date | undefined;
 
+  room: string;
+
   missedCalls: number;
 
   calledAt?: Date | undefined;
@@ -39,6 +41,7 @@ export class QueueItem implements IQueueItem {
     this.position = data.position;
     this.priority = data.priority;
     this.status = data.status;
+    this.room = data.room;
     this.missedCalls = data.missedCalls;
     this.checkInTime = data.checkInTime
       ? new Date(data.checkInTime)

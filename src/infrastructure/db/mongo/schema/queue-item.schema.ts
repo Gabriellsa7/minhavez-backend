@@ -70,6 +70,7 @@ export interface IQueueItemSchema {
   position: number;
   priority: EQueueItemPriority;
   missedCalls: number;
+  room: string;
   status: EQueueItemStatus;
   code: string;
   checkInTime?: Date;

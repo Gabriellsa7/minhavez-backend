@@ -11,6 +11,7 @@ export interface IParamsCreateHealthProfessional {
   email: string;
   password: string;
   professionalLicense: string;
+  room: string;
   schedule: IHealthProfessionalSchedule;
 }
 

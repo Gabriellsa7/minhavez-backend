@@ -6,6 +6,7 @@ export interface IHealthProfessional {
   name: string;
   email: string;
   password: string;
+  room: string;
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
   active: boolean;

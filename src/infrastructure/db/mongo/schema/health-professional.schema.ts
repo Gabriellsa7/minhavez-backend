@@ -51,6 +51,11 @@ export const healthProfessionalSchema = new mongoose.Schema(
       required: true,
     },
 
+    room: {
+      type: String,
+      required: true,
+    },
+
     name: {
       type: String,
       required: true,
@@ -98,6 +103,7 @@ export interface IHealthProfessionalSchema {
   specialty: string;
   name: string;
   email: string;
+  room: string;
   password: string;
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
