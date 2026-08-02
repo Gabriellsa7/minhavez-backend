@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { IHealthUnitAddress } from '../../../../domain/health-unit/interfaces/health-unit.interface';
 import { IServiceSchema, serviceSchema } from './service.schema';
+import { IOpeningHourSchema, openingHourSchema } from './opening-hour.schema';
 
 export const healthUnitSchema = new mongoose.Schema(
   {
@@ -30,6 +31,11 @@ export const healthUnitSchema = new mongoose.Schema(
 
     services: {
       type: [serviceSchema],
+      default: [],
+    },
+
+    openingHours: {
+      type: [openingHourSchema],
       default: [],
     },
 
@@ -66,6 +72,7 @@ export interface IHealthUnitSchema {
   phone: string;
   description: string;
   services: IServiceSchema[];
+  openingHours: IOpeningHourSchema[];
   email: string;
   img?: string | null;
   createdAt: Date;

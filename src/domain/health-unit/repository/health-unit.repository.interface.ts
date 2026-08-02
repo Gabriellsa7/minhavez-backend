@@ -1,6 +1,7 @@
 import {
   IHealthUnit,
   IHealthUnitAddress,
+  IHealthUnitOpeningHours,
   IService,
 } from '../interfaces/health-unit.interface';
 
@@ -12,6 +13,7 @@ export interface IParamsCreateHealthUnit {
   email: string;
   description?: string;
   services: IService[];
+  openingHours: IHealthUnitOpeningHours[];
   img?: string;
 }
 

@@ -61,8 +61,17 @@ export class HealthUnitController implements IController {
   };
 
   createHealthUnit = async (req: Request, res: Response): Promise<void> => {
-    const { userId, name, address, phone, description, services, email, img } =
-      req.body;
+    const {
+      userId,
+      name,
+      address,
+      phone,
+      description,
+      services,
+      email,
+      img,
+      openingHours,
+    } = req.body;
     try {
       const newHealthUnit = await this.healthUnitService.createHealthUnit({
         userId,
@@ -71,6 +80,7 @@ export class HealthUnitController implements IController {
         phone,
         description,
         services,
+        openingHours,
         email,
         img,
       });

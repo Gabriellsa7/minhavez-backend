@@ -1,6 +1,7 @@
 import {
   IHealthUnit,
   IHealthUnitAddress,
+  IHealthUnitOpeningHours,
   IService,
 } from './interfaces/health-unit.interface';
 
@@ -19,6 +20,8 @@ export class HealthUnit implements IHealthUnit {
 
   description?: string;
 
+  openingHours: IHealthUnitOpeningHours[];
+
   services: IService[];
 
   img?: string;
@@ -33,6 +36,7 @@ export class HealthUnit implements IHealthUnit {
     this.name = data.name;
     this.address = data.address;
     this.phone = data.phone;
+    this.openingHours = data.openingHours;
     this.description = data.description;
     this.services = data.services;
     this.email = data.email;

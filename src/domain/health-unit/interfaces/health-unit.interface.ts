@@ -6,7 +6,7 @@ export interface IHealthUnit {
   phone: string;
   description?: string;
   services: IService[];
-  openingHours: IHealthUnitOpeningHours;
+  openingHours: IHealthUnitOpeningHours[];
   email: string;
   img?: string;
   createdAt?: Date;
@@ -34,13 +34,9 @@ export interface IHealthUnitAddress {
 }
 
 export interface IHealthUnitOpeningHours {
-  days: IDailyOpeningHours[];
-}
-
-export interface IDailyOpeningHours {
   day: WeekDay;
-  open: string;
-  close: string;
+  open?: string;
+  close?: string;
   isClosed: boolean;
 }
 

@@ -28,6 +28,12 @@ export class HealthUnitRepository implements IHealthUnitRepository {
         createdAt: service.createdAt,
         updatedAt: service.updatedAt,
       })),
+      openingHours: healthUnitDoc.openingHours.map((openingHour) => ({
+        day: openingHour.day,
+        open: openingHour.open,
+        close: openingHour.close,
+        isClosed: openingHour.isClosed,
+      })),
       email: healthUnitDoc.email,
       img: healthUnitDoc.img ?? undefined,
       createdAt: healthUnitDoc.createdAt,

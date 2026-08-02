@@ -2367,6 +2367,10 @@ components:
         updatedAt:
           type: string
           format: date-time
+    openingHours:
+      type: array
+      items:
+        $ref: '#/components/schemas/DailyOpeningHours'
     HealthUnitAddress:
       type: object
       required:
@@ -2401,6 +2405,7 @@ components:
         - phone
         - email
         - services
+        - openingHours
       properties:
         userId:
           type: string
@@ -2424,6 +2429,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Service'
+        openingHours:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyOpeningHours'
         img:
           type: string
           nullable: true
@@ -2445,6 +2454,10 @@ components:
           description: The contact email address of the health unit
         description:
           type: string
+        openingHours:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyOpeningHours'
         services:
           type: array
           items:
@@ -3122,10 +3135,8 @@ components:
       properties:
         queue:
           $ref: '#/components/schemas/Queue'
-
         currentItem:
           $ref: '#/components/schemas/QueueManagementItem'
-
         items:
           type: array
           items:
@@ -3136,12 +3147,43 @@ components:
       properties:
         queueItem:
           $ref: '#/components/schemas/QueueItem'
-
         patient:
           $ref: '#/components/schemas/Patient'
-
         user:
           $ref: '#/components/schemas/User'
+
+    WeekDay:
+      type: string
+      enum:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+        - SUNDAY
+
+    DailyOpeningHours:
+      type: object
+      required:
+        - day
+        - open
+        - close
+        - isClosed
+      properties:
+        day:
+          $ref: '#/components/schemas/WeekDay'
+        open:
+          type: string
+          example: '08:00'
+          description: Opening time (HH:mm)
+        close:
+          type: string
+          example: '18:00'
+          description: Closing time (HH:mm)
+        isClosed:
+          type: boolean
+          description: Indicates whether the health unit is closed on this day
 
   securitySchemes:
     bearerAuth:
