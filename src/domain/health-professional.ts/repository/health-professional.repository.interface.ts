@@ -30,6 +30,9 @@ export interface IHealthProfessionalRepository {
   deleteHealthProfessionalById(id: string): Promise<IHealthProfessional | null>;
   getHealthProfessionalById(id: string): Promise<IHealthProfessional | null>;
   getHealthProfessionalByUserId(userId: string): Promise<IHealthProfessional[]>;
+  getHealthProfessionalByAppointmentId(
+    appointmentId: string,
+  ): Promise<IHealthProfessional | null>;
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
   ): Promise<IHealthProfessional[]>;

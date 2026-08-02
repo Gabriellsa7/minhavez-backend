@@ -2090,7 +2090,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
+  /health-professionals/appointment/{appointmentId}:
+    get:
+      tags:
+        - Health Professionals
+      summary: Get health professional by appointment ID
+      operationId: getHealthProfessionalByAppointmentId
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          description: Appointment ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Health professional retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthProfessional'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     User:

@@ -7,6 +7,7 @@ import {
   IHealthProfessionalRepository,
 } from '../../../domain/health-professional.ts/repository/health-professional.repository.interface';
 import { MHealthProfessional } from '../../db/mongo/models/health-professional.model';
+import { MAppointment } from '../../db/mongo/models/appointment.model';
 
 export class HealthProfessionalRepository
   implements IHealthProfessionalRepository
@@ -163,6 +164,34 @@ export class HealthProfessionalRepository
     } catch (error) {
       throw new Error(
         `Error finding health professional by email: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async getHealthProfessionalByAppointmentId(
+    appointmentId: string,
+  ): Promise<IHealthProfessional | null> {
+    try {
+      const appointment = await MAppointment.findById(appointmentId);
+
+      if (!appointment) {
+        return null;
+      }
+
+      const healthProfessionalDoc = await MHealthProfessional.findById(
+        appointment.professionalId,
+      );
+
+      if (!healthProfessionalDoc) {
+        return null;
+      }
+
+      return this.mapToDomain(healthProfessionalDoc);
+    } catch (error) {
+      throw new Error(
+        `Error fetching health professional by appointment ID: ${
+          (error as Error).message
+        }`,
       );
     }
   }

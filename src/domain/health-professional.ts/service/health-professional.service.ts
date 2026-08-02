@@ -67,6 +67,27 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     }
   }
 
+  async getHealthProfessionalByAppointmentId(
+    appointmentId: string,
+  ): Promise<IHealthProfessional | null> {
+    try {
+      const healthProfessional =
+        await this.healthProfessionalRepository.getHealthProfessionalByAppointmentId(
+          appointmentId,
+        );
+
+      if (!healthProfessional) {
+        throw new Error('Health professional not found');
+      }
+
+      return healthProfessional;
+    } catch (error) {
+      throw new Error(
+        `Error retrieving health professional by appointment ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async updateHealthProfessionalById(
     _id: string,
     params: IParamsUpdateHealthProfessional,

@@ -22,6 +22,10 @@ export class HealthProfessionalController implements IController {
       '/health-professionals/:id',
       this.getHealthProfessionalById,
     );
+    this.router.get(
+      '/health-professionals/appointment/:appointmentId',
+      this.getHealthProfessionalByAppointmentId,
+    );
     this.router.post('/health-professionals', this.createHealthProfessional);
     this.router.put('/health-professionals/:id', this.updateHealthProfessional);
     this.router.delete(
@@ -123,6 +127,31 @@ export class HealthProfessionalController implements IController {
       res.status(200).json(healthProfessional);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getHealthProfessionalByAppointmentId = async (
+    req: Request<{ appointmentId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { appointmentId } = req.params;
+    console.log(req.params.appointmentId);
+    try {
+      const healthProfessional =
+        await this.healthProfessionalService.getHealthProfessionalByAppointmentId(
+          appointmentId,
+        );
+      if (!healthProfessional) {
+        res.status(404).json({ message: 'Health professional not found' });
+        return;
+      }
+      res.status(200).json(healthProfessional);
+    } catch (error) {
+      console.error('HealthProfessional Error:', error);
+
+      res.status(500).json({
+        error: (error as Error).message,
+      });
     }
   };
 }
