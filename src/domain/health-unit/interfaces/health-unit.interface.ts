@@ -6,6 +6,7 @@ export interface IHealthUnit {
   phone: string;
   description?: string;
   services: IService[];
+  openingHours: IHealthUnitOpeningHours;
   email: string;
   img?: string;
   createdAt?: Date;
@@ -16,7 +17,7 @@ export interface IService {
   _id: string;
   name: string;
   description?: string;
-  duration?: number; //minutes
+  duration?: number;
   price?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -30,4 +31,25 @@ export interface IHealthUnitAddress {
   city: string;
   state: string;
   zipCode: string;
+}
+
+export interface IHealthUnitOpeningHours {
+  days: IDailyOpeningHours[];
+}
+
+export interface IDailyOpeningHours {
+  day: WeekDay;
+  open: string;
+  close: string;
+  isClosed: boolean;
+}
+
+export enum WeekDay {
+  MONDAY = 'MONDAY',
+  TUESDAY = 'TUESDAY',
+  WEDNESDAY = 'WEDNESDAY',
+  THURSDAY = 'THURSDAY',
+  FRIDAY = 'FRIDAY',
+  SATURDAY = 'SATURDAY',
+  SUNDAY = 'SUNDAY',
 }
