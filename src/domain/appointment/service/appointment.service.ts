@@ -145,16 +145,11 @@ export class AppointmentService implements IAppointmentService {
           status: EQueueItemStatus.WAITING,
         }));
 
-      console.log(
-        '[AppointmentService] No conflicts found. Creating appointment with params:',
-        params,
-      );
       return await this.appointmentRepository.createAppointment({
         ...params,
         queueItemId: queueItem._id,
       });
     } catch (error) {
-      console.error('[AppointmentService] Error creating appointment:', error);
       if (error instanceof Error) {
         throw error;
       }
