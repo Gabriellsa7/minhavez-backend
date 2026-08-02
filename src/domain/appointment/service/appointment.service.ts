@@ -1,4 +1,7 @@
-import { IAppointment } from '../interfaces/appointment.interface';
+import {
+  EAppointmentStatus,
+  IAppointment,
+} from '../interfaces/appointment.interface';
 import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import {
   EQueueItemPriority,
@@ -16,16 +19,19 @@ import {
   IParamsAppointmentService,
 } from '../interfaces/appointment.service.interface';
 import { getQueueShift } from '../../../shared/utils/getQueueShift';
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
   private queueRepository: IQueueRepository;
   private queueItemRepository: IQueueItemRepository;
+  private healthProfessionalRepository: IHealthProfessionalRepository;
 
   constructor(params: IParamsAppointmentService) {
     this.appointmentRepository = params.appointmentRepository;
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
+    this.healthProfessionalRepository = params.professionalRepository;
   }
 
   async createAppointment(
@@ -42,9 +48,6 @@ export class AppointmentService implements IAppointmentService {
           throw new Error('Already exist an appointment with de queueItemId');
         }
       }
-
-      // Check for conflicts at the same time for the professional
-      // Use a time range query instead of exact match to account for timing variations
       const appointmentDateTime = new Date(params.dateTime);
 
       const existingAppointmentAtSameTime =
@@ -52,20 +55,34 @@ export class AppointmentService implements IAppointmentService {
           professionalId: params.professionalId,
         });
 
+      const professional =
+        await this.healthProfessionalRepository.getHealthProfessionalById(
+          params.professionalId,
+        );
+
+      if (!professional) {
+        throw new Error('Health professional not found');
+      }
+
+      const duration = professional.schedule.appointmentDuration;
+
+      const durationMs = duration * 60 * 1000;
+
       const hasConflict = existingAppointmentAtSameTime.some((apt) => {
-        const aptTime = new Date(apt.dateTime);
-        const sameYear =
-          aptTime.getFullYear() === appointmentDateTime.getFullYear();
-        const sameMonth = aptTime.getMonth() === appointmentDateTime.getMonth();
-        const sameDate = aptTime.getDate() === appointmentDateTime.getDate();
-        const sameHour = aptTime.getHours() === appointmentDateTime.getHours();
-        const isActiveAppointment =
-          apt.status !== 'COMPLETED' && apt.status !== 'CANCELED';
+        if (
+          apt.status === EAppointmentStatus.COMPLETED ||
+          apt.status === EAppointmentStatus.CANCELED
+        ) {
+          return false;
+        }
 
-        const hasConflictFlag =
-          isActiveAppointment && sameYear && sameMonth && sameDate && sameHour;
+        const existingStart = new Date(apt.dateTime).getTime();
+        const existingEnd = existingStart + durationMs;
 
-        return hasConflictFlag;
+        const newStart = appointmentDateTime.getTime();
+        const newEnd = newStart + durationMs;
+
+        return newStart < existingEnd && newEnd > existingStart;
       });
 
       if (hasConflict) {
@@ -138,11 +155,9 @@ export class AppointmentService implements IAppointmentService {
       });
     } catch (error) {
       console.error('[AppointmentService] Error creating appointment:', error);
-      // If it's an Error thrown intentionally (business validation), rethrow it
       if (error instanceof Error) {
         throw error;
       }
-      // For non-Error exceptions, wrap to preserve context
       throw new Error(
         `Error creating appointment: ${(error as Error).message}`,
       );

@@ -6,11 +6,12 @@ import {
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IAppointment } from './appointment.interface';
-
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 export interface IParamsAppointmentService {
   appointmentRepository: IAppointmentRepository;
   queueRepository: IQueueRepository;
   queueItemRepository: IQueueItemRepository;
+  professionalRepository: IHealthProfessionalRepository;
 }
 
 export interface IAppointmentService {

@@ -33,11 +33,6 @@ export class AppointmentRepository implements IAppointmentRepository {
     appointmentData: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
-      console.log(
-        '[AppointmentRepository] Creating appointment:',
-        appointmentData,
-      );
-
       // Convert string IDs to Mongoose ObjectIds and ensure dateTime is a Date object
       try {
         const appointmentToCreate = {
@@ -50,22 +45,9 @@ export class AppointmentRepository implements IAppointmentRepository {
           dateTime: new Date(appointmentData.dateTime), // Ensure dateTime is a Date object
           notes: appointmentData.notes,
         };
-
-        console.log(
-          '[AppointmentRepository] appointmentToCreate:',
-          appointmentToCreate,
-        );
         const appointmentDoc = await MAppointment.create(appointmentToCreate);
-        console.log(
-          '[AppointmentRepository] Appointment created:',
-          appointmentDoc,
-        );
         return this.mapToDomain(appointmentDoc);
       } catch (conversionError) {
-        console.error(
-          '[AppointmentRepository] ID conversion error:',
-          conversionError,
-        );
         throw new Error(
           `Invalid ID format: ${(conversionError as Error).message}`,
         );
