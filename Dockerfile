@@ -1,4 +1,4 @@
-FROM node:20.13.1-alpine3.18
+FROM node:24-alpine
 
 WORKDIR /whitebeard
 COPY . /whitebeard/

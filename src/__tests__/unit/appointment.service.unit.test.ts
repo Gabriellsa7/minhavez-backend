@@ -7,13 +7,17 @@ import {
   IAppointmentRepository,
   IParamsCreateAppointment,
 } from '../../domain/appointment/repository/appointment.repository.interface';
-import { EQueueStatus } from '../../domain/queue/interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+} from '../../domain/queue/interfaces/queue.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
 import {
   EQueueItemPriority,
   EQueueItemStatus,
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
+import { IHealthProfessionalRepository } from '../../domain/health-professional.ts/repository/health-professional.repository.interface';
 
 describe('AppointmentService', () => {
   it('should allow creating an appointment when the only matching booking is completed', async () => {
@@ -55,10 +59,22 @@ describe('AppointmentService', () => {
           professionalId: 'professional-1',
           healthUnitId: 'unit-1',
           status: EQueueStatus.OPEN,
+          shift: EQueueShift.MORNING,
+          queueDate: new Date('2026-07-06T00:00:00.000Z'),
           createdAt: new Date(),
           updatedAt: new Date(),
         },
       ]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date('2026-07-06T00:00:00.000Z'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     } as unknown as IQueueRepository;
 
     const queueItemRepository = {
@@ -74,17 +90,25 @@ describe('AppointmentService', () => {
       }),
     } as unknown as IQueueItemRepository;
 
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
     const service = new AppointmentService({
       appointmentRepository: repository,
       queueRepository,
       queueItemRepository,
+      professionalRepository,
     });
 
     const params: IParamsCreateAppointment = {
       patientId: 'patient-2',
       professionalId: 'professional-1',
       healthUnitId: 'unit-1',
-      dateTime: '2026-07-06T13:00:00.000Z',
+      dateTime: new Date('2026-07-06T13:00:00.000Z'),
       notes: 'new appointment',
     };
 

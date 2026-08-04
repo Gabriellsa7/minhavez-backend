@@ -12,20 +12,24 @@ import { IQueueRepository } from '../../queue/repository/queue.repository.interf
 import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
+import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
   private queueRepository: IQueueRepository;
   private appointmentRepository: IAppointmentRepository;
+  private queueNotificationService?: QueueNotificationService;
 
   constructor(params: {
     queueItemRepository: IQueueItemRepository;
     queueRepository: IQueueRepository;
     appointmentRepository: IAppointmentRepository;
+    queueNotificationService?: QueueNotificationService;
   }) {
     this.queueItemRepository = params.queueItemRepository;
     this.queueRepository = params.queueRepository;
     this.appointmentRepository = params.appointmentRepository;
+    this.queueNotificationService = params.queueNotificationService;
   }
 
   async createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem> {
@@ -278,6 +282,12 @@ export class QueueItemService implements IQueueItemService {
           status: EQueueItemStatus.IN_SERVICE,
           calledAt: new Date(),
         });
+
+      if (this.queueNotificationService && updatedQueueItem) {
+        await this.queueNotificationService.handleQueuePositionChange(
+          updatedQueueItem,
+        );
+      }
 
       if (!updatedQueueItem) {
         throw new Error('Queue item not found');

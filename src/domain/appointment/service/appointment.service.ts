@@ -20,18 +20,29 @@ import {
 } from '../interfaces/appointment.service.interface';
 import { getQueueShift } from '../../../shared/utils/getQueueShift';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
+import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
   private queueRepository: IQueueRepository;
   private queueItemRepository: IQueueItemRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private appointmentReminderService?: AppointmentReminderService;
+  private notificationJobScheduler?: INotificationJobScheduler;
 
-  constructor(params: IParamsAppointmentService) {
+  constructor(
+    params: IParamsAppointmentService & {
+      appointmentReminderService?: AppointmentReminderService;
+      notificationJobScheduler?: INotificationJobScheduler;
+    },
+  ) {
     this.appointmentRepository = params.appointmentRepository;
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
     this.healthProfessionalRepository = params.professionalRepository;
+    this.appointmentReminderService = params.appointmentReminderService;
+    this.notificationJobScheduler = params.notificationJobScheduler;
   }
 
   async createAppointment(
@@ -145,10 +156,16 @@ export class AppointmentService implements IAppointmentService {
           status: EQueueItemStatus.WAITING,
         }));
 
-      return await this.appointmentRepository.createAppointment({
+      const appointment = await this.appointmentRepository.createAppointment({
         ...params,
         queueItemId: queueItem._id,
       });
+
+      if (this.appointmentReminderService) {
+        await this.appointmentReminderService.createReminders(appointment);
+      }
+
+      return appointment;
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -237,6 +254,13 @@ export class AppointmentService implements IAppointmentService {
         id,
         params,
       );
+
+      if (
+        updated &&
+        (params.status === EAppointmentStatus.CANCELED || params.dateTime)
+      ) {
+        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+      }
       if (!updated) {
         throw new Error('Appointment not found');
       }
@@ -252,6 +276,10 @@ export class AppointmentService implements IAppointmentService {
     try {
       const deleted =
         await this.appointmentRepository.deleteAppointmentById(id);
+
+      if (deleted) {
+        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+      }
       if (!deleted) {
         throw new Error('Appointment not found');
       }

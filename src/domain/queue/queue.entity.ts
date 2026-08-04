@@ -1,4 +1,8 @@
-import { EQueueStatus, IQueue } from './interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+  IQueue,
+} from './interfaces/queue.interface';
 
 export class Queue implements IQueue {
   _id: string;
@@ -8,6 +12,10 @@ export class Queue implements IQueue {
   healthUnitId: string;
 
   status: EQueueStatus;
+
+  shift: EQueueShift;
+
+  queueDate: Date;
 
   openedAt?: Date;
 
@@ -22,6 +30,8 @@ export class Queue implements IQueue {
     this.professionalId = data.professionalId;
     this.healthUnitId = data.healthUnitId;
     this.status = data.status;
+    this.shift = data.shift;
+    this.queueDate = new Date(data.queueDate);
     this.openedAt = data.openedAt ? new Date(data.openedAt) : undefined;
     this.closedAt = data.closedAt ? new Date(data.closedAt) : undefined;
     this.createdAt = new Date(data.createdAt);
