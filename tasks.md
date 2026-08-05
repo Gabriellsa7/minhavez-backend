@@ -14,3 +14,4 @@
 - Add a **Loading Skeleton** to the app to display while `isLoading` is `true` using the `react-native-skeleton-placeholder` dependency — **minha-vez-app** .
 - Refactor the app, especially the **React Query** request handling — **minha-vez-app** .
 - Define a utility to assign an icon based on the health unit's service type — `health-unit-info.tsx`.
+- Solve webSockt and notification error.
