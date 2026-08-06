@@ -1,9 +1,4 @@
-import express, {
-  Request,
-  Response,
-  Application,
-  RequestHandler,
-} from 'express';
+import express, { Application, RequestHandler } from 'express';
 import { ContextAsyncHooks, Logger } from 'traceability';
 import { Server as httpServer } from 'http';
 import { IController } from './controllers/IController';
@@ -47,10 +42,6 @@ export class Server {
     this.apiSpecLocation = appInit.apiSpecLocation;
     this.DATABASE_URI = appInit.databaseURI;
     this.timeoutMilliseconds = appInit.timeoutMilliseconds;
-
-    this.app.get('/health', (req: Request, res: Response) => {
-      res.status(200).json({ status: 'OK' });
-    });
 
     this.middlewares([
       ...(appInit.middlewaresToStart || []),

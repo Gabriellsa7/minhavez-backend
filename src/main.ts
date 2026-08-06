@@ -17,7 +17,13 @@ import { QueueItemControllerFactory } from './infrastructure/config/factories/qu
 import { NotificationControllerFactory } from './infrastructure/config/factories/notification/notification.controller.factory';
 import { AppointmentControllerFactory } from './infrastructure/config/factories/appointment/appointment.controller.factory';
 import { AuthControllerFactory } from './infrastructure/config/factories/auth/auth.controller.factory';
+import { PushTokenServiceFactory } from './infrastructure/config/factories/notification/push-token.service.factory';
 import { corsMiddleware } from './interfaces/http/middlewary/cors';
+import { PushTokenController } from './interfaces/http/controllers/push-token.controller';
+import { NotificationWorker } from './infrastructure/queue/bullmq/workers/notification.worker';
+import { AppointmentWorker } from './infrastructure/queue/bullmq/workers/appointment.worker';
+import { InfrastructureController } from './interfaces/http/controllers/infrastructure.controller';
+import { NotificationSocketGateway } from './infrastructure/socket/notification.socket';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -32,14 +38,22 @@ const app = new Server({
     NotificationControllerFactory.create(),
     AppointmentControllerFactory.create(),
     AuthControllerFactory.create(),
+    new PushTokenController(PushTokenServiceFactory.create()),
+    new InfrastructureController(),
   ],
   databaseURI: process.env.DATABASE_URI,
   apiSpecLocation: OPEN_API_SPEC_FILE_LOCATION,
 });
 
 async function start() {
-  app.databaseSetup();
+  await app.databaseSetup();
+  NotificationSocketGateway.getInstance();
   app.listen();
+
+  const notificationWorker = new NotificationWorker();
+  notificationWorker.start();
+  const appointmentWorker = new AppointmentWorker();
+  appointmentWorker.start();
 }
 
 start();

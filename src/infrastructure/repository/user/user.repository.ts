@@ -16,6 +16,7 @@ export class UserRepository implements IUserRepository {
       email: userDoc.email,
       role: userDoc.role,
       active: userDoc.active,
+      devices: userDoc.devices,
       createdAt: userDoc.createdAt,
     };
   }

@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --env-file=.env src/main.ts",
+    "worker:notifications": "ts-node-dev --env-file=.env src/workers/notification.worker.ts",
+    "worker:appointments": "ts-node-dev --env-file=.env src/workers/appointment.worker.ts",
     "build": "tsc -p .;yarn run copy-essentials",
     "start": "node dist/src/main.js",
     "copy-essentials": "mkdir -p dist/src/contracts && cp src/contracts/*.yaml dist/src/contracts",
@@ -54,14 +56,21 @@
   "license": "ISC",
   "repository": "git@github.com:whitebeardit/node-boilerplate.git",
   "dependencies": {
+    "@bull-board/api": "^8.5.0",
+    "@bull-board/express": "^8.5.0",
+    "@types/ws": "^8.18.1",
     "bcrypt": "^6.0.0",
+    "bullmq": "^6.0.7",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "express-openapi-validator": "^4.13.8",
     "helmet": "^8.0.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.8.3",
-    "traceability": "^3.2.2"
+    "traceability": "^3.2.2",
+    "ws": "^8.21.2",
+    "yarn": "^1.22.22"
   }
 }

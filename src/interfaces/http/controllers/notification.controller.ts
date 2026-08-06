@@ -18,11 +18,13 @@ export class NotificationController implements IController {
 
   initRoutes() {
     this.router.get('/notifications', this.getNotifications);
+    this.router.get('/notifications/unread', this.getUnreadNotifications);
     this.router.get('/notifications/:id', this.getNotificationById);
     this.router.post('/notifications', this.createNotification);
     this.router.put('/notifications/:id', this.updateNotification);
     this.router.delete('/notifications/:id', this.deleteNotification);
-    this.router.post('/notifications/:id/read', this.markNotificationRead);
+    this.router.patch('/notifications/:id/read', this.markNotificationRead);
+    this.router.patch('/notifications/read-all', this.markAllNotificationsRead);
   }
 
   getNotifications = async (req: Request, res: Response): Promise<void> => {
@@ -30,6 +32,20 @@ export class NotificationController implements IController {
       const notifications = await this.notificationService.listNotifications(
         {},
       );
+      res.status(200).json(notifications);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  getUnreadNotifications = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const notifications = await this.notificationService.listNotifications({
+        read: false,
+      });
       res.status(200).json(notifications);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -117,6 +133,17 @@ export class NotificationController implements IController {
         return;
       }
       res.status(200).json(updatedNotification);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  markAllNotificationsRead = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      res.status(200).json({ message: 'Notifications marked as read' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

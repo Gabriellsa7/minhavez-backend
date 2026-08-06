@@ -20,6 +20,7 @@ describe('HealthUnitService', () => {
         phone: '11999999999',
         email: 'central@example.com',
         services: [],
+        openingHours: [],
       },
     ];
     const getHealthUnitsByUserId = jest.fn().mockResolvedValue(healthUnits);

@@ -21,6 +21,8 @@ tags:
     description: Notification management operations
   - name: Appointments
     description: Appointment management operations
+  - name: Infrastructure
+    description: Infrastructure monitoring and queue operations
 
 paths:
   /users:
@@ -1497,6 +1499,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /notifications/register-token:
+    post:
+      tags:
+        - Notifications
+      summary: Register a push token for the authenticated user
+      operationId: registerPushToken
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPushToken'
+      responses:
+        '200':
+          description: Token registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /notifications:
     get:
       tags:
@@ -2029,6 +2059,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /notifications/unread:
+    get:
+      tags:
+        - Notifications
+      summary: List unread notifications
+      operationId: getUnreadNotifications
+      responses:
+        '200':
+          description: A list of unread notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /notifications/{id}/read:
     patch:
       tags:
@@ -2055,6 +2107,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/read-all:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark all notifications as read
+      operationId: markAllNotificationsRead
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
         '500':
           description: Server error
           content:
@@ -2122,8 +2194,132 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /health:
+    get:
+      tags: [Infrastructure]
+      summary: Get aggregate infrastructure health
+      operationId: getHealth
+      responses:
+        '200':
+          description: MongoDB, Redis, BullMQ and worker status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+        '503':
+          description: One or more dependencies are unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+  /health/redis:
+    get:
+      tags: [Infrastructure]
+      summary: Get Redis health
+      operationId: getRedisHealth
+      responses:
+        '200':
+          description: Redis is connected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+        '503':
+          description: Redis is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+  /health/bullmq:
+    get:
+      tags: [Infrastructure]
+      summary: Get BullMQ health and workers
+      operationId: getBullMqHealth
+      responses:
+        '200':
+          description: BullMQ is connected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+        '503':
+          description: BullMQ is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+  /health/queues:
+    get:
+      tags: [Infrastructure]
+      summary: Get queue job counts
+      operationId: getQueueStatus
+      responses:
+        '200':
+          description: Waiting, active, delayed, completed and failed counts by queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureStatus'
+        '503':
+          description: Queue status is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /admin/queues:
+    get:
+      tags: [Infrastructure]
+      summary: Open Bull Board queue dashboard
+      operationId: getBullBoard
+      responses:
+        '200':
+          description: Bull Board HTML dashboard
+  /debug/test-notification:
+    post:
+      tags: [Infrastructure]
+      summary: Queue a development-only test notification
+      description: This route is not registered when NODE_ENV is production.
+      operationId: createDebugTestNotification
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patientId:
+                  type: string
+      responses:
+        '201':
+          description: Notification and job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebugNotificationResult'
+        '500':
+          description: Unable to create test notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
+    InfrastructureStatus:
+      type: object
+      additionalProperties: true
+    DebugNotificationResult:
+      type: object
+      required: [notificationId, jobId, queue, status]
+      properties:
+        notificationId:
+          type: string
+        jobId:
+          type: string
+        queue:
+          type: string
+        status:
+          type: string
     User:
       type: object
       properties:
@@ -2909,6 +3105,7 @@ components:
           nullable: true
         appointmentId:
           type: string
+          nullable: true
         title:
           type: string
           description: The title of the notification
@@ -2925,11 +3122,28 @@ components:
         read:
           type: boolean
           description: Whether the notification has been read
+        status:
+          type: string
+          description: Current delivery status of the notification
+        data:
+          type: object
+          additionalProperties: true
+          description: Arbitrary metadata for the notification
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the notification is scheduled to be delivered
         sentAt:
           type: string
           format: date-time
           nullable: true
           description: The date and time the notification was sent (null if not sent yet)
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the notification was marked as read
         createdAt:
           type: string
           format: date-time
@@ -2948,12 +3162,37 @@ components:
         patientId:
           type: string
           description: The patient identifier associated with the notification
+        queueItemId:
+          type: string
+          nullable: true
+        appointmentId:
+          type: string
+          nullable: true
         title:
           type: string
           description: The title of the notification
+        type:
+          type: string
+          enum:
+            - REMINDER
+            - QUEUE_NEAR
+            - QUEUE_NEXT
+            - QUEUE_CALLED
         message:
           type: string
           description: The content of the notification
+        status:
+          type: string
+          description: Current delivery status of the notification
+        data:
+          type: object
+          additionalProperties: true
+          description: Arbitrary metadata for the notification
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the notification is scheduled to be delivered
     UpdateNotification:
       type: object
       properties:
@@ -2974,6 +3213,17 @@ components:
           format: date-time
           nullable: true
           description: The date and time the notification was sent (null if not sent yet)
+    RegisterPushToken:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Device push token
+        platform:
+          type: string
+          description: Platform identifier such as ios or android
     Appointment:
       type: object
       properties:
