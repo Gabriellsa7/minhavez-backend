@@ -7,6 +7,7 @@ import { AppointmentRepository } from '../../../repository/appointment/appointme
 import { BullMqProvider } from '../bullmq.provider';
 import { notificationQueueConfig } from '../../../config/notification.constants';
 import { WorkerStatusRegistry } from './worker-status.registry';
+import { NotificationJobScheduler } from '../notification-job-scheduler';
 
 export class AppointmentWorker {
   private readonly worker: Worker;
@@ -19,6 +20,7 @@ export class AppointmentWorker {
         Logger.info('Appointment worker started', { jobId: job.id });
         const notificationService = new NotificationService({
           notificationRepository: new NotificationRepository(),
+          notificationJobScheduler: new NotificationJobScheduler(),
         });
         const appointmentReminderService = new AppointmentReminderService({
           notificationService,

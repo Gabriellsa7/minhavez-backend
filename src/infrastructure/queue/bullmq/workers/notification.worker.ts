@@ -6,6 +6,10 @@ import { ExpoNotificationProvider } from '../../../external/expo/expo-notificati
 import { BullMqProvider } from '../bullmq.provider';
 import { notificationQueueConfig } from '../../../config/notification.constants';
 import { WorkerStatusRegistry } from './worker-status.registry';
+import { PatientRepository } from '../../../repository/patient/patient.repository';
+import { UserRepository } from '../../../repository/user/user.repository';
+import { NotificationJobScheduler } from '../notification-job-scheduler';
+import { ENotificationStatus } from '../../../../domain/notification/interfaces/notification.interface';
 
 export class NotificationWorker {
   private readonly worker: Worker;
@@ -24,9 +28,16 @@ export class NotificationWorker {
         const notificationService = new NotificationService({
           notificationRepository: new NotificationRepository(),
           notificationProvider: new ExpoNotificationProvider(),
+          patientRepository: new PatientRepository(),
+          userRepository: new UserRepository(),
+          notificationJobScheduler: new NotificationJobScheduler(),
         });
 
-        await notificationService.processNotification(job.data.notificationId);
+        if (job.name === 'check-notification-receipt') {
+          await notificationService.processReceipt(job.data.notificationId);
+        } else {
+          await notificationService.processNotification(job.data.notificationId);
+        }
         Logger.info('Notification worker finished', {
           jobId: job.id,
           notificationId: job.data.notificationId,
@@ -73,6 +84,17 @@ export class NotificationWorker {
         error: err.message,
         failedAt: new Date().toISOString(),
       });
+      if (job.name === 'check-notification-receipt') {
+        await new NotificationRepository().updateNotificationById(
+          job.data.notificationId,
+          {
+            notificationData: {
+              status: ENotificationStatus.FAILED,
+              lastError: err.message,
+            },
+          },
+        );
+      }
       Logger.error('Notification job moved to DLQ', {
         jobId: job.id,
         queue: notificationQueueConfig.queueNames.failed,

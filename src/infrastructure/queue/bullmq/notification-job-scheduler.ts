@@ -52,6 +52,19 @@ export class NotificationJobScheduler implements INotificationJobScheduler {
     });
   }
 
+  async enqueueReceipt(notificationId: string): Promise<void> {
+    const job = await this.queue.add(
+      'check-notification-receipt',
+      { notificationId },
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 30000 },
+        delay: 60000,
+      },
+    );
+    Logger.info('Expo receipt job created', { jobId: job.id, notificationId });
+  }
+
   async cancelJobsForAppointment(appointmentId: string): Promise<void> {
     const jobs = await this.queue.getJobs(['waiting', 'active', 'delayed']);
     const matching = jobs.filter(
