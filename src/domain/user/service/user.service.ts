@@ -1,6 +1,7 @@
 import { IUser } from '../interfaces/user.interface';
 import {
   IParamsUserService,
+  IUserImageUploadParams,
   IUserService,
 } from '../interfaces/user.service.interface';
 import bcrypt from 'bcrypt';
@@ -9,6 +10,7 @@ import {
   IParamsUpdateUser,
   IUserRepository,
 } from '../repository/user.repository.interface';
+import { uploadImageToCloudinary } from '../../../infrastructure/external/cloudinary/cloudinary-upload';
 
 export class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -79,6 +81,31 @@ export class UserService implements IUserService {
       return await this.userRepository.updateUserById(_id, params);
     } catch (error) {
       throw new Error(`Error updating user: ${(error as Error).message}`);
+    }
+  }
+
+  async uploadUserImage(
+    _id: string,
+    params: IUserImageUploadParams,
+  ): Promise<IUser | null> {
+    try {
+      const existingUser = await this.userRepository.findUserById(_id);
+
+      if (!existingUser) {
+        throw new Error('User not found');
+      }
+
+      const uploadedImage = await uploadImageToCloudinary({
+        imageBase64: params.imageBase64,
+        fileName: params.fileName,
+        mimeType: params.mimeType,
+      });
+
+      return await this.userRepository.updateUserById(_id, {
+        avatar: uploadedImage.secureUrl,
+      });
+    } catch (error) {
+      throw new Error(`Error uploading user image: ${(error as Error).message}`);
     }
   }
 

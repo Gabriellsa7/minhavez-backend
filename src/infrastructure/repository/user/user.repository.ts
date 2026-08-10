@@ -14,8 +14,10 @@ export class UserRepository implements IUserRepository {
       _id: userDoc._id.toString(),
       name: userDoc.name,
       email: userDoc.email,
+      avatar: userDoc.avatar,
       role: userDoc.role,
       active: userDoc.active,
+      devices: userDoc.devices,
       createdAt: userDoc.createdAt,
     };
   }
@@ -110,6 +112,19 @@ export class UserRepository implements IUserRepository {
       return await MUser.find(filter);
     } catch (error) {
       throw new Error(`Error listing users: ${(error as Error).message}`);
+    }
+  }
+
+  async disableDeviceToken(userId: string, token: string): Promise<void> {
+    try {
+      await MUser.updateOne(
+        { _id: userId, 'devices.token': token },
+        { $set: { 'devices.$.enabled': false, 'devices.$.updatedAt': new Date() } },
+      );
+    } catch (error) {
+      throw new Error(
+        `Error disabling device token: ${(error as Error).message}`,
+      );
     }
   }
 }

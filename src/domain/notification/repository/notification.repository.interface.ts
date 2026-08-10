@@ -4,6 +4,14 @@ export interface IParamsCreateNotification {
   patientId: string;
   title: string;
   message: string;
+  type?: string;
+  status?: string;
+  queueItemId?: string;
+  appointmentId?: string;
+  metadata?: Record<string, unknown>;
+  priority?: number;
+  scheduledAt?: Date;
+  deviceToken?: string;
 }
 
 export interface IParamsUpdateNotification {

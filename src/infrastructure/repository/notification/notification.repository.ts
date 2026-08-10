@@ -19,7 +19,20 @@ export class NotificationRepository implements INotificationRepository {
       type: notificationDoc.type,
       message: notificationDoc.message,
       read: notificationDoc.read,
+      status: notificationDoc.status as INotification['status'],
+      provider: notificationDoc.provider,
+      providerResponse: notificationDoc.providerResponse,
+      lastError: notificationDoc.lastError,
+      attempts: notificationDoc.attempts,
+      expiresAt: notificationDoc.expiresAt,
+      deliveredAt: notificationDoc.deliveredAt,
+      deviceToken: notificationDoc.deviceToken,
+      metadata: notificationDoc.metadata,
+      priority: notificationDoc.priority,
+      data: notificationDoc.data,
+      scheduledAt: notificationDoc.scheduledAt,
       sentAt: notificationDoc.sentAt,
+      readAt: notificationDoc.readAt,
       createdAt: notificationDoc.createdAt,
       updatedAt: notificationDoc.updatedAt,
     };
@@ -45,7 +58,7 @@ export class NotificationRepository implements INotificationRepository {
     try {
       const notificationDoc = await MNotification.findByIdAndUpdate(
         id,
-        params,
+        params.notificationData,
         {
           new: true,
         },

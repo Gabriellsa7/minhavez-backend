@@ -1,4 +1,9 @@
-import { INotification } from '../interfaces/notification.interface';
+import { Logger } from 'traceability';
+import {
+  ENotificationStatus,
+  ENotificationType,
+  INotification,
+} from '../interfaces/notification.interface';
 import {
   IParamsCreateNotification,
   IParamsUpdateNotification,
@@ -8,24 +13,256 @@ import {
   IParamsNotificationService,
   INotificationService,
 } from '../interfaces/notification.service.interface';
+import { INotificationProvider } from '../interfaces/notification-provider.interface';
+import { INotificationJobScheduler } from '../interfaces/notification-job-scheduler.interface';
+import { INotificationSocketGateway } from '../interfaces/notification-socket.interface';
+import { notificationConfig } from '../../../infrastructure/config/notification.constants';
+import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
+import { IUserRepository } from '../../user/repository/user.repository.interface';
 
 export class NotificationService implements INotificationService {
   private notificationRepository: INotificationRepository;
+  private notificationProvider?: INotificationProvider;
+  private notificationJobScheduler?: INotificationJobScheduler;
+  private notificationSocketGateway?: INotificationSocketGateway;
 
-  constructor(params: IParamsNotificationService) {
+  constructor(
+    params: IParamsNotificationService & {
+      notificationProvider?: INotificationProvider;
+      notificationJobScheduler?: INotificationJobScheduler;
+      notificationSocketGateway?: INotificationSocketGateway;
+      patientRepository?: IPatientRepository;
+      userRepository?: IUserRepository;
+    },
+  ) {
     this.notificationRepository = params.notificationRepository;
+    this.notificationProvider = params.notificationProvider;
+    this.notificationJobScheduler = params.notificationJobScheduler;
+    this.notificationSocketGateway = params.notificationSocketGateway;
+    this.patientRepository = params.patientRepository;
+    this.userRepository = params.userRepository;
   }
+  private patientRepository?: IPatientRepository;
+  private userRepository?: IUserRepository;
 
   async createNotification(
     params: IParamsCreateNotification,
   ): Promise<INotification> {
     try {
-      return await this.notificationRepository.createNotification(params);
+      const notification = await this.notificationRepository.createNotification(
+        {
+          ...params,
+          status: ENotificationStatus.PENDING,
+          priority: params.priority ?? notificationConfig.priorities.default,
+          scheduledAt: params.scheduledAt ?? new Date(),
+        },
+      );
+
+      Logger.info('Notification created', {
+        notificationId: notification._id,
+        patientId: notification.patientId,
+        status: notification.status,
+      });
+
+      this.notificationSocketGateway?.broadcastNotification({
+        type: 'notification.created',
+        notification,
+      });
+
+      if (this.notificationJobScheduler) {
+        await this.notificationJobScheduler.enqueue({
+          notificationId: notification._id,
+          patientId: notification.patientId,
+          appointmentId: notification.appointmentId,
+          scheduledAt: notification.scheduledAt ?? undefined,
+          metadata: {
+            type: params.type ?? ENotificationType.REMINDER,
+          },
+        });
+      } else if (this.notificationProvider) {
+        await this.notificationProvider.send({
+          to: notification.patientId,
+          title: notification.title,
+          body: notification.message,
+        });
+      }
+
+      return notification;
     } catch (error) {
       throw new Error(
         `Error creating notification: ${(error as Error).message}`,
       );
     }
+  }
+
+  async processNotification(id: string): Promise<INotification | null> {
+    const notification =
+      await this.notificationRepository.getNotificationById(id);
+    if (!notification) return null;
+
+    if (
+      notification.status === ENotificationStatus.SENT ||
+      notification.status === ENotificationStatus.DELIVERED
+    ) {
+      // A stalled/retried BullMQ job (e.g. the worker restarted right after
+      // Expo accepted the push, before the job could be marked completed)
+      // must not resend an already-delivered push to the patient's phone.
+      Logger.warn('Notification already sent, skipping duplicate send', {
+        notificationId: id,
+        status: notification.status,
+      });
+      return notification;
+    }
+
+    await this.notificationRepository.updateNotificationById(id, {
+      notificationData: {
+        status: ENotificationStatus.PROCESSING,
+        attempts: (notification.attempts ?? 0) + 1,
+      },
+    });
+
+    try {
+      if (!this.notificationProvider || !this.patientRepository || !this.userRepository) {
+        throw new Error('Notification delivery dependencies are not configured');
+      }
+
+      const patient = await this.patientRepository.getPatientById(
+        notification.patientId,
+      );
+      if (!patient) throw new Error(`Patient ${notification.patientId} not found`);
+      const user = await this.userRepository.findById(patient.userId);
+      const tokens = user?.devices
+        ?.filter((device) => device.enabled !== false)
+        .map((device) => device.token) ?? [];
+      if (tokens.length === 0) {
+        throw new Error(`No enabled Expo push token registered for patient ${notification.patientId}`);
+      }
+
+      const payloads = tokens.map((token) => ({
+        to: token,
+        title: notification.title,
+        body: notification.message,
+        data: {
+          notificationId: notification._id,
+          patientId: notification.patientId,
+          queueItemId: notification.queueItemId,
+          appointmentId: notification.appointmentId,
+          type: notification.type,
+        },
+      }));
+      const tickets = await this.notificationProvider.sendMany(payloads);
+      const okTickets = tickets.filter((ticket) => ticket.status === 'ok');
+      const rejectedTickets = tickets.filter((ticket) => ticket.status !== 'ok');
+
+      if (user) {
+        await Promise.all(
+          rejectedTickets
+            .filter((ticket) => ticket.details?.error === 'DeviceNotRegistered')
+            .map((ticket) =>
+              this.userRepository!.disableDeviceToken(user._id, ticket.token),
+            ),
+        );
+      }
+
+      if (okTickets.length === 0) {
+        throw new Error(
+          `Expo rejected all push ticket(s): ${JSON.stringify(rejectedTickets)}`,
+        );
+      }
+
+      Logger.info('Push accepted by Expo', {
+        notificationId: id,
+        patientId: notification.patientId,
+        tokens,
+        payloads,
+        tickets,
+      });
+
+      // The push has already left our system successfully at this point.
+      // Bookkeeping failures below (DB write, receipt scheduling, socket
+      // broadcast) must never bubble up into the outer catch: that would
+      // make BullMQ retry the whole job and send a brand-new push for a
+      // notification that was already delivered to the device.
+      try {
+        const ticketIds = okTickets.map((ticket) => ticket.id).filter(Boolean);
+        const updated = await this.notificationRepository.updateNotificationById(
+          id,
+          {
+            notificationData: {
+              status: ENotificationStatus.SENT,
+              sentAt: new Date(),
+              provider: 'expo',
+              deviceToken: okTickets[0].token,
+              providerResponse: { tickets, ticketIds },
+              lastError: rejectedTickets.length > 0 ? JSON.stringify(rejectedTickets) : null,
+            },
+          },
+        );
+        await this.notificationJobScheduler?.enqueueReceipt(id);
+        this.notificationSocketGateway?.broadcastNotification({
+          type: 'notification.delivered',
+          notification: updated,
+        });
+        return updated;
+      } catch (postSendError) {
+        Logger.error('Push was sent but post-send bookkeeping failed', {
+          notificationId: id,
+          error: (postSendError as Error).message,
+        });
+        return notification;
+      }
+    } catch (error) {
+      const message = (error as Error).message;
+      const attempts = (notification.attempts ?? 0) + 1;
+      await this.notificationRepository.updateNotificationById(id, {
+        notificationData: {
+          status:
+            attempts >= notificationConfig.retry.attempts
+              ? ENotificationStatus.FAILED
+              : ENotificationStatus.PENDING,
+          lastError: message,
+          attempts,
+        },
+      });
+      Logger.error('Push failed', {
+        notificationId: id,
+        error: message,
+        attempts,
+      });
+      throw error;
+    }
+  }
+
+  async processReceipt(id: string): Promise<INotification | null> {
+    const notification = await this.notificationRepository.getNotificationById(id);
+    if (!notification || !this.notificationProvider) return notification;
+    const ticketIds = Array.isArray(notification.providerResponse?.ticketIds)
+      ? notification.providerResponse.ticketIds.filter(
+          (ticketId): ticketId is string => typeof ticketId === 'string',
+        )
+      : [];
+    if (ticketIds.length === 0) {
+      throw new Error(`Notification ${id} has no Expo ticket IDs to check`);
+    }
+    const receipts = await this.notificationProvider.getReceipts(ticketIds);
+    const errors = receipts.filter((receipt) => receipt.status !== 'ok');
+    if (errors.length > 0) {
+      throw new Error(`Expo receipt error: ${JSON.stringify(errors)}`);
+    }
+    const updated = await this.notificationRepository.updateNotificationById(id, {
+      notificationData: {
+        status: ENotificationStatus.DELIVERED,
+        deliveredAt: new Date(),
+        providerResponse: { ...notification.providerResponse, receipts },
+      },
+    });
+    Logger.info('Expo delivery confirmed by receipt', {
+      notificationId: id,
+      ticketIds,
+      receiptIds: receipts.map((receipt) => receipt.id),
+      receipts,
+    });
+    return updated;
   }
 
   async getNotificationById(id: string): Promise<INotification | null> {

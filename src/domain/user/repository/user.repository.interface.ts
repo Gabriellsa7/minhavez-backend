@@ -6,9 +6,7 @@ export interface IParamsCreateUser {
   password: string;
 }
 
-export interface IParamsUpdateUser {
-  userData: Partial<IUser>;
-}
+export type IParamsUpdateUser = Partial<IUser>;
 
 export interface IUserRepository {
   createUser(userData: IParamsCreateUser): Promise<IUser>;
@@ -21,4 +19,5 @@ export interface IUserRepository {
   ): Promise<(IUser & { password: string }) | null>;
   findUserById(id: string): Promise<IUser | null>;
   listUsers(filter: Partial<IUser>): Promise<IUser[]>;
+  disableDeviceToken(userId: string, token: string): Promise<void>;
 }

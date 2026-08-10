@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { IController } from './IController';
 import { UserService } from '../../../domain/user/service/user.service';
 import { authMiddleware } from '../middlewary/auth.middleware';
+import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 
 export class UserController implements IController {
   router: Router;
@@ -19,6 +20,11 @@ export class UserController implements IController {
     this.router.get('/users/:id', this.getUserById);
     this.router.post('/users', this.createUser);
     this.router.put('/users/:id', authMiddleware, this.updateUser);
+    this.router.post(
+      '/users/:id/image',
+      authMiddleware,
+      this.uploadUserImage,
+    );
     this.router.delete('/users/:id', authMiddleware, this.deleteUser);
   }
 
@@ -80,6 +86,31 @@ export class UserController implements IController {
     }
   };
 
+  uploadUserImage = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+    const { imageBase64, fileName, mimeType } = req.body;
+
+    try {
+      const updatedUser = await this.userService.uploadUserImage(id, {
+        imageBase64,
+        fileName,
+        mimeType,
+      });
+
+      if (!updatedUser) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      res.status(400).json({ message: (error as Error).message, status: 400 });
+    }
+  };
+
   deleteUser = async (
     req: Request<{ id: string }>,
     res: Response,
@@ -100,12 +131,17 @@ export class UserController implements IController {
   getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = req.user!;
+      const dbUser =
+        user.principalType === EPrincipalType.USER
+          ? await this.userService.getUserById(user.sub)
+          : null;
       res.status(200).json({
         _id: user.sub,
-        email: user.email,
-        name: user.name,
+        email: dbUser?.email ?? user.email,
+        name: dbUser?.name ?? user.name,
+        avatar: dbUser?.avatar ?? null,
         principalType: user.principalType,
-        role: user.role,
+        role: dbUser?.role ?? user.role,
       });
     } catch (error) {
       res.status(500).json({

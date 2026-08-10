@@ -1,21 +1,30 @@
 import cors, { CorsOptions } from 'cors';
 
-const allowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:3000',
-  'http://192.168.0.12:3001',
-  'http://localhost:5173',
-  'http://10.1.73.233:8081',
-  'http://localhost:8081',
-  'http://192.168.0.8:3000',
-];
+const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const localDevelopmentOrigin =
+  /^https?:\/\/(?:localhost|127(?:\.\d{1,3}){3}|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?::\d{1,5})?$/;
+
+const isAllowedOrigin = (origin: string) => {
+  if (configuredOrigins.includes(origin)) return true;
+
+  // Expo/Metro changes the host IP with the active local network. Keep this
+  // convenience restricted to local development; production must configure
+  // CORS_ALLOWED_ORIGINS explicitly.
+  return (
+    process.env.NODE_ENV !== 'production' && localDevelopmentOrigin.test(origin)
+  );
+};
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     // permite mobile, postman, etc
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 

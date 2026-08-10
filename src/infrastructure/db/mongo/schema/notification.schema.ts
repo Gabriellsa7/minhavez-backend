@@ -34,7 +34,59 @@ export const notificationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      default: 'PENDING',
+    },
+    provider: {
+      type: String,
+      default: 'expo',
+    },
+    providerResponse: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    lastError: {
+      type: String,
+      default: null,
+    },
+    attempts: {
+      type: Number,
+      default: 0,
+    },
+    expiresAt: {
+      type: Date,
+      required: false,
+    },
+    deliveredAt: {
+      type: Date,
+      required: false,
+    },
+    deviceToken: {
+      type: String,
+      required: false,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    priority: {
+      type: Number,
+      default: 3,
+    },
+    data: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    scheduledAt: {
+      type: Date,
+      required: false,
+    },
     sentAt: {
+      type: Date,
+      required: false,
+    },
+    readAt: {
       type: Date,
       required: false,
     },
@@ -47,13 +99,26 @@ export const notificationSchema = new mongoose.Schema(
 
 export interface INotificationSchema {
   patientId: mongoose.Types.ObjectId;
-  queueItemId: mongoose.Types.ObjectId;
-  appointmentId: mongoose.Types.ObjectId;
+  queueItemId?: mongoose.Types.ObjectId;
+  appointmentId?: mongoose.Types.ObjectId;
   title: string;
   type: ENotificationType;
   message: string;
   read: boolean;
+  status?: string;
+  provider?: string;
+  providerResponse?: Record<string, unknown>;
+  lastError?: string | null;
+  attempts?: number;
+  expiresAt?: Date | null;
+  deliveredAt?: Date | null;
+  deviceToken?: string | null;
+  metadata?: Record<string, unknown>;
+  priority?: number;
+  data?: Record<string, unknown>;
+  scheduledAt?: Date | null;
   sentAt?: Date | null;
+  readAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

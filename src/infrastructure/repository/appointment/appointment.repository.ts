@@ -1,6 +1,9 @@
 import { HydratedDocument } from 'mongoose';
 import { Types, FilterQuery } from 'mongoose';
-import { IAppointment } from '../../../domain/appointment/interfaces/appointment.interface';
+import {
+  EAppointmentStatus,
+  IAppointment,
+} from '../../../domain/appointment/interfaces/appointment.interface';
 import { IAppointmentSchema } from '../../db/mongo/schema/appointment.schema';
 import {
   IParamsCreateAppointment,
@@ -91,6 +94,29 @@ export class AppointmentRepository implements IAppointmentRepository {
     } catch (error) {
       throw new Error(
         `Error deleting appointment by ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async deleteAppointmentsHistoryByPatientId(
+    patientId: string,
+  ): Promise<IAppointment[]> {
+    try {
+      const mongoPatientId = new Types.ObjectId(patientId);
+      const filter = {
+        patientId: mongoPatientId,
+        status: {
+          $in: [EAppointmentStatus.COMPLETED, EAppointmentStatus.CANCELED],
+        },
+      };
+
+      const appointmentDocs = await MAppointment.find(filter);
+      await MAppointment.deleteMany(filter);
+
+      return appointmentDocs.map((doc) => this.mapToDomain(doc));
+    } catch (error) {
+      throw new Error(
+        `Error deleting appointment history by patient ID: ${(error as Error).message}`,
       );
     }
   }

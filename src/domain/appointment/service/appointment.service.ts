@@ -20,18 +20,33 @@ import {
 } from '../interfaces/appointment.service.interface';
 import { getQueueShift } from '../../../shared/utils/getQueueShift';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
+import { QueueNotificationService } from '../../notification/service/queue-notification.service';
+import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
   private queueRepository: IQueueRepository;
   private queueItemRepository: IQueueItemRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private appointmentReminderService?: AppointmentReminderService;
+  private queueNotificationService?: QueueNotificationService;
+  private notificationJobScheduler?: INotificationJobScheduler;
 
-  constructor(params: IParamsAppointmentService) {
+  constructor(
+    params: IParamsAppointmentService & {
+      appointmentReminderService?: AppointmentReminderService;
+      queueNotificationService?: QueueNotificationService;
+      notificationJobScheduler?: INotificationJobScheduler;
+    },
+  ) {
     this.appointmentRepository = params.appointmentRepository;
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
     this.healthProfessionalRepository = params.professionalRepository;
+    this.appointmentReminderService = params.appointmentReminderService;
+    this.queueNotificationService = params.queueNotificationService;
+    this.notificationJobScheduler = params.notificationJobScheduler;
   }
 
   async createAppointment(
@@ -145,10 +160,26 @@ export class AppointmentService implements IAppointmentService {
           status: EQueueItemStatus.WAITING,
         }));
 
-      return await this.appointmentRepository.createAppointment({
+      // A patient who joins straight onto one of the notification
+      // thresholds (e.g. the 10th person in an empty queue) must still be
+      // notified — otherwise their position only ever changes by later
+      // recalculations and that first threshold crossing is never observed.
+      if (!existingQueueItem) {
+        await this.queueNotificationService?.handleQueuePositionChange(
+          queueItem,
+        );
+      }
+
+      const appointment = await this.appointmentRepository.createAppointment({
         ...params,
         queueItemId: queueItem._id,
       });
+
+      if (this.appointmentReminderService) {
+        await this.appointmentReminderService.createReminders(appointment);
+      }
+
+      return appointment;
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -237,6 +268,13 @@ export class AppointmentService implements IAppointmentService {
         id,
         params,
       );
+
+      if (
+        updated &&
+        (params.status === EAppointmentStatus.CANCELED || params.dateTime)
+      ) {
+        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+      }
       if (!updated) {
         throw new Error('Appointment not found');
       }
@@ -252,6 +290,10 @@ export class AppointmentService implements IAppointmentService {
     try {
       const deleted =
         await this.appointmentRepository.deleteAppointmentById(id);
+
+      if (deleted) {
+        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+      }
       if (!deleted) {
         throw new Error('Appointment not found');
       }
@@ -259,6 +301,31 @@ export class AppointmentService implements IAppointmentService {
     } catch (error) {
       throw new Error(
         `Error deleting appointment: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async clearAppointmentHistoryByPatientId(
+    patientId: string,
+  ): Promise<IAppointment[]> {
+    try {
+      const deleted =
+        await this.appointmentRepository.deleteAppointmentsHistoryByPatientId(
+          patientId,
+        );
+
+      await Promise.all(
+        deleted.map((appointment) =>
+          this.notificationJobScheduler?.cancelJobsForAppointment(
+            appointment._id,
+          ),
+        ),
+      );
+
+      return deleted;
+    } catch (error) {
+      throw new Error(
+        `Error clearing appointment history: ${(error as Error).message}`,
       );
     }
   }

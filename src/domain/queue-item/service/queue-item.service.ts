@@ -12,21 +12,29 @@ import { IQueueRepository } from '../../queue/repository/queue.repository.interf
 import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
+import { QueueNotificationService } from '../../notification/service/queue-notification.service';
+import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
   private queueRepository: IQueueRepository;
   private appointmentRepository: IAppointmentRepository;
+  private queueNotificationService?: QueueNotificationService;
 
   constructor(params: {
     queueItemRepository: IQueueItemRepository;
     queueRepository: IQueueRepository;
     appointmentRepository: IAppointmentRepository;
+    queueNotificationService?: QueueNotificationService;
+    notificationSocketGateway?: INotificationSocketGateway;
   }) {
     this.queueItemRepository = params.queueItemRepository;
     this.queueRepository = params.queueRepository;
     this.appointmentRepository = params.appointmentRepository;
+    this.queueNotificationService = params.queueNotificationService;
+    this.notificationSocketGateway = params.notificationSocketGateway;
   }
+  private notificationSocketGateway?: INotificationSocketGateway;
 
   async createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem> {
     try {
@@ -176,6 +184,7 @@ export class QueueItemService implements IQueueItemService {
       await this.completeAppointment(queueItemId);
 
       await this.advanceQueue(queueItem.queueId);
+      await this.recalculatePositions(queueItem.queueId);
 
       return updated!;
     } catch (error) {
@@ -213,6 +222,7 @@ export class QueueItemService implements IQueueItemService {
         );
 
         await this.advanceQueue(queueItem.queueId);
+        await this.recalculatePositions(queueItem.queueId);
 
         return updated!;
       }
@@ -229,6 +239,7 @@ export class QueueItemService implements IQueueItemService {
       );
 
       await this.advanceQueue(queueItem.queueId);
+      await this.recalculatePositions(queueItem.queueId);
 
       return updated!;
     } catch (error) {
@@ -283,10 +294,49 @@ export class QueueItemService implements IQueueItemService {
         throw new Error('Queue item not found');
       }
 
+      await this.queueNotificationService?.handleQueuePositionChange(
+        updatedQueueItem,
+      );
+      await this.recalculatePositions(updatedQueueItem.queueId);
+
       return updatedQueueItem;
     } catch (error) {
       throw new Error(`Error calling queue item: ${(error as Error).message}`);
     }
+  }
+
+  /** Keeps the persisted position equal to the patient's current place in
+   * the waiting line, not the immutable order in which they checked in.
+   * Being called into service takes a patient out of the line entirely —
+   * they must not keep occupying a slot that blocks everyone behind them
+   * from advancing (and being notified) until they're finished. */
+  private async recalculatePositions(queueId: string): Promise<void> {
+    const waitingItems = (await this.queueItemRepository.listQueueItems({ queueId }))
+      .filter((item) => item.status === EQueueItemStatus.WAITING)
+      .sort((left, right) => left.position - right.position);
+
+    const changed = [] as IQueueItem[];
+    for (const [index, item] of waitingItems.entries()) {
+      const position = index + 1;
+      if (item.position !== position) {
+        const updated = await this.queueItemRepository.updateQueueItemById(
+          item._id,
+          { position },
+        );
+        if (updated) changed.push(updated);
+      }
+    }
+
+    for (const item of changed) {
+      await this.queueNotificationService?.handleQueuePositionChange(item);
+    }
+
+    this.notificationSocketGateway?.broadcastNotification({
+      type: 'queue.updated',
+      queueId,
+      changedQueueItemIds: changed.map((item) => item._id),
+      connectedAt: new Date().toISOString(),
+    });
   }
 
   private async completeAppointment(queueItemId: string): Promise<void> {

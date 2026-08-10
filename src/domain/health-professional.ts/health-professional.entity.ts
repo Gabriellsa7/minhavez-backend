@@ -1,4 +1,7 @@
-import { IHealthProfessional } from './interfaces/health-professional.interface';
+import {
+  IHealthProfessional,
+  IHealthProfessionalSchedule,
+} from './interfaces/health-professional.interface';
 
 export class HealthProfessional implements IHealthProfessional {
   _id: string;
@@ -8,6 +11,8 @@ export class HealthProfessional implements IHealthProfessional {
   email: string;
   name: string;
   password: string;
+  room: string;
+  schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
   active: boolean;
   createdAt: Date;
@@ -21,6 +26,8 @@ export class HealthProfessional implements IHealthProfessional {
     this.password = data.password;
     this.healthUnitId = data.healthUnitId;
     this.specialty = data.specialty;
+    this.room = data.room;
+    this.schedule = data.schedule;
     this.professionalLicense = data.professionalLicense;
     this.active = data.active;
     this.createdAt = data.createdAt;

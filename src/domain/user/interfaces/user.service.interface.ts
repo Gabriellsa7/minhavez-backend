@@ -14,6 +14,16 @@ export interface IUserService {
   getUserById(_id: string): Promise<IUser | null>;
   getUserByEmail(email: string): Promise<IUser | null>;
   updateUserById(_id: string, params: IParamsUpdateUser): Promise<IUser | null>;
+  uploadUserImage(
+    _id: string,
+    params: IUserImageUploadParams,
+  ): Promise<IUser | null>;
   deleteUserById(_id: string): Promise<IUser | null>;
   listUsers(filter: Partial<IUser>): Promise<IUser[]>;
+}
+
+export interface IUserImageUploadParams {
+  imageBase64: string;
+  fileName?: string;
+  mimeType?: string;
 }

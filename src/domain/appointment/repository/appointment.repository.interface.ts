@@ -20,6 +20,9 @@ export interface IAppointmentRepository {
     params: IParamsUpdateAppointment,
   ): Promise<IAppointment | null>;
   deleteAppointmentById(id: string): Promise<IAppointment | null>;
+  deleteAppointmentsHistoryByPatientId(
+    patientId: string,
+  ): Promise<IAppointment[]>;
   getAppointmentById(id: string): Promise<IAppointment | null>;
   listAppointments(filter: Partial<IAppointment>): Promise<IAppointment[]>;
   listAppointmentsByPatientId(patientId: string): Promise<IAppointment[]>;
