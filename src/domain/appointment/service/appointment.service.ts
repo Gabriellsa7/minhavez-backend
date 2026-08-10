@@ -290,4 +290,29 @@ export class AppointmentService implements IAppointmentService {
       );
     }
   }
+
+  async clearAppointmentHistoryByPatientId(
+    patientId: string,
+  ): Promise<IAppointment[]> {
+    try {
+      const deleted =
+        await this.appointmentRepository.deleteAppointmentsHistoryByPatientId(
+          patientId,
+        );
+
+      await Promise.all(
+        deleted.map((appointment) =>
+          this.notificationJobScheduler?.cancelJobsForAppointment(
+            appointment._id,
+          ),
+        ),
+      );
+
+      return deleted;
+    } catch (error) {
+      throw new Error(
+        `Error clearing appointment history: ${(error as Error).message}`,
+      );
+    }
+  }
 }

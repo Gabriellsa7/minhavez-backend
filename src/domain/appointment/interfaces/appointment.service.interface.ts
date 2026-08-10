@@ -28,4 +28,7 @@ export interface IAppointmentService {
     params: IParamsUpdateAppointment,
   ): Promise<IAppointment | null>;
   deleteAppointmentById(id: string): Promise<IAppointment | null>;
+  clearAppointmentHistoryByPatientId(
+    patientId: string,
+  ): Promise<IAppointment[]>;
 }

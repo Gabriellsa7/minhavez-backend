@@ -27,6 +27,10 @@ export class AppointmentController implements IController {
       '/patients/:id/appointments',
       this.getAppointmentsByPatient,
     );
+    this.router.delete(
+      '/patients/:id/appointments',
+      this.clearAppointmentHistory,
+    );
     this.router.get(
       '/health-professionals/:id/appointments',
       this.getAppointmentsByProfessional,
@@ -99,6 +103,22 @@ export class AppointmentController implements IController {
       const appointments =
         await this.appointmentService.listAppointmentsByProfessionalId(id);
       res.status(200).json(appointments);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  clearAppointmentHistory = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+    try {
+      const deleted =
+        await this.appointmentService.clearAppointmentHistoryByPatientId(id);
+      res
+        .status(200)
+        .json({ message: 'Histórico limpo com sucesso', count: deleted.length });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

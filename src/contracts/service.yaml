@@ -2118,6 +2118,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Appointments
+      summary: Clear a patient's finished appointment history
+      operationId: clearAppointmentHistory
+      description: Deletes all completed or canceled appointments belonging to the patient. Scheduled or in-progress appointments are not affected.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Patient ID
+      responses:
+        '200':
+          description: Appointment history cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /health-professionals/{id}/appointments:
     get:
