@@ -1580,6 +1580,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Notifications
+      summary: Clear all notifications for the authenticated patient
+      operationId: clearNotifications
+      description: Deletes every notification belonging to the authenticated patient.
+      responses:
+        '200':
+          description: Notifications cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /notifications/{id}:
     get:
       tags:

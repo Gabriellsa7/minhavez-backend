@@ -39,13 +39,16 @@ export class BullMqProvider {
 
   static getConnection(): IORedis {
     if (!BullMqProvider.sharedConnection) {
+      const redisUrl = process.env.REDIS_URL;
       const options = BullMqProvider.getRedisOptions();
-      BullMqProvider.sharedConnection = new IORedis(options);
+      BullMqProvider.sharedConnection = redisUrl
+        ? new IORedis(redisUrl, { maxRetriesPerRequest: null })
+        : new IORedis(options);
 
       BullMqProvider.sharedConnection.on('connect', () => {
         Logger.info('Redis connected', {
-          host: options.host ?? 'REDIS_URL',
-          port: options.port,
+          host: redisUrl ?? options.host,
+          port: redisUrl ? undefined : options.port,
         });
       });
       BullMqProvider.sharedConnection.on('error', (error) => {

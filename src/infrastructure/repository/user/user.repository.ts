@@ -113,4 +113,17 @@ export class UserRepository implements IUserRepository {
       throw new Error(`Error listing users: ${(error as Error).message}`);
     }
   }
+
+  async disableDeviceToken(userId: string, token: string): Promise<void> {
+    try {
+      await MUser.updateOne(
+        { _id: userId, 'devices.token': token },
+        { $set: { 'devices.$.enabled': false, 'devices.$.updatedAt': new Date() } },
+      );
+    } catch (error) {
+      throw new Error(
+        `Error disabling device token: ${(error as Error).message}`,
+      );
+    }
+  }
 }

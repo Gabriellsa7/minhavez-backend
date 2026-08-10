@@ -38,6 +38,7 @@ export class ExpoNotificationProvider implements INotificationProvider {
           title: payload.title,
           body: payload.body,
           sound: 'default',
+          priority: 'high',
           channelId: 'queue-updates',
           data: payload.data ?? {},
         })),
@@ -64,8 +65,11 @@ export class ExpoNotificationProvider implements INotificationProvider {
     }));
     const rejected = tickets.filter((ticket) => ticket.status !== 'ok');
     if (rejected.length > 0) {
-      throw new Error(`Expo rejected ${rejected.length} push ticket(s): ${JSON.stringify(rejected)}`);
+      Logger.warn('Expo rejected some push tickets', { rejected });
     }
+    // Partial failures (e.g. a single stale token) must not block delivery to
+    // the patient's other registered devices; the caller inspects per-ticket
+    // status to decide what succeeded and what needs cleanup.
     return tickets;
   }
 

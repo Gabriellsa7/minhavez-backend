@@ -1,3 +1,7 @@
+const retryAttempts = Number(process.env.NOTIFICATION_RETRY_ATTEMPTS || 3);
+const retryDelay = Number(process.env.NOTIFICATION_RETRY_DELAY || 2000);
+const queueTtl = Number(process.env.NOTIFICATION_QUEUE_TTL || 1000 * 60 * 60 * 24);
+
 export const notificationQueueConfig = {
   queueNames: {
     notification: 'notification.queue',
@@ -5,15 +9,15 @@ export const notificationQueueConfig = {
     failed: 'notification.failed.queue',
   },
   defaultJobOptions: {
-    attempts: 3,
+    attempts: retryAttempts,
     backoff: {
       type: 'exponential' as const,
-      delay: 2000,
+      delay: retryDelay,
     },
     removeOnComplete: true,
     removeOnFail: false,
     delay: 0,
-    ttl: 1000 * 60 * 60 * 24,
+    ttl: queueTtl,
   },
   thresholds: [10, 5, 3, 2, 1],
   priorities: {
@@ -25,14 +29,14 @@ export const notificationQueueConfig = {
 
 export const notificationConfig = {
   retry: {
-    attempts: 3,
+    attempts: retryAttempts,
     backoff: {
       type: 'exponential' as const,
-      delay: 2000,
+      delay: retryDelay,
     },
     delay: 1000,
   },
-  ttl: 1000 * 60 * 60 * 24,
+  ttl: queueTtl,
   priorities: {
     reminder: 1,
     queueNear: 2,

@@ -73,6 +73,8 @@ export class NotificationService implements INotificationService {
         await this.notificationJobScheduler.enqueue({
           notificationId: notification._id,
           patientId: notification.patientId,
+          appointmentId: notification.appointmentId,
+          scheduledAt: notification.scheduledAt ?? undefined,
           metadata: {
             type: params.type ?? ENotificationType.REMINDER,
           },
@@ -135,7 +137,26 @@ export class NotificationService implements INotificationService {
         },
       }));
       const tickets = await this.notificationProvider.sendMany(payloads);
-      const ticketIds = tickets.map((ticket) => ticket.id).filter(Boolean);
+      const okTickets = tickets.filter((ticket) => ticket.status === 'ok');
+      const rejectedTickets = tickets.filter((ticket) => ticket.status !== 'ok');
+
+      if (user) {
+        await Promise.all(
+          rejectedTickets
+            .filter((ticket) => ticket.details?.error === 'DeviceNotRegistered')
+            .map((ticket) =>
+              this.userRepository!.disableDeviceToken(user._id, ticket.token),
+            ),
+        );
+      }
+
+      if (okTickets.length === 0) {
+        throw new Error(
+          `Expo rejected all push ticket(s): ${JSON.stringify(rejectedTickets)}`,
+        );
+      }
+
+      const ticketIds = okTickets.map((ticket) => ticket.id).filter(Boolean);
 
       const updated = await this.notificationRepository.updateNotificationById(
         id,
@@ -144,9 +165,9 @@ export class NotificationService implements INotificationService {
             status: ENotificationStatus.SENT,
             sentAt: new Date(),
             provider: 'expo',
-            deviceToken: tokens[0],
+            deviceToken: okTickets[0].token,
             providerResponse: { tickets, ticketIds },
-            lastError: null,
+            lastError: rejectedTickets.length > 0 ? JSON.stringify(rejectedTickets) : null,
           },
         },
       );

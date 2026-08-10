@@ -46,6 +46,11 @@ export class NotificationController implements IController {
       authMiddleware,
       this.deleteNotification,
     );
+    this.router.delete(
+      '/notifications',
+      authMiddleware,
+      this.clearNotifications,
+    );
     this.router.patch(
       '/notifications/:id/read',
       authMiddleware,
@@ -169,6 +174,27 @@ export class NotificationController implements IController {
         return;
       }
       res.status(200).json(deletedNotification);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  clearNotifications = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const patientId = await this.resolvePatientId(req.user!.sub);
+      if (!patientId) {
+        res.status(200).json({ message: 'Notifications cleared' });
+        return;
+      }
+      const notifications = await this.notificationService.listNotifications({
+        patientId,
+      });
+      await Promise.all(
+        notifications.map((notification) =>
+          this.notificationService.deleteNotificationById(notification._id),
+        ),
+      );
+      res.status(200).json({ message: 'Notifications cleared' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
