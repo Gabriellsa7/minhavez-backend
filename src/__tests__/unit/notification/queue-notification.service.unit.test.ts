@@ -94,4 +94,36 @@ describe('QueueNotificationService', () => {
     expect(result).toBeNull();
     expect(createNotification).not.toHaveBeenCalled();
   });
+
+  it('notifies again for the same patient and position in a brand-new queue item', async () => {
+    const createNotification = jest
+      .fn()
+      .mockResolvedValue({ _id: 'notification-1' });
+    const service = new QueueNotificationService({
+      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+      queueRepository: createFakeQueueRepository(new Date()),
+      redisClient: createFakeRedisClient(),
+    });
+
+    // Same patient, same threshold, but a different queue item — e.g. an
+    // earlier appointment/queue session from earlier the same day. This
+    // must not be silently skipped by dedupe meant for the previous session.
+    await service.handleQueuePositionChange({
+      _id: 'queue-item-old',
+      patientId: 'patient-1',
+      queueId: 'queue-1',
+      position: 1,
+      status: EQueueItemStatus.WAITING,
+    } as IQueueItem);
+
+    await service.handleQueuePositionChange({
+      _id: 'queue-item-new',
+      patientId: 'patient-1',
+      queueId: 'queue-1',
+      position: 1,
+      status: EQueueItemStatus.WAITING,
+    } as IQueueItem);
+
+    expect(createNotification).toHaveBeenCalledTimes(2);
+  });
 });

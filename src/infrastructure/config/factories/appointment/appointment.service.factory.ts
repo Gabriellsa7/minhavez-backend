@@ -1,5 +1,6 @@
 import { AppointmentService } from '../../../../domain/appointment/service/appointment.service';
 import { AppointmentReminderService } from '../../../../domain/notification/service/appointment-reminder.service';
+import { QueueNotificationService } from '../../../../domain/notification/service/queue-notification.service';
 import { NotificationService } from '../../../../domain/notification/service/notification.service';
 import { AppointmentRepository } from '../../../repository/appointment/appointment.repository';
 import { QueueRepository } from '../../../repository/queue/queue.repository';
@@ -25,6 +26,10 @@ export class AppointmentServiceFactory {
     const appointmentReminderService = new AppointmentReminderService({
       notificationService,
     });
+    const queueNotificationService = new QueueNotificationService({
+      notificationService,
+      queueRepository: queueRepo,
+    });
 
     return new AppointmentService({
       appointmentRepository: repo,
@@ -32,6 +37,7 @@ export class AppointmentServiceFactory {
       queueItemRepository: queueItemRepo,
       professionalRepository: professionalRepo,
       appointmentReminderService,
+      queueNotificationService,
       notificationJobScheduler,
     });
   }

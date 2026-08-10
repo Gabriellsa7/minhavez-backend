@@ -21,6 +21,7 @@ import {
 import { getQueueShift } from '../../../shared/utils/getQueueShift';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
+import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 
 export class AppointmentService implements IAppointmentService {
@@ -29,11 +30,13 @@ export class AppointmentService implements IAppointmentService {
   private queueItemRepository: IQueueItemRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
   private appointmentReminderService?: AppointmentReminderService;
+  private queueNotificationService?: QueueNotificationService;
   private notificationJobScheduler?: INotificationJobScheduler;
 
   constructor(
     params: IParamsAppointmentService & {
       appointmentReminderService?: AppointmentReminderService;
+      queueNotificationService?: QueueNotificationService;
       notificationJobScheduler?: INotificationJobScheduler;
     },
   ) {
@@ -42,6 +45,7 @@ export class AppointmentService implements IAppointmentService {
     this.queueItemRepository = params.queueItemRepository;
     this.healthProfessionalRepository = params.professionalRepository;
     this.appointmentReminderService = params.appointmentReminderService;
+    this.queueNotificationService = params.queueNotificationService;
     this.notificationJobScheduler = params.notificationJobScheduler;
   }
 
@@ -155,6 +159,16 @@ export class AppointmentService implements IAppointmentService {
           priority: EQueueItemPriority.MEDIUM,
           status: EQueueItemStatus.WAITING,
         }));
+
+      // A patient who joins straight onto one of the notification
+      // thresholds (e.g. the 10th person in an empty queue) must still be
+      // notified — otherwise their position only ever changes by later
+      // recalculations and that first threshold crossing is never observed.
+      if (!existingQueueItem) {
+        await this.queueNotificationService?.handleQueuePositionChange(
+          queueItem,
+        );
+      }
 
       const appointment = await this.appointmentRepository.createAppointment({
         ...params,

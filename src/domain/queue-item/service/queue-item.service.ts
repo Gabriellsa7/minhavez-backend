@@ -305,19 +305,18 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  /** Keeps the persisted position equal to the patient's current place, not
-   * the immutable order in which they checked in. */
+  /** Keeps the persisted position equal to the patient's current place in
+   * the waiting line, not the immutable order in which they checked in.
+   * Being called into service takes a patient out of the line entirely —
+   * they must not keep occupying a slot that blocks everyone behind them
+   * from advancing (and being notified) until they're finished. */
   private async recalculatePositions(queueId: string): Promise<void> {
-    const activeItems = (await this.queueItemRepository.listQueueItems({ queueId }))
-      .filter(
-        (item) =>
-          item.status === EQueueItemStatus.WAITING ||
-          item.status === EQueueItemStatus.IN_SERVICE,
-      )
+    const waitingItems = (await this.queueItemRepository.listQueueItems({ queueId }))
+      .filter((item) => item.status === EQueueItemStatus.WAITING)
       .sort((left, right) => left.position - right.position);
 
     const changed = [] as IQueueItem[];
-    for (const [index, item] of activeItems.entries()) {
+    for (const [index, item] of waitingItems.entries()) {
       const position = index + 1;
       if (item.position !== position) {
         const updated = await this.queueItemRepository.updateQueueItemById(

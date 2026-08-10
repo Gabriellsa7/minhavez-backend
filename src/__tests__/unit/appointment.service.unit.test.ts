@@ -18,6 +18,7 @@ import {
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
 import { IHealthProfessionalRepository } from '../../domain/health-professional.ts/repository/health-professional.repository.interface';
+import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
 
 describe('AppointmentService', () => {
   it('should allow creating an appointment when the only matching booking is completed', async () => {
@@ -120,5 +121,138 @@ describe('AppointmentService', () => {
       ...params,
       queueItemId: 'queue-item-1',
     });
+  });
+
+  it('notifies the patient when a brand-new queue item lands exactly on a position threshold', async () => {
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-id',
+        patientId: 'patient-10',
+        status: EAppointmentStatus.SCHEDULED,
+      }),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date(),
+      }),
+    } as unknown as IQueueRepository;
+
+    const newQueueItem = {
+      _id: 'queue-item-10',
+      queueId: 'queue-1',
+      patientId: 'patient-10',
+      position: 10,
+      priority: EQueueItemPriority.MEDIUM,
+      status: EQueueItemStatus.WAITING,
+    };
+
+    const queueItemRepository = {
+      // 9 patients already waiting, so the new one lands exactly on position 10
+      listQueueItems: jest.fn().mockResolvedValue(new Array(9).fill({})),
+      createQueueItem: jest.fn().mockResolvedValue(newQueueItem),
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const handleQueuePositionChange = jest.fn().mockResolvedValue(null);
+    const queueNotificationService = {
+      handleQueuePositionChange,
+    } as unknown as QueueNotificationService;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      queueNotificationService,
+    });
+
+    await service.createAppointment({
+      patientId: 'patient-10',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date(),
+    });
+
+    expect(handleQueuePositionChange).toHaveBeenCalledWith(newQueueItem);
+  });
+
+  it('does not fire a position notification when the patient already had a queue item', async () => {
+    const existingQueueItem = {
+      _id: 'queue-item-1',
+      queueId: 'queue-1',
+      patientId: 'patient-1',
+      position: 5,
+      priority: EQueueItemPriority.MEDIUM,
+      status: EQueueItemStatus.WAITING,
+    };
+
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-id',
+        patientId: 'patient-1',
+        status: EAppointmentStatus.SCHEDULED,
+      }),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date(),
+      }),
+    } as unknown as IQueueRepository;
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn().mockResolvedValue([existingQueueItem]),
+      createQueueItem: jest.fn(),
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const handleQueuePositionChange = jest.fn().mockResolvedValue(null);
+    const queueNotificationService = {
+      handleQueuePositionChange,
+    } as unknown as QueueNotificationService;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      queueNotificationService,
+    });
+
+    await service.createAppointment({
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date(),
+    });
+
+    expect(handleQueuePositionChange).not.toHaveBeenCalled();
   });
 });
