@@ -23,6 +23,7 @@ import { PushTokenController } from './interfaces/http/controllers/push-token.co
 import { NotificationWorker } from './infrastructure/queue/bullmq/workers/notification.worker';
 import { AppointmentWorker } from './infrastructure/queue/bullmq/workers/appointment.worker';
 import { InfrastructureController } from './interfaces/http/controllers/infrastructure.controller';
+import { NotificationSocketGateway } from './infrastructure/socket/notification.socket';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -46,6 +47,7 @@ const app = new Server({
 
 async function start() {
   await app.databaseSetup();
+  NotificationSocketGateway.getInstance();
   app.listen();
 
   const notificationWorker = new NotificationWorker();

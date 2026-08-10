@@ -6,6 +6,7 @@ import { QueueItemRepository } from '../../../repository/queue-item/queue-item.r
 import { QueueRepository } from '../../../repository/queue/queue.repository';
 import { NotificationRepository } from '../../../repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
+import { NotificationSocketGateway } from '../../../socket/notification.socket';
 
 export class QueueItemServiceFactory {
   static create() {
@@ -16,6 +17,7 @@ export class QueueItemServiceFactory {
     const notificationService = new NotificationService({
       notificationRepository,
       notificationJobScheduler: new NotificationJobScheduler(),
+      notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });
     const queueNotificationService = new QueueNotificationService({
       notificationService,
@@ -26,6 +28,7 @@ export class QueueItemServiceFactory {
       queueRepository,
       appointmentRepository,
       queueNotificationService,
+      notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });
   }
 }

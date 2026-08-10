@@ -3,6 +3,8 @@ import { NotificationRepository } from '../../../repository/notification/notific
 import { ExpoNotificationProvider } from '../../../external/expo/expo-notification.provider';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
 import { NotificationSocketGateway } from '../../../socket/notification.socket';
+import { PatientRepository } from '../../../repository/patient/patient.repository';
+import { UserRepository } from '../../../repository/user/user.repository';
 
 export class NotificationServiceFactory {
   static create() {
@@ -12,7 +14,9 @@ export class NotificationServiceFactory {
       notificationRepository: repo,
       notificationProvider: new ExpoNotificationProvider(),
       notificationJobScheduler: new NotificationJobScheduler(),
-      notificationSocketGateway: new NotificationSocketGateway(),
+      notificationSocketGateway: NotificationSocketGateway.getInstance(),
+      patientRepository: new PatientRepository(),
+      userRepository: new UserRepository(),
     });
   }
 }

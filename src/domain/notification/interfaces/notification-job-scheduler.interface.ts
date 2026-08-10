@@ -9,5 +9,6 @@ export interface INotificationJobScheduler {
     patientId: string;
     dateTime: Date;
   }): Promise<void>;
+  enqueueReceipt(notificationId: string): Promise<void>;
   cancelJobsForAppointment(appointmentId: string): Promise<void>;
 }

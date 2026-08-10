@@ -7,6 +7,7 @@ import { QueueItemRepository } from '../../../repository/queue-item/queue-item.r
 import { HealthProfessionalRepository } from '../../../repository/health-professional/health-professional.repository';
 import { NotificationRepository } from '../../../repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
+import { NotificationSocketGateway } from '../../../socket/notification.socket';
 
 export class AppointmentServiceFactory {
   static create() {
@@ -19,6 +20,7 @@ export class AppointmentServiceFactory {
     const notificationService = new NotificationService({
       notificationRepository,
       notificationJobScheduler,
+      notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });
     const appointmentReminderService = new AppointmentReminderService({
       notificationService,
