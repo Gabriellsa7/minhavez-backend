@@ -1,36 +1,83 @@
 import { Request, Response, Router } from 'express';
 import { IController } from './IController';
 import { INotificationService } from '../../../domain/notification/interfaces/notification.service.interface';
+import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 import {
   IParamsCreateNotification,
   IParamsUpdateNotification,
 } from '../../../domain/notification/repository/notification.repository.interface';
+import { authMiddleware } from '../middlewary/auth.middleware';
 
 export class NotificationController implements IController {
   router: Router;
   private readonly notificationService: INotificationService;
+  private readonly patientService: IPatientService;
 
-  constructor(notificationService: INotificationService) {
+  constructor(
+    notificationService: INotificationService,
+    patientService: IPatientService,
+  ) {
     this.notificationService = notificationService;
+    this.patientService = patientService;
     this.router = Router();
     this.initRoutes();
   }
 
   initRoutes() {
-    this.router.get('/notifications', this.getNotifications);
-    this.router.get('/notifications/unread', this.getUnreadNotifications);
-    this.router.get('/notifications/:id', this.getNotificationById);
-    this.router.post('/notifications', this.createNotification);
-    this.router.put('/notifications/:id', this.updateNotification);
-    this.router.delete('/notifications/:id', this.deleteNotification);
-    this.router.patch('/notifications/:id/read', this.markNotificationRead);
-    this.router.patch('/notifications/read-all', this.markAllNotificationsRead);
+    this.router.get('/notifications', authMiddleware, this.getNotifications);
+    this.router.get(
+      '/notifications/unread',
+      authMiddleware,
+      this.getUnreadNotifications,
+    );
+    this.router.get(
+      '/notifications/:id',
+      authMiddleware,
+      this.getNotificationById,
+    );
+    this.router.post('/notifications', authMiddleware, this.createNotification);
+    this.router.put(
+      '/notifications/:id',
+      authMiddleware,
+      this.updateNotification,
+    );
+    this.router.delete(
+      '/notifications/:id',
+      authMiddleware,
+      this.deleteNotification,
+    );
+    this.router.patch(
+      '/notifications/:id/read',
+      authMiddleware,
+      this.markNotificationRead,
+    );
+    this.router.patch(
+      '/notifications/read-all',
+      authMiddleware,
+      this.markAllNotificationsRead,
+    );
   }
+
+  private resolvePatientId = async (
+    userId: string,
+  ): Promise<string | null> => {
+    try {
+      const patient = await this.patientService.getPatientByUserId(userId);
+      return patient?._id ?? null;
+    } catch {
+      return null;
+    }
+  };
 
   getNotifications = async (req: Request, res: Response): Promise<void> => {
     try {
+      const patientId = await this.resolvePatientId(req.user!.sub);
+      if (!patientId) {
+        res.status(200).json([]);
+        return;
+      }
       const notifications = await this.notificationService.listNotifications(
-        {},
+        { patientId },
       );
       res.status(200).json(notifications);
     } catch (error) {
@@ -43,7 +90,13 @@ export class NotificationController implements IController {
     res: Response,
   ): Promise<void> => {
     try {
+      const patientId = await this.resolvePatientId(req.user!.sub);
+      if (!patientId) {
+        res.status(200).json([]);
+        return;
+      }
       const notifications = await this.notificationService.listNotifications({
+        patientId,
         read: false,
       });
       res.status(200).json(notifications);
@@ -58,9 +111,10 @@ export class NotificationController implements IController {
   ): Promise<void> => {
     const { id } = req.params;
     try {
+      const patientId = await this.resolvePatientId(req.user!.sub);
       const notification =
         await this.notificationService.getNotificationById(id);
-      if (!notification) {
+      if (!notification || !patientId || notification.patientId !== patientId) {
         res.status(404).json({ message: 'Notification not found' });
         return;
       }
@@ -126,12 +180,15 @@ export class NotificationController implements IController {
   ): Promise<void> => {
     const { id } = req.params;
     try {
-      const updatedNotification =
-        await this.notificationService.markNotificationRead(id);
-      if (!updatedNotification) {
+      const patientId = await this.resolvePatientId(req.user!.sub);
+      const notification =
+        await this.notificationService.getNotificationById(id);
+      if (!notification || !patientId || notification.patientId !== patientId) {
         res.status(404).json({ message: 'Notification not found' });
         return;
       }
+      const updatedNotification =
+        await this.notificationService.markNotificationRead(id);
       res.status(200).json(updatedNotification);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -143,6 +200,21 @@ export class NotificationController implements IController {
     res: Response,
   ): Promise<void> => {
     try {
+      const patientId = await this.resolvePatientId(req.user!.sub);
+      if (!patientId) {
+        res.status(200).json({ message: 'Notifications marked as read' });
+        return;
+      }
+      const unreadNotifications =
+        await this.notificationService.listNotifications({
+          patientId,
+          read: false,
+        });
+      await Promise.all(
+        unreadNotifications.map((notification) =>
+          this.notificationService.markNotificationRead(notification._id),
+        ),
+      );
       res.status(200).json({ message: 'Notifications marked as read' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
