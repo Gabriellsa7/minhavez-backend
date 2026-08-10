@@ -11,6 +11,20 @@ declare module 'express' {
   }
 }
 
+const sendError = (
+  req: Request,
+  res: Response,
+  status: number,
+  message: string,
+): void => {
+  res.status(status).json({
+    status,
+    message,
+    timestamp: new Date().toISOString(),
+    path: req.originalUrl,
+  });
+};
+
 export const authMiddleware = (
   req: Request,
   res: Response,
@@ -19,7 +33,7 @@ export const authMiddleware = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    res.status(401).json({ message: 'Authorization header missing' });
+    sendError(req, res, 401, 'Authorization header missing');
     return;
   }
 
@@ -31,14 +45,14 @@ export const authMiddleware = (
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      res.status(401).json({ message: 'Token expired' });
+      sendError(req, res, 401, 'Token expired');
       return;
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ message: 'Invalid token' });
+      sendError(req, res, 401, 'Invalid token');
       return;
     }
-    res.status(401).json({ message: 'Token verification failed' });
+    sendError(req, res, 401, 'Token verification failed');
     return;
   }
 };
@@ -47,15 +61,18 @@ export const authorize =
   (...roles: EUserRole[]) =>
   (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      sendError(req, res, 401, 'Unauthorized');
+      return;
     }
 
     if (req.user.principalType !== EPrincipalType.USER) {
-      return res.status(403).json({ message: 'Forbidden' });
+      sendError(req, res, 403, 'Forbidden');
+      return;
     }
 
     if (!req.user.role || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      sendError(req, res, 403, 'Forbidden');
+      return;
     }
 
     next();

@@ -43,6 +43,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -120,6 +126,8 @@ paths:
       summary: Update a user
       operationId: updateUser
       description: Update the information of an existing user by ID.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -146,6 +154,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found
           content:
@@ -164,6 +178,8 @@ paths:
       summary: Delete a user
       operationId: deleteUser
       description: Delete an existing user by ID.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -178,6 +194,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found
           content:
@@ -1526,6 +1548,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /notifications:
     get:
@@ -1534,6 +1562,8 @@ paths:
       summary: Get all notifications
       operationId: getNotifications
       description: Retrieve a list of all notifications.
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of notifications
@@ -1543,6 +1573,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Notification'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -1555,6 +1591,8 @@ paths:
       summary: Create a new notification
       operationId: createNotification
       description: Add a new notification to the database.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1574,6 +1612,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -1586,6 +1630,8 @@ paths:
       summary: Clear all notifications for the authenticated patient
       operationId: clearNotifications
       description: Deletes every notification belonging to the authenticated patient.
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Notifications cleared
@@ -1593,6 +1639,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -1606,6 +1658,8 @@ paths:
       summary: Get a notification by ID
       operationId: getNotificationById
       description: Retrieve a notification by its unique ID.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1620,6 +1674,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Notification'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Notification not found
           content:
@@ -1638,6 +1698,8 @@ paths:
       summary: Update a notification
       operationId: updateNotification
       description: Update the information of an existing notification by ID.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1667,6 +1729,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationError'
                 description: An error message indicating what validation failed when trying to update the notification
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Notification not found
           content:
@@ -1687,6 +1755,8 @@ paths:
       summary: Delete a notification
       operationId: deleteNotification
       description: Delete an existing notification by ID.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1702,6 +1772,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
                 description: A message confirming the successful deletion of the notification
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Notification not found
           content:
@@ -2084,6 +2160,8 @@ paths:
         - Notifications
       summary: List unread notifications
       operationId: getUnreadNotifications
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of unread notifications
@@ -2093,6 +2171,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Notification'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -2106,6 +2190,8 @@ paths:
         - Notifications
       summary: Mark a notification as read
       operationId: markNotificationRead
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2120,6 +2206,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Notification'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Notification not found
           content:
@@ -2139,6 +2231,8 @@ paths:
         - Notifications
       summary: Mark all notifications as read
       operationId: markAllNotificationsRead
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: All notifications marked as read
@@ -2146,6 +2240,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
