@@ -21,6 +21,7 @@ export class QueueItemServiceFactory {
     });
     const queueNotificationService = new QueueNotificationService({
       notificationService,
+      queueRepository,
     });
 
     return new QueueItemService({

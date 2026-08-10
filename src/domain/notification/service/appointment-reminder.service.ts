@@ -7,6 +7,21 @@ export interface IParamsAppointmentReminderService {
   notificationService: Pick<INotificationService, 'createNotification'>;
 }
 
+interface IReminderWindow {
+  daysBefore: number;
+  label: string;
+}
+
+const REMINDER_WINDOWS: IReminderWindow[] = [
+  { daysBefore: 2, label: 'em 2 dias' },
+  { daysBefore: 1, label: 'amanhã' },
+  { daysBefore: 0, label: 'hoje' },
+];
+
+const REMINDER_HOUR = 9;
+
+type EDayComparison = 'past' | 'today' | 'future';
+
 export class AppointmentReminderService {
   private readonly notificationService: Pick<
     INotificationService,
@@ -18,30 +33,58 @@ export class AppointmentReminderService {
   }
 
   async createReminders(appointment: IAppointment): Promise<void> {
-    const reminderOffsets: Array<{ offset: number; label: string }> = [
-      { offset: 2 * 24 * 60 * 60 * 1000, label: 'em 2 dias' },
-      { offset: 24 * 60 * 60 * 1000, label: 'amanhã' },
-      { offset: 60 * 60 * 1000, label: 'em 1 hora' },
-      { offset: 0, label: 'agora' },
-    ];
+    const appointmentDateTime = new Date(appointment.dateTime);
+    const today = new Date();
 
-    for (const { offset, label } of reminderOffsets) {
-      const scheduledAt = new Date(
-        new Date(appointment.dateTime).getTime() - offset,
-      );
-      if (scheduledAt.getTime() <= Date.now()) {
+    for (const { daysBefore, label } of REMINDER_WINDOWS) {
+      const targetDay = new Date(appointmentDateTime);
+      targetDay.setDate(targetDay.getDate() - daysBefore);
+
+      const dayComparison = this.compareDay(targetDay, today);
+      // A window whose day already passed no longer applies — e.g. booking
+      // on the day of the appointment must only produce the "hoje" reminder.
+      if (dayComparison === 'past') {
         continue;
       }
+
+      const scheduledAt =
+        dayComparison === 'today'
+          ? new Date()
+          : new Date(
+              targetDay.getFullYear(),
+              targetDay.getMonth(),
+              targetDay.getDate(),
+              REMINDER_HOUR,
+              0,
+              0,
+            );
 
       await this.notificationService.createNotification({
         patientId: appointment.patientId,
         title: 'Lembrete de consulta',
-        message: `Sua consulta é ${label} (${appointment.dateTime.toLocaleString()}).`,
+        message: `Sua consulta é ${label} (${appointmentDateTime.toLocaleString()}).`,
         type: ENotificationType.REMINDER,
         priority: notificationConfig.priorities.reminder,
         appointmentId: appointment._id,
-        scheduledAt: scheduledAt,
+        scheduledAt,
       });
     }
+  }
+
+  private compareDay(date: Date, reference: Date): EDayComparison {
+    const target = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+    ).getTime();
+    const ref = new Date(
+      reference.getFullYear(),
+      reference.getMonth(),
+      reference.getDate(),
+    ).getTime();
+
+    if (target < ref) return 'past';
+    if (target === ref) return 'today';
+    return 'future';
   }
 }
