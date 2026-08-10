@@ -18,14 +18,14 @@ export class AppointmentReminderService {
   }
 
   async createReminders(appointment: IAppointment): Promise<void> {
-    const reminderOffsets = [
-      2 * 24 * 60 * 60 * 1000,
-      24 * 60 * 60 * 1000,
-      0,
-      60 * 60 * 1000,
+    const reminderOffsets: Array<{ offset: number; label: string }> = [
+      { offset: 2 * 24 * 60 * 60 * 1000, label: 'em 2 dias' },
+      { offset: 24 * 60 * 60 * 1000, label: 'amanhã' },
+      { offset: 60 * 60 * 1000, label: 'em 1 hora' },
+      { offset: 0, label: 'agora' },
     ];
 
-    for (const offset of reminderOffsets) {
+    for (const { offset, label } of reminderOffsets) {
       const scheduledAt = new Date(
         new Date(appointment.dateTime).getTime() - offset,
       );
@@ -36,7 +36,7 @@ export class AppointmentReminderService {
       await this.notificationService.createNotification({
         patientId: appointment.patientId,
         title: 'Lembrete de consulta',
-        message: `Sua consulta está agendada para ${appointment.dateTime.toLocaleString()}.`,
+        message: `Sua consulta é ${label} (${appointment.dateTime.toLocaleString()}).`,
         type: ENotificationType.REMINDER,
         priority: notificationConfig.priorities.reminder,
         appointmentId: appointment._id,

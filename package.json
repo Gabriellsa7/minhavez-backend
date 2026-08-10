@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "ts-node-dev --env-file=.env src/main.ts",
     "worker:notifications": "ts-node-dev --env-file=.env src/workers/notification.worker.ts",
-    "worker:appointments": "ts-node-dev --env-file=.env src/workers/appointment.worker.ts",
     "build": "tsc -p .;yarn run copy-essentials",
     "start": "node dist/src/main.js",
     "copy-essentials": "mkdir -p dist/src/contracts && cp src/contracts/*.yaml dist/src/contracts",

@@ -1,12 +1,22 @@
 import { Request, Response, Router } from 'express';
 import { IController } from './IController';
 import { INotificationService } from '../../../domain/notification/interfaces/notification.service.interface';
+import { INotification } from '../../../domain/notification/interfaces/notification.interface';
 import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 import {
   IParamsCreateNotification,
   IParamsUpdateNotification,
 } from '../../../domain/notification/repository/notification.repository.interface';
 import { authMiddleware } from '../middlewary/auth.middleware';
+
+// A reminder created ahead of time (e.g. "1 hour before the appointment")
+// is persisted immediately so its BullMQ job can be scheduled with the
+// right delay, but it must stay invisible to the patient until that time
+// actually arrives — otherwise every future reminder shows up in the list
+// and unread count the moment the appointment is booked.
+const isDue = (notification: INotification): boolean =>
+  !notification.scheduledAt ||
+  new Date(notification.scheduledAt).getTime() <= Date.now();
 
 export class NotificationController implements IController {
   router: Router;
@@ -84,7 +94,7 @@ export class NotificationController implements IController {
       const notifications = await this.notificationService.listNotifications(
         { patientId },
       );
-      res.status(200).json(notifications);
+      res.status(200).json(notifications.filter(isDue));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -104,7 +114,7 @@ export class NotificationController implements IController {
         patientId,
         read: false,
       });
-      res.status(200).json(notifications);
+      res.status(200).json(notifications.filter(isDue));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -237,7 +247,7 @@ export class NotificationController implements IController {
           read: false,
         });
       await Promise.all(
-        unreadNotifications.map((notification) =>
+        unreadNotifications.filter(isDue).map((notification) =>
           this.notificationService.markNotificationRead(notification._id),
         ),
       );

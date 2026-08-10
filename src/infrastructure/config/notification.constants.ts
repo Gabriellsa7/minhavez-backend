@@ -5,7 +5,6 @@ const queueTtl = Number(process.env.NOTIFICATION_QUEUE_TTL || 1000 * 60 * 60 * 2
 export const notificationQueueConfig = {
   queueNames: {
     notification: 'notification.queue',
-    appointment: 'appointment.queue',
     failed: 'notification.failed.queue',
   },
   defaultJobOptions: {

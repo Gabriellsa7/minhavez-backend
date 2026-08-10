@@ -52,23 +52,6 @@ export class NotificationJobScheduler implements INotificationJobScheduler {
     return { jobId: String(job.id), queue: this.queue.name };
   }
 
-  async enqueueAppointmentReminder(payload: {
-    appointmentId: string;
-    patientId: string;
-    dateTime: Date;
-  }): Promise<void> {
-    await this.queue.add('appointment-reminder', payload, {
-      priority: notificationQueueConfig.priorities.high,
-      attempts: notificationQueueConfig.defaultJobOptions.attempts,
-      backoff: notificationQueueConfig.defaultJobOptions.backoff,
-      delay: notificationQueueConfig.defaultJobOptions.delay,
-    });
-    Logger.info('Appointment reminder job created', {
-      appointmentId: payload.appointmentId,
-      patientId: payload.patientId,
-    });
-  }
-
   async enqueueReceipt(notificationId: string): Promise<void> {
     const job = await this.queue.add(
       'check-notification-receipt',

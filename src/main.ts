@@ -21,7 +21,6 @@ import { PushTokenServiceFactory } from './infrastructure/config/factories/notif
 import { corsMiddleware } from './interfaces/http/middlewary/cors';
 import { PushTokenController } from './interfaces/http/controllers/push-token.controller';
 import { NotificationWorker } from './infrastructure/queue/bullmq/workers/notification.worker';
-import { AppointmentWorker } from './infrastructure/queue/bullmq/workers/appointment.worker';
 import { InfrastructureController } from './interfaces/http/controllers/infrastructure.controller';
 import { NotificationSocketGateway } from './infrastructure/socket/notification.socket';
 
@@ -52,8 +51,6 @@ async function start() {
 
   const notificationWorker = new NotificationWorker();
   notificationWorker.start();
-  const appointmentWorker = new AppointmentWorker();
-  appointmentWorker.start();
 }
 
 start();

@@ -5,7 +5,32 @@ import {
   IPushTicket,
 } from '../../../domain/notification/interfaces/notification-provider.interface';
 
+const EXPO_REQUEST_TIMEOUT_MS = 10_000;
+
 export class ExpoNotificationProvider implements INotificationProvider {
+  private async fetchWithTimeout(
+    url: string,
+    init: RequestInit,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      EXPO_REQUEST_TIMEOUT_MS,
+    );
+    try {
+      return await fetch(url, { ...init, signal: controller.signal });
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        throw new Error(
+          `Expo request to ${url} timed out after ${EXPO_REQUEST_TIMEOUT_MS}ms`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async send(payload: {
     to: string;
     title: string;
@@ -24,26 +49,29 @@ export class ExpoNotificationProvider implements INotificationProvider {
     }>,
   ): Promise<IPushTicket[]> {
     Logger.info('Expo push request', { payloads });
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await this.fetchWithTimeout(
+      'https://exp.host/--/api/v2/push/send',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
           ...(process.env.EXPO_ACCESS_TOKEN
             ? { Authorization: `Bearer ${process.env.EXPO_ACCESS_TOKEN}` }
             : {}),
+        },
+        body: JSON.stringify(
+          payloads.map((payload) => ({
+            to: payload.to,
+            title: payload.title,
+            body: payload.body,
+            sound: 'default',
+            priority: 'high',
+            channelId: 'queue-updates',
+            data: payload.data ?? {},
+          })),
+        ),
       },
-      body: JSON.stringify(
-        payloads.map((payload) => ({
-          to: payload.to,
-          title: payload.title,
-          body: payload.body,
-          sound: 'default',
-          priority: 'high',
-          channelId: 'queue-updates',
-          data: payload.data ?? {},
-        })),
-      ),
-    });
+    );
     const result = (await response.json().catch(() => ({}))) as {
       data?: Array<Omit<IPushTicket, 'token'>>;
       errors?: Array<{ message?: string }>;
@@ -75,16 +103,19 @@ export class ExpoNotificationProvider implements INotificationProvider {
 
   async getReceipts(ticketIds: string[]): Promise<IPushReceipt[]> {
     if (ticketIds.length === 0) return [];
-    const response = await fetch('https://exp.host/--/api/v2/push/getReceipts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.EXPO_ACCESS_TOKEN
-          ? { Authorization: `Bearer ${process.env.EXPO_ACCESS_TOKEN}` }
-          : {}),
+    const response = await this.fetchWithTimeout(
+      'https://exp.host/--/api/v2/push/getReceipts',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.EXPO_ACCESS_TOKEN
+            ? { Authorization: `Bearer ${process.env.EXPO_ACCESS_TOKEN}` }
+            : {}),
+        },
+        body: JSON.stringify({ ids: ticketIds }),
       },
-      body: JSON.stringify({ ids: ticketIds }),
-    });
+    );
     const result = (await response.json().catch(() => ({}))) as {
       data?: Record<string, Omit<IPushReceipt, 'id' | 'token'>>;
       errors?: Array<{ message?: string }>;

@@ -100,6 +100,20 @@ export class NotificationService implements INotificationService {
       await this.notificationRepository.getNotificationById(id);
     if (!notification) return null;
 
+    if (
+      notification.status === ENotificationStatus.SENT ||
+      notification.status === ENotificationStatus.DELIVERED
+    ) {
+      // A stalled/retried BullMQ job (e.g. the worker restarted right after
+      // Expo accepted the push, before the job could be marked completed)
+      // must not resend an already-delivered push to the patient's phone.
+      Logger.warn('Notification already sent, skipping duplicate send', {
+        notificationId: id,
+        status: notification.status,
+      });
+      return notification;
+    }
+
     await this.notificationRepository.updateNotificationById(id, {
       notificationData: {
         status: ENotificationStatus.PROCESSING,
@@ -156,36 +170,47 @@ export class NotificationService implements INotificationService {
         );
       }
 
-      const ticketIds = okTickets.map((ticket) => ticket.id).filter(Boolean);
-
-      const updated = await this.notificationRepository.updateNotificationById(
-        id,
-        {
-          notificationData: {
-            status: ENotificationStatus.SENT,
-            sentAt: new Date(),
-            provider: 'expo',
-            deviceToken: okTickets[0].token,
-            providerResponse: { tickets, ticketIds },
-            lastError: rejectedTickets.length > 0 ? JSON.stringify(rejectedTickets) : null,
-          },
-        },
-      );
-
       Logger.info('Push accepted by Expo', {
         notificationId: id,
         patientId: notification.patientId,
         tokens,
         payloads,
         tickets,
-        ticketIds,
       });
-      await this.notificationJobScheduler?.enqueueReceipt(id);
-      this.notificationSocketGateway?.broadcastNotification({
-        type: 'notification.delivered',
-        notification: updated,
-      });
-      return updated;
+
+      // The push has already left our system successfully at this point.
+      // Bookkeeping failures below (DB write, receipt scheduling, socket
+      // broadcast) must never bubble up into the outer catch: that would
+      // make BullMQ retry the whole job and send a brand-new push for a
+      // notification that was already delivered to the device.
+      try {
+        const ticketIds = okTickets.map((ticket) => ticket.id).filter(Boolean);
+        const updated = await this.notificationRepository.updateNotificationById(
+          id,
+          {
+            notificationData: {
+              status: ENotificationStatus.SENT,
+              sentAt: new Date(),
+              provider: 'expo',
+              deviceToken: okTickets[0].token,
+              providerResponse: { tickets, ticketIds },
+              lastError: rejectedTickets.length > 0 ? JSON.stringify(rejectedTickets) : null,
+            },
+          },
+        );
+        await this.notificationJobScheduler?.enqueueReceipt(id);
+        this.notificationSocketGateway?.broadcastNotification({
+          type: 'notification.delivered',
+          notification: updated,
+        });
+        return updated;
+      } catch (postSendError) {
+        Logger.error('Push was sent but post-send bookkeeping failed', {
+          notificationId: id,
+          error: (postSendError as Error).message,
+        });
+        return notification;
+      }
     } catch (error) {
       const message = (error as Error).message;
       const attempts = (notification.attempts ?? 0) + 1;
