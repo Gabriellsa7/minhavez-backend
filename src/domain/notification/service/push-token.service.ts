@@ -32,7 +32,7 @@ export class PushTokenService {
       existing.enabled = true;
       existing.updatedAt = new Date();
       await this.userRepository.updateUserById(userId, {
-        userData: { devices: user.devices },
+        devices: user.devices,
       });
       Logger.info('Expo push token refreshed', { userId, token, platform });
       return;
@@ -52,7 +52,7 @@ export class PushTokenService {
       },
     ];
     await this.userRepository.updateUserById(userId, {
-      userData: { devices },
+      devices,
     });
     Logger.info('Expo push token registered', { userId, token, platform });
   }

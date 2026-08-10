@@ -14,6 +14,7 @@ export class UserRepository implements IUserRepository {
       _id: userDoc._id.toString(),
       name: userDoc.name,
       email: userDoc.email,
+      avatar: userDoc.avatar,
       role: userDoc.role,
       active: userDoc.active,
       devices: userDoc.devices,

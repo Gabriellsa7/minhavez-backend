@@ -212,6 +212,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /users/{id}/image:
+    post:
+      tags:
+        - Users
+      summary: Upload a user profile image
+      operationId: uploadUserImage
+      description: Upload an image to Cloudinary and attach the resulting URL to the user as their avatar.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUserImage'
+      responses:
+        '200':
+          description: User profile image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /health-units:
     get:
       tags:
@@ -2477,6 +2524,10 @@ components:
         email:
           type: string
           description: The user's email address
+        avatar:
+          type: string
+          nullable: true
+          description: The profile image URL of the user
         active:
           type: boolean
           description: Whether the user is active
@@ -2808,6 +2859,20 @@ components:
           nullable: true
           description: The image URL of the health unit
     UploadHealthUnitImage:
+      type: object
+      required:
+        - imageBase64
+      properties:
+        imageBase64:
+          type: string
+          description: Base64 encoded image data, optionally as a data URI
+        fileName:
+          type: string
+          description: Original file name used for the upload
+        mimeType:
+          type: string
+          description: Mime type of the image being uploaded
+    UploadUserImage:
       type: object
       required:
         - imageBase64

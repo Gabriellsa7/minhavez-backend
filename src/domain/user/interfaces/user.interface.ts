@@ -2,6 +2,7 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
+  avatar?: string | null;
   role?: EUserRole;
   active?: boolean;
   devices?: Array<{

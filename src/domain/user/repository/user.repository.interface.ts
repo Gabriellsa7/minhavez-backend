@@ -6,9 +6,7 @@ export interface IParamsCreateUser {
   password: string;
 }
 
-export interface IParamsUpdateUser {
-  userData: Partial<IUser>;
-}
+export type IParamsUpdateUser = Partial<IUser>;
 
 export interface IUserRepository {
   createUser(userData: IParamsCreateUser): Promise<IUser>;

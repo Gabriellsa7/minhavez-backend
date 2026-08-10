@@ -7,6 +7,8 @@ export class User implements IUser {
 
   email: string;
 
+  avatar?: string | null;
+
   role?: EUserRole;
 
   active?: boolean;
@@ -17,6 +19,7 @@ export class User implements IUser {
     this._id = data._id;
     this.name = data.name;
     this.email = data.email;
+    this.avatar = data.avatar;
     this.role = data.role;
     this.active = data.active;
     this.createdAt = data.createdAt;

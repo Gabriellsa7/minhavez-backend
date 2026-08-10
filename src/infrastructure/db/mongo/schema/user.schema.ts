@@ -23,6 +23,11 @@ export const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    avatar: {
+      type: String,
+      default: null,
+    },
+
     role: {
       type: String,
       enum: EUserRole,
@@ -60,6 +65,7 @@ export interface IUserSchema {
   name: string;
   email: string;
   password: string;
+  avatar?: string | null;
   role: EUserRole;
   active: boolean;
   devices: Array<{
