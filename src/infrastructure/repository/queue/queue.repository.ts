@@ -112,6 +112,33 @@ export class QueueRepository implements IQueueRepository {
 
         {
           $lookup: {
+            from: 'healthprofessionals',
+            let: { profId: '$professionalId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: [{ $toString: '$_id' }, '$$profId'] },
+                },
+              },
+              {
+                $project: {
+                  appointmentDuration: '$schedule.appointmentDuration',
+                },
+              },
+            ],
+            as: 'professional',
+          },
+        },
+
+        {
+          $unwind: {
+            path: '$professional',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        {
+          $lookup: {
             from: 'queueitems',
             localField: '_id',
             foreignField: 'queueId',
@@ -191,6 +218,39 @@ export class QueueRepository implements IQueueRepository {
               finishedAt: '$queueItems.finishedAt',
               createdAt: '$queueItems.createdAt',
               updatedAt: '$queueItems.updatedAt',
+              estimatedWaitMinutes: {
+                $switch: {
+                  branches: [
+                    {
+                      case: {
+                        $eq: ['$queueItems.status', EQueueItemStatus.IN_SERVICE],
+                      },
+                      then: 0,
+                    },
+                    {
+                      case: {
+                        $and: [
+                          {
+                            $eq: [
+                              '$queueItems.status',
+                              EQueueItemStatus.WAITING,
+                            ],
+                          },
+                          { $gt: ['$queueItems.position', 0] },
+                          { $gt: ['$professional.appointmentDuration', 0] },
+                        ],
+                      },
+                      then: {
+                        $multiply: [
+                          { $subtract: ['$queueItems.position', 1] },
+                          '$professional.appointmentDuration',
+                        ],
+                      },
+                    },
+                  ],
+                  default: null,
+                },
+              },
             },
 
             patient: {

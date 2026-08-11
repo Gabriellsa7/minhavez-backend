@@ -5,6 +5,7 @@ import {
 } from '../repository/queue.repository.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IQueue } from './queue.interface';
 import { IQueueManagement } from './queue-management.interface';
 
@@ -12,6 +13,7 @@ export interface IParamsService {
   queueRepository: IQueueRepository;
   queueItemRepository: IQueueItemRepository;
   healthUnitRepository: IHealthUnitRepository;
+  healthProfessionalRepository: IHealthProfessionalRepository;
 }
 
 export interface IQueueService {
@@ -40,4 +42,5 @@ export interface IQueueWithDetails extends IQueue {
   healthUnitName: string;
   queueSize: number;
   patientCode?: string;
+  estimatedWaitMinutes?: number | null;
 }
