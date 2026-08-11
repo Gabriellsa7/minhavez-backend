@@ -77,3 +77,19 @@ export const authorize =
 
     next();
   };
+
+export const authorizePrincipalTypes =
+  (...principalTypes: EPrincipalType[]) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      sendError(req, res, 401, 'Unauthorized');
+      return;
+    }
+
+    if (!principalTypes.includes(req.user.principalType)) {
+      sendError(req, res, 403, 'Forbidden');
+      return;
+    }
+
+    next();
+  };

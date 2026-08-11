@@ -60,6 +60,7 @@
     "@types/ws": "^8.18.1",
     "bcrypt": "^6.0.0",
     "bullmq": "^6.0.7",
+    "cloudinary": "^2.5.1",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",

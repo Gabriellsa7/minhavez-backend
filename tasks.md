@@ -2,7 +2,7 @@
 
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 
-# Implementar agendamento de retorno pelo médico
+# Implementar agendamento de retorno pelo médico - DONE
 
 Adicionar na fila de atendimento do médico um botão **"Marcar Retorno"**, junto das ações de concluir/ausente.
 

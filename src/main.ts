@@ -16,6 +16,7 @@ import { QueueControllerFactory } from './infrastructure/config/factories/queue/
 import { QueueItemControllerFactory } from './infrastructure/config/factories/queue-item/queue-item.controller.factory';
 import { NotificationControllerFactory } from './infrastructure/config/factories/notification/notification.controller.factory';
 import { AppointmentControllerFactory } from './infrastructure/config/factories/appointment/appointment.controller.factory';
+import { ExamControllerFactory } from './infrastructure/config/factories/exam/exam.controller.factory';
 import { AuthControllerFactory } from './infrastructure/config/factories/auth/auth.controller.factory';
 import { PushTokenServiceFactory } from './infrastructure/config/factories/notification/push-token.service.factory';
 import { corsMiddleware } from './interfaces/http/middlewary/cors';
@@ -36,6 +37,7 @@ const app = new Server({
     QueueItemControllerFactory.create(),
     NotificationControllerFactory.create(),
     AppointmentControllerFactory.create(),
+    ExamControllerFactory.create(),
     AuthControllerFactory.create(),
     new PushTokenController(PushTokenServiceFactory.create()),
     new InfrastructureController(),

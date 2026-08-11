@@ -21,5 +21,6 @@ export interface IPatientRepository {
   deletePatientById(id: string): Promise<IPatient | null>;
   getPatientById(id: string): Promise<IPatient | null>;
   getPatientByUserId(userId: string): Promise<IPatient | null>;
+  getPatientByCpf(cpf: string): Promise<IPatient | null>;
   listPatients(filter: Partial<IPatient>): Promise<IPatient[]>;
 }

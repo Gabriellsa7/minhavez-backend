@@ -21,6 +21,8 @@ tags:
     description: Notification management operations
   - name: Appointments
     description: Appointment management operations
+  - name: Exams
+    description: Exam management operations
   - name: Infrastructure
     description: Infrastructure monitoring and queue operations
 
@@ -682,6 +684,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Patient'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/cpf/{cpf}:
+    get:
+      tags:
+        - Patients
+      summary: Get a patient by CPF
+      operationId: getPatientByCpf
+      description: Retrieve a patient by their CPF. Used by clinic admins to look up a patient before registering an exam.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cpf
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The CPF of the patient, with or without punctuation
+      responses:
+        '200':
+          description: Patient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Patient not found
           content:
@@ -2552,6 +2601,241 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /exams:
+    post:
+      tags:
+        - Exams
+      summary: Register a new exam
+      operationId: registerExam
+      description: Clinic admin registers a new exam PDF for a patient, looked up by CPF, and uploads it securely.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExam'
+      responses:
+        '201':
+          description: Exam registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exams/{id}:
+    get:
+      tags:
+        - Exams
+      summary: Get an exam by ID
+      operationId: getExamById
+      description: Retrieve exam details, including a freshly-generated signed URL to the PDF file. Only returned when the requester (patient, health professional or clinic admin) is authorized to access this exam.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The exam ID
+      responses:
+        '200':
+          description: Exam found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamWithFileUrl'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to access this exam
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Exam not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{id}/exams:
+    get:
+      tags:
+        - Exams
+      summary: List exams for a patient
+      operationId: getExamsByPatient
+      description: Retrieve every exam belonging to a patient. Restricted to the patient themself or a health professional authorized via appointment history.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The patient ID
+      responses:
+        '200':
+          description: A list of exams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/exams:
+    get:
+      tags:
+        - Exams
+      summary: List exams registered by a health unit
+      operationId: getExamsByHealthUnit
+      description: Retrieve every exam registered by a health unit. Restricted to the admin who owns that health unit.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The health unit ID
+      responses:
+        '200':
+          description: A list of exams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Health unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-professionals/{id}/exams:
+    get:
+      tags:
+        - Exams
+      summary: List exams a health professional is authorized to view
+      operationId: getExamsByProfessional
+      description: Retrieve exams for every patient this health professional has had at least one appointment with.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The health professional ID
+      responses:
+        '200':
+          description: A list of exams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     InfrastructureStatus:
@@ -3740,6 +4024,113 @@ components:
         isClosed:
           type: boolean
           description: Indicates whether the health unit is closed on this day
+
+    Exam:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier of the exam
+        patientId:
+          type: string
+          description: The ID of the patient this exam belongs to
+        healthUnitId:
+          type: string
+          description: The ID of the health unit that registered the exam
+        uploadedByUserId:
+          type: string
+          description: The ID of the admin user who registered the exam
+        examType:
+          type: string
+          description: The type/name of the exam
+          example: 'Hemograma completo'
+        examDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date the exam was performed
+        doctorName:
+          type: string
+          nullable: true
+          description: The name of the doctor who requested/performed the exam
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes about the exam
+        fileName:
+          type: string
+          description: The original file name of the uploaded PDF
+        mimeType:
+          type: string
+          description: The MIME type of the exam file
+          example: 'application/pdf'
+        fileSize:
+          type: integer
+          nullable: true
+          description: The file size in bytes
+        patientName:
+          type: string
+          description: The name of the patient, for display on cards
+        patientCpf:
+          type: string
+          description: The CPF of the patient, for display on cards
+        healthUnitName:
+          type: string
+          description: The name of the health unit, for display on cards
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ExamWithFileUrl:
+      allOf:
+        - $ref: '#/components/schemas/Exam'
+        - type: object
+          properties:
+            fileUrl:
+              type: string
+              description: A freshly-generated, signed, non-guessable URL to view/download the PDF. Regenerated on every request, never persisted.
+    CreateExam:
+      type: object
+      required:
+        - patientCpf
+        - healthUnitId
+        - examType
+        - fileBase64
+        - fileName
+        - mimeType
+      properties:
+        patientCpf:
+          type: string
+          description: The CPF of the patient to link this exam to, with or without punctuation
+        healthUnitId:
+          type: string
+          description: The ID of the health unit registering the exam
+        examType:
+          type: string
+          description: The type/name of the exam
+          example: 'Hemograma completo'
+        examDate:
+          type: string
+          format: date
+          description: The date the exam was performed (YYYY-MM-DD)
+        doctorName:
+          type: string
+          description: The name of the doctor who requested/performed the exam
+        notes:
+          type: string
+          description: Additional notes about the exam
+        fileBase64:
+          type: string
+          description: The PDF file contents, base64-encoded (optionally as a data URI)
+        fileName:
+          type: string
+          description: The original file name of the PDF
+        mimeType:
+          type: string
+          description: Must be application/pdf
+          example: 'application/pdf'
 
   securitySchemes:
     bearerAuth:

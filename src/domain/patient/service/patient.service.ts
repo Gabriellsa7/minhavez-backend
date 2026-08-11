@@ -33,35 +33,15 @@ export class PatientService implements IPatientService {
   }
 
   async getPatientById(_id: string): Promise<IPatient | null> {
-    try {
-      const patient = await this.patientRepository.getPatientById(_id);
-
-      if (!patient) {
-        throw new Error('Patient not found');
-      }
-
-      return patient;
-    } catch (error) {
-      throw new Error(
-        `Error retrieving patient by ID: ${(error as Error).message}`,
-      );
-    }
+    return this.patientRepository.getPatientById(_id);
   }
 
   async getPatientByUserId(userId: string): Promise<IPatient | null> {
-    try {
-      const patient = await this.patientRepository.getPatientByUserId(userId);
+    return this.patientRepository.getPatientByUserId(userId);
+  }
 
-      if (!patient) {
-        throw new Error('Patient not found');
-      }
-
-      return patient;
-    } catch (error) {
-      throw new Error(
-        `Error retrieving patient by user ID: ${(error as Error).message}`,
-      );
-    }
+  async getPatientByCpf(cpf: string): Promise<IPatient | null> {
+    return this.patientRepository.getPatientByCpf(cpf);
   }
 
   async updatePatientById(

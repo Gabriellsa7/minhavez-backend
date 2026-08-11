@@ -13,6 +13,7 @@ export interface IPatientService {
   createPatient(params: IParamsCreatePatient): Promise<IPatient>;
   getPatientById(_id: string): Promise<IPatient | null>;
   getPatientByUserId(userId: string): Promise<IPatient | null>;
+  getPatientByCpf(cpf: string): Promise<IPatient | null>;
   updatePatientById(
     _id: string,
     params: IParamsUpdatePatient,

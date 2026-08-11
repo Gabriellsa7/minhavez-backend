@@ -1,6 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { PatientService } from '../../../domain/patient/service/patient.service';
 import { IController } from './IController';
+import { authMiddleware, authorize } from '../middlewary/auth.middleware';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
 
 export class PatientController implements IController {
   router: Router;
@@ -16,6 +19,12 @@ export class PatientController implements IController {
     this.router.get('/patients', this.getPatients);
     this.router.get('/patients/:id', this.getPatientById);
     this.router.get('/patients/user/:userId', this.getPatientByUserId);
+    this.router.get(
+      '/patients/cpf/:cpf',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.getPatientByCpf,
+    );
     this.router.post('/patients', this.createPatient);
     this.router.put('/patients/:id', this.updatePatient);
     this.router.delete('/patients/:id', this.deletePatient);
@@ -38,12 +47,14 @@ export class PatientController implements IController {
     try {
       const patient = await this.patientService.getPatientById(id);
       if (!patient) {
-        res.status(404).json({ message: 'Patient not found' });
+        res.status(404).json({ message: 'Patient not found', status: 404 });
         return;
       }
       res.status(200).json(patient);
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      res
+        .status(500)
+        .json({ message: (error as Error).message, status: 500 });
     }
   };
 
@@ -55,12 +66,35 @@ export class PatientController implements IController {
     try {
       const patient = await this.patientService.getPatientByUserId(userId);
       if (!patient) {
-        res.status(404).json({ message: 'Patient not found' });
+        res.status(404).json({ message: 'Patient not found', status: 404 });
         return;
       }
       res.status(200).json(patient);
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      res
+        .status(500)
+        .json({ message: (error as Error).message, status: 500 });
+    }
+  };
+
+  getPatientByCpf = async (
+    req: Request<{ cpf: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { cpf } = req.params;
+    try {
+      const patient = await this.patientService.getPatientByCpf(
+        normalizeCpf(cpf),
+      );
+      if (!patient) {
+        res.status(404).json({ message: 'Patient not found', status: 404 });
+        return;
+      }
+      res.status(200).json(patient);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: (error as Error).message, status: 500 });
     }
   };
 

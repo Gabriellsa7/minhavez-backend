@@ -19,8 +19,8 @@ export class Server {
   private readonly timeoutMilliseconds?: number;
 
   private readonly middleWaresToStart = [
-    express.json({ limit: '15mb' }),
-    express.urlencoded({ limit: '15mb', extended: true }),
+    express.json({ limit: '20mb' }),
+    express.urlencoded({ limit: '20mb', extended: true }),
     ContextAsyncHooks.getExpressMiddlewareTracking(),
     helmet(),
   ];
