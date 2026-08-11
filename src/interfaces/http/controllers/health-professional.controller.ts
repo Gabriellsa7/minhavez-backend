@@ -43,8 +43,13 @@ export class HealthProfessionalController implements IController {
     res: Response,
   ): Promise<void> => {
     try {
+      const search =
+        typeof req.query.search === 'string' ? req.query.search : undefined;
       const healthProfessionals =
-        await this.healthProfessionalService.listHealthProfessionals({});
+        await this.healthProfessionalService.listHealthProfessionals(
+          {},
+          search,
+        );
       res.status(200).json(healthProfessionals);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

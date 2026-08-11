@@ -29,5 +29,8 @@ export interface IHealthUnitRepository {
   getHealthUnitByEmail(email: string): Promise<IHealthUnit | null>;
   getHealthUnitById(id: string): Promise<IHealthUnit | null>;
   getHealthUnitsByUserId(userId: string): Promise<IHealthUnit[]>;
-  listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]>;
+  listHealthUnits(
+    filter: Partial<IHealthUnit>,
+    search?: string,
+  ): Promise<IHealthUnit[]>;
 }

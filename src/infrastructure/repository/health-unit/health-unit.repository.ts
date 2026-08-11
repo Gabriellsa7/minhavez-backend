@@ -1,4 +1,4 @@
-import { HydratedDocument } from 'mongoose';
+import { FilterQuery, HydratedDocument } from 'mongoose';
 import { HealthUnit } from '../../../domain/health-unit/health-unit.entity';
 import {
   IHealthUnitRepository,
@@ -128,9 +128,28 @@ export class HealthUnitRepository implements IHealthUnitRepository {
     }
   }
 
-  async listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]> {
+  async listHealthUnits(
+    filter: Partial<IHealthUnit>,
+    search?: string,
+  ): Promise<IHealthUnit[]> {
     try {
-      const healthUnitsDocs = await MHealthUnit.find(filter);
+      const mongoFilter: FilterQuery<IHealthUnitSchema> = { ...filter };
+
+      if (search) {
+        const searchRegex = new RegExp(
+          search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          'i',
+        );
+        mongoFilter.$or = [
+          { name: searchRegex },
+          { description: searchRegex },
+          { 'address.city': searchRegex },
+          { 'address.neighborhood': searchRegex },
+          { 'address.street': searchRegex },
+        ];
+      }
+
+      const healthUnitsDocs = await MHealthUnit.find(mongoFilter);
       return healthUnitsDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(

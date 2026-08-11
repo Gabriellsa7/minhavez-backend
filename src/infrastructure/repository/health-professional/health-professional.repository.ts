@@ -198,6 +198,7 @@ export class HealthProfessionalRepository
 
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
+    search?: string,
   ): Promise<IHealthProfessional[]> {
     try {
       // Convert string IDs from filter to ObjectIds for Mongoose queries
@@ -211,6 +212,14 @@ export class HealthProfessionalRepository
       }
       if (filter.userId) {
         mongoFilter.userId = filter.userId;
+      }
+
+      if (search) {
+        const searchRegex = new RegExp(
+          search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          'i',
+        );
+        mongoFilter.$or = [{ name: searchRegex }, { specialty: searchRegex }];
       }
 
       const healthProfessionalDocs =

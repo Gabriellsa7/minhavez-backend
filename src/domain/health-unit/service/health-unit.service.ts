@@ -142,9 +142,12 @@ export class HealthUnitService implements IHealthUnitService {
     }
   }
 
-  async listHealthUnits(filter: Partial<IHealthUnit>): Promise<IHealthUnit[]> {
+  async listHealthUnits(
+    filter: Partial<IHealthUnit>,
+    search?: string,
+  ): Promise<IHealthUnit[]> {
     try {
-      return await this.healthUnitRepository.listHealthUnits(filter);
+      return await this.healthUnitRepository.listHealthUnits(filter, search);
     } catch (error) {
       throw new Error(
         `Error listing health units: ${(error as Error).message}`,

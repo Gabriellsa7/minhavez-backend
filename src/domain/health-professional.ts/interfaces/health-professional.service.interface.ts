@@ -27,5 +27,6 @@ export interface IHealthProfessionalService {
   ): Promise<IHealthProfessional | null>;
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
+    search?: string,
   ): Promise<IHealthProfessional[]>;
 }
