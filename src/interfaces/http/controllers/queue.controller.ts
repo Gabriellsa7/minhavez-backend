@@ -32,6 +32,7 @@ export class QueueController implements IController {
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
     this.router.patch('/queues/:id/open', this.openQueue);
+    this.router.patch('/queues/:id/close', this.closeQueue);
     this.router.get(
       '/queues/professional/:professionalId',
       this.getQueuesByProfessionalId,
@@ -207,6 +208,24 @@ export class QueueController implements IController {
 
     try {
       const queue = await this.queueService.openQueue(id);
+
+      res.status(200).json(queue);
+    } catch (error) {
+      res.status(400).json({
+        status: 400,
+        message: (error as Error).message,
+      });
+    }
+  };
+
+  closeQueue = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+      const queue = await this.queueService.closeQueue(id);
 
       res.status(200).json(queue);
     } catch (error) {

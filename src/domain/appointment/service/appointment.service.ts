@@ -52,6 +52,9 @@ export class AppointmentService implements IAppointmentService {
   async createAppointment(
     params: IParamsCreateAppointment,
   ): Promise<IAppointment> {
+    let createdQueueId: string | null = null;
+    let createdQueueItemId: string | null = null;
+
     try {
       if (params.queueItemId) {
         const existingAppointmentWithQueueItemId =
@@ -121,24 +124,18 @@ export class AppointmentService implements IAppointmentService {
           queue.shift === queueShift,
       );
 
-      if (
-        existingQueue?.status === EQueueStatus.CLOSED &&
-        existingQueue.closedAt
-      ) {
-        throw new Error(
-          'The queue for this shift has already been closed. New appointments are not allowed.',
-        );
-      }
+      let queue = existingQueue;
 
-      const queue =
-        existingQueue ??
-        (await this.queueRepository.createQueue({
+      if (!queue) {
+        queue = await this.queueRepository.createQueue({
           professionalId: params.professionalId,
           healthUnitId: params.healthUnitId,
           status: EQueueStatus.CLOSED,
           queueDate: appointmentDateTime,
           shift: queueShift,
-        }));
+        });
+        createdQueueId = queue._id;
+      }
 
       const queueItems = await this.queueItemRepository.listQueueItems({
         queueId: queue._id,
@@ -150,21 +147,22 @@ export class AppointmentService implements IAppointmentService {
           queueItem.status !== EQueueItemStatus.FINISHED,
       );
 
-      const queueItem =
-        existingQueueItem ??
-        (await this.queueItemRepository.createQueueItem({
+      let queueItem = existingQueueItem;
+
+      if (!queueItem) {
+        queueItem = await this.queueItemRepository.createQueueItem({
           queueId: queue._id,
           patientId: params.patientId,
           position: queueItems.length + 1,
           priority: EQueueItemPriority.MEDIUM,
           status: EQueueItemStatus.WAITING,
-        }));
+        });
+        createdQueueItemId = queueItem._id;
 
-      // A patient who joins straight onto one of the notification
-      // thresholds (e.g. the 10th person in an empty queue) must still be
-      // notified — otherwise their position only ever changes by later
-      // recalculations and that first threshold crossing is never observed.
-      if (!existingQueueItem) {
+        // A patient who joins straight onto one of the notification
+        // thresholds (e.g. the 10th person in an empty queue) must still be
+        // notified — otherwise their position only ever changes by later
+        // recalculations and that first threshold crossing is never observed.
         await this.queueNotificationService?.handleQueuePositionChange(
           queueItem,
         );
@@ -181,11 +179,33 @@ export class AppointmentService implements IAppointmentService {
 
       return appointment;
     } catch (error) {
+      await this.rollbackOrphanedQueueState(createdQueueItemId, createdQueueId);
+
       if (error instanceof Error) {
         throw error;
       }
       throw new Error(
         `Error creating appointment: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async rollbackOrphanedQueueState(
+    queueItemId: string | null,
+    queueId: string | null,
+  ): Promise<void> {
+    try {
+      if (queueItemId) {
+        await this.queueItemRepository.deleteQueueItemById(queueItemId);
+      }
+      if (queueId) {
+        await this.queueRepository.deleteQueueById(queueId);
+      }
+    } catch (cleanupError) {
+      // Best-effort cleanup — the original error is what matters to the caller.
+      console.error(
+        'Error rolling back orphaned queue state:',
+        cleanupError,
       );
     }
   }

@@ -12,6 +12,8 @@ export interface IQueueItem {
   finishedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  /** Only populated by queries that join the professional's schedule (e.g. queue management). */
+  estimatedWaitMinutes?: number | null;
 }
 
 export enum EQueueItemPriority {

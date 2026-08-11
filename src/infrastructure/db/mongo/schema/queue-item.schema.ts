@@ -21,7 +21,6 @@ export const queueItemSchema = new mongoose.Schema(
     code: {
       type: String,
       required: true,
-      unique: true,
     },
 
     position: {
@@ -63,6 +62,8 @@ export const queueItemSchema = new mongoose.Schema(
   },
   { _id: true, timestamps: true },
 );
+
+queueItemSchema.index({ queueId: 1, code: 1 }, { unique: true });
 
 export interface IQueueItemSchema {
   queueId: mongoose.Types.ObjectId;

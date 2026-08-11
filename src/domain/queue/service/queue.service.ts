@@ -1,4 +1,4 @@
-import { EQueueStatus, IQueue } from '../interfaces/queue.interface';
+import { EQueueShift, EQueueStatus, IQueue } from '../interfaces/queue.interface';
 import {
   IQueueService,
   IQueueWithDetails,
@@ -8,24 +8,76 @@ import {
   IParamsUpdateQueue,
   IQueueRepository,
 } from '../repository/queue.repository.interface';
+import {
+  EQueueItemStatus,
+  IQueueItem,
+} from '../../queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IQueueManagement } from '../interfaces/queue-management.interface';
 import { AppError } from '../../../shared/errors/AppError';
+
+const AFTERNOON_SHIFT_START_HOUR = 12;
+const AFTERNOON_SHIFT_START_MINUTE = 30;
+const AFTERNOON_SHIFT_START_LABEL = '12:30';
 
 export class QueueService implements IQueueService {
   private queueRepository: IQueueRepository;
   private queueItemRepository: IQueueItemRepository;
   private healthUnitRepository: IHealthUnitRepository;
+  private healthProfessionalRepository: IHealthProfessionalRepository;
 
   constructor(params: {
     queueRepository: IQueueRepository;
     queueItemRepository: IQueueItemRepository;
     healthUnitRepository: IHealthUnitRepository;
+    healthProfessionalRepository: IHealthProfessionalRepository;
   }) {
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
     this.healthUnitRepository = params.healthUnitRepository;
+    this.healthProfessionalRepository = params.healthProfessionalRepository;
+  }
+
+  private async getEstimatedWaitMinutes(
+    queue: IQueue,
+    patientItem: IQueueItem | undefined,
+  ): Promise<number | null> {
+    if (!patientItem) return null;
+
+    if (patientItem.status === EQueueItemStatus.IN_SERVICE) return 0;
+
+    if (
+      patientItem.status !== EQueueItemStatus.WAITING ||
+      patientItem.position <= 0
+    ) {
+      return null;
+    }
+
+    const professional =
+      await this.healthProfessionalRepository.getHealthProfessionalById(
+        queue.professionalId,
+      );
+    const appointmentDuration = professional?.schedule?.appointmentDuration;
+
+    if (!appointmentDuration) return null;
+
+    return (patientItem.position - 1) * appointmentDuration;
+  }
+
+  private hasShiftStarted(shift: EQueueShift, now: Date): boolean {
+    if (shift === EQueueShift.MORNING) return true;
+
+    const afternoonStart = new Date(now);
+    afternoonStart.setHours(
+      AFTERNOON_SHIFT_START_HOUR,
+      AFTERNOON_SHIFT_START_MINUTE,
+      0,
+      0,
+    );
+
+    return now.getTime() >= afternoonStart.getTime();
   }
 
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
@@ -106,13 +158,21 @@ export class QueueService implements IQueueService {
           const queueItemsInQueue =
             await this.queueItemRepository.listQueueItems({ queueId });
 
+          const patientItem = queueItems.find(
+            (queueItem) => queueItem.queueId === queueId,
+          );
+
+          const estimatedWaitMinutes = await this.getEstimatedWaitMinutes(
+            queue,
+            patientItem,
+          );
+
           return {
             ...queue,
             healthUnitName: healthUnit?.name || 'Unknown',
             queueSize: queueItemsInQueue.length,
-            patientCode: queueItems.find(
-              (queueItem) => queueItem.queueId === queueId,
-            )?.code,
+            patientCode: patientItem?.code,
+            estimatedWaitMinutes,
           };
         }),
       );
@@ -234,6 +294,12 @@ export class QueueService implements IQueueService {
 
       if (!isToday) {
         throw new Error('Only today queue can be opened');
+      }
+
+      if (!this.hasShiftStarted(queue.shift, today)) {
+        throw new Error(
+          `Queue can only be opened after ${AFTERNOON_SHIFT_START_LABEL}`,
+        );
       }
 
       const updatedQueue = await this.queueRepository.updateQueueById(queueId, {

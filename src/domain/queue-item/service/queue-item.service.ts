@@ -137,31 +137,6 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  private async closeQueueIfEmpty(queueId: string): Promise<void> {
-    try {
-      const queueItems = await this.queueItemRepository.listQueueItems({
-        queueId,
-      });
-
-      const hasPendingItems = queueItems.some(
-        (item) =>
-          item.status === EQueueItemStatus.WAITING ||
-          item.status === EQueueItemStatus.IN_SERVICE,
-      );
-
-      if (!hasPendingItems) {
-        await this.queueRepository.updateQueueById(queueId, {
-          status: EQueueStatus.CLOSED,
-          closedAt: new Date(),
-        });
-      }
-    } catch (error) {
-      throw new Error(
-        `Error finishing queue item: ${(error as Error).message}`,
-      );
-    }
-  }
-
   async finishQueueItem(queueItemId: string): Promise<IQueueItem> {
     try {
       const queueItem =
