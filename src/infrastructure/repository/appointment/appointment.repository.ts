@@ -27,6 +27,8 @@ export class AppointmentRepository implements IAppointmentRepository {
       notes: appointmentDoc.notes,
       checkInAt: appointmentDoc.checkInAt,
       finishedAt: appointmentDoc.finishedAt,
+      isReturn: appointmentDoc.isReturn ?? false,
+      returnScheduled: appointmentDoc.returnScheduled ?? false,
       createdAt: appointmentDoc.createdAt,
       updatedAt: appointmentDoc.updatedAt,
     };
@@ -47,6 +49,7 @@ export class AppointmentRepository implements IAppointmentRepository {
             : undefined,
           dateTime: new Date(appointmentData.dateTime), // Ensure dateTime is a Date object
           notes: appointmentData.notes,
+          isReturn: appointmentData.isReturn ?? false,
         };
         const appointmentDoc = await MAppointment.create(appointmentToCreate);
         return this.mapToDomain(appointmentDoc);

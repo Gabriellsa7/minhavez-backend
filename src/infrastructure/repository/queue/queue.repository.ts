@@ -166,6 +166,29 @@ export class QueueRepository implements IQueueRepository {
 
         {
           $lookup: {
+            from: 'appointments',
+            let: { queueItemId: '$queueItems._id' },
+            pipeline: [
+              {
+                $match: { $expr: { $eq: ['$queueItemId', '$$queueItemId'] } },
+              },
+              {
+                $project: { isReturn: 1, returnScheduled: 1 },
+              },
+            ],
+            as: 'appointment',
+          },
+        },
+
+        {
+          $unwind: {
+            path: '$appointment',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        {
+          $lookup: {
             from: 'patients',
             localField: 'queueItems.patientId',
             foreignField: '_id',
@@ -272,6 +295,11 @@ export class QueueRepository implements IQueueRepository {
               active: '$user.active',
               createdAt: '$user.createdAt',
             },
+
+            isReturn: { $ifNull: ['$appointment.isReturn', false] },
+            returnScheduled: {
+              $ifNull: ['$appointment.returnScheduled', false],
+            },
           },
         },
 
@@ -288,6 +316,8 @@ export class QueueRepository implements IQueueRepository {
                 queueItem: '$queueItem',
                 patient: '$patient',
                 user: '$user',
+                isReturn: '$isReturn',
+                returnScheduled: '$returnScheduled',
               },
             },
           },

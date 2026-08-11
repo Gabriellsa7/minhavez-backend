@@ -44,6 +44,14 @@ export const appointmentSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    isReturn: {
+      type: Boolean,
+      default: false,
+    },
+    returnScheduled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     _id: true,
@@ -61,6 +69,8 @@ export interface IAppointmentSchema {
   notes?: string;
   checkInAt?: Date | null;
   finishedAt?: Date | null;
+  isReturn: boolean;
+  returnScheduled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

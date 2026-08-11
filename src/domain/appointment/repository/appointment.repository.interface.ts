@@ -7,6 +7,9 @@ export interface IParamsCreateAppointment {
   queueItemId?: string | null;
   dateTime: Date;
   notes?: string;
+  isReturn?: boolean;
+  /** QueueItemId of the appointment currently being attended, when this one is created via "Marcar Retorno". */
+  originQueueItemId?: string;
 }
 
 export type IParamsUpdateAppointment = Partial<IAppointment>;

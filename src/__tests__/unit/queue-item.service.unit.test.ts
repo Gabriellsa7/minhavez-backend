@@ -7,6 +7,10 @@ import {
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
 import { IAppointmentRepository } from '../../domain/appointment/repository/appointment.repository.interface';
+import {
+  EAppointmentStatus,
+  IAppointment,
+} from '../../domain/appointment/interfaces/appointment.interface';
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
 
 function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
@@ -144,5 +148,98 @@ describe('QueueItemService position notifications', () => {
     expect(handleQueuePositionChange).toHaveBeenCalledWith(
       expect.objectContaining({ _id: 'qi-3', patientId: 'patient-3', position: 1 }),
     );
+  });
+});
+
+describe('QueueItemService finishQueueItem return-scheduling guard', () => {
+  function buildQueueItem(): IQueueItem {
+    return {
+      _id: 'qi-1',
+      queueId: 'queue-1',
+      patientId: 'patient-1',
+      code: 'A1',
+      position: 1,
+      priority: EQueueItemPriority.MEDIUM,
+      status: EQueueItemStatus.IN_SERVICE,
+      missedCalls: 0,
+    };
+  }
+
+  function buildService(appointment: IAppointment | undefined) {
+    const queueItemRepository = createFakeQueueItemRepository([
+      buildQueueItem(),
+    ]);
+    const queueRepository = {
+      updateQueueById: jest.fn(),
+    } as unknown as IQueueRepository;
+    const appointmentRepository = {
+      listAppointments: jest
+        .fn()
+        .mockResolvedValue(appointment ? [appointment] : []),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+
+    const service = new QueueItemService({
+      queueItemRepository,
+      queueRepository,
+      appointmentRepository,
+    });
+
+    return { service, appointmentRepository };
+  }
+
+  function buildAppointment(overrides: Partial<IAppointment>): IAppointment {
+    return {
+      _id: 'appointment-1',
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      queueItemId: 'qi-1',
+      dateTime: new Date(),
+      status: EAppointmentStatus.SCHEDULED,
+      isReturn: false,
+      returnScheduled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    };
+  }
+
+  it('blocks finishing a normal appointment that has no return scheduled yet', async () => {
+    const { service } = buildService(
+      buildAppointment({ isReturn: false, returnScheduled: false }),
+    );
+
+    await expect(service.finishQueueItem('qi-1')).rejects.toThrow(
+      'Marque o retorno do paciente antes de concluir o atendimento.',
+    );
+  });
+
+  it('allows finishing once a return has been scheduled for the appointment', async () => {
+    const { service } = buildService(
+      buildAppointment({ isReturn: false, returnScheduled: true }),
+    );
+
+    await expect(
+      service.finishQueueItem('qi-1'),
+    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+  });
+
+  it('allows finishing a return appointment without requiring another return', async () => {
+    const { service } = buildService(
+      buildAppointment({ isReturn: true, returnScheduled: false }),
+    );
+
+    await expect(
+      service.finishQueueItem('qi-1'),
+    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+  });
+
+  it('allows finishing a queue item with no backing appointment (walk-in)', async () => {
+    const { service } = buildService(undefined);
+
+    await expect(
+      service.finishQueueItem('qi-1'),
+    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
   });
 });

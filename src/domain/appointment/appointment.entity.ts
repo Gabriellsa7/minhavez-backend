@@ -28,6 +28,10 @@ export class Appointment implements IAppointment {
 
   checkInAt?: Date | null | undefined;
 
+  isReturn: boolean;
+
+  returnScheduled: boolean;
+
   constructor(data: IAppointment) {
     this._id = data._id;
     this.healthUnitId = data.healthUnitId;
@@ -40,5 +44,7 @@ export class Appointment implements IAppointment {
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
     this.checkInAt = data.checkInAt;
+    this.isReturn = data.isReturn;
+    this.returnScheduled = data.returnScheduled;
   }
 }

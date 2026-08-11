@@ -139,33 +139,39 @@ export class QueueItemService implements IQueueItemService {
   }
 
   async finishQueueItem(queueItemId: string): Promise<IQueueItem> {
-    try {
-      const queueItem =
-        await this.queueItemRepository.getQueueItemById(queueItemId);
+    const queueItem =
+      await this.queueItemRepository.getQueueItemById(queueItemId);
 
-      if (!queueItem) throw new Error('Queue item not found');
+    if (!queueItem) throw new Error('Queue item not found');
 
-      if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
-        throw new Error('Patient is not in service');
+    if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
+      throw new Error('Patient is not in service');
 
-      const updated = await this.queueItemRepository.updateQueueItemById(
-        queueItemId,
-        {
-          status: EQueueItemStatus.FINISHED,
+    const [appointment] = await this.appointmentRepository.listAppointments({
+      queueItemId,
+    });
 
-          finishedAt: new Date(),
-        },
+    if (appointment && !appointment.isReturn && !appointment.returnScheduled) {
+      throw new Error(
+        'Marque o retorno do paciente antes de concluir o atendimento.',
       );
-
-      await this.completeAppointment(queueItemId);
-
-      await this.advanceQueue(queueItem.queueId);
-      await this.recalculatePositions(queueItem.queueId);
-
-      return updated!;
-    } catch (error) {
-      throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }
+
+    const updated = await this.queueItemRepository.updateQueueItemById(
+      queueItemId,
+      {
+        status: EQueueItemStatus.FINISHED,
+
+        finishedAt: new Date(),
+      },
+    );
+
+    await this.completeAppointment(queueItemId);
+
+    await this.advanceQueue(queueItem.queueId);
+    await this.recalculatePositions(queueItem.queueId);
+
+    return updated!;
   }
 
   async markQueueItemAsAbsent(queueItemId: string): Promise<IQueueItem> {

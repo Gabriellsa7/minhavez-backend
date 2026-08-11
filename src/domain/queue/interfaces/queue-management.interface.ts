@@ -17,4 +17,10 @@ export interface IQueueManagementItem {
   patient: IPatient;
 
   user: IUser;
+
+  /** True when the appointment behind this queue item was created via "Marcar Retorno" by the professional. */
+  isReturn: boolean;
+
+  /** True once the professional has scheduled a return for this appointment, allowing it to be finished. */
+  returnScheduled: boolean;
 }

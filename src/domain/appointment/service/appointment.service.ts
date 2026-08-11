@@ -190,6 +190,12 @@ export class AppointmentService implements IAppointmentService {
         await this.appointmentReminderService.createReminders(appointment);
       }
 
+      if (params.originQueueItemId) {
+        await this.markOriginAppointmentReturnScheduled(
+          params.originQueueItemId,
+        );
+      }
+
       return appointment;
     } catch (error) {
       await this.rollbackOrphanedQueueState(createdQueueItemId, createdQueueId);
@@ -199,6 +205,32 @@ export class AppointmentService implements IAppointmentService {
       }
       throw new Error(
         `Error creating appointment: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  /** Best-effort: the return appointment is already created either way — a
+   * failure here should only mean the "Concluir" guard stays active, not
+   * that the whole booking fails and gets rolled back. */
+  private async markOriginAppointmentReturnScheduled(
+    originQueueItemId: string,
+  ): Promise<void> {
+    try {
+      const originAppointments = await this.appointmentRepository.listAppointments({
+        queueItemId: originQueueItemId,
+      });
+
+      const originAppointment = originAppointments[0];
+      if (!originAppointment) return;
+
+      await this.appointmentRepository.updateAppointmentById(
+        originAppointment._id,
+        { returnScheduled: true },
+      );
+    } catch (error) {
+      console.error(
+        'Error marking origin appointment as return scheduled:',
+        error,
       );
     }
   }
