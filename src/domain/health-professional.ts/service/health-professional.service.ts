@@ -134,10 +134,12 @@ export class HealthProfessionalService implements IHealthProfessionalService {
 
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
+    search?: string,
   ): Promise<IHealthProfessional[]> {
     try {
       return await this.healthProfessionalRepository.listHealthProfessionals(
         filter,
+        search,
       );
     } catch (error) {
       throw new Error(

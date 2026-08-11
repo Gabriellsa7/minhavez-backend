@@ -25,7 +25,12 @@ export class HealthUnitController implements IController {
 
   getHealthUnits = async (req: Request, res: Response): Promise<void> => {
     try {
-      const healthUnits = await this.healthUnitService.listHealthUnits({});
+      const search =
+        typeof req.query.search === 'string' ? req.query.search : undefined;
+      const healthUnits = await this.healthUnitService.listHealthUnits(
+        {},
+        search,
+      );
       res.status(200).json(healthUnits);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

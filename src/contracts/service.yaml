@@ -266,6 +266,13 @@ paths:
       summary: Get all health units
       operationId: getHealthUnits
       description: Retrieve a list of all health units.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Free-text search term to filter health units by name, description or address
       responses:
         '200':
           description: A list of health units
@@ -694,6 +701,13 @@ paths:
       summary: Get all health professionals
       operationId: getHealthProfessionals
       description: Retrieve a list of all health professionals.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Free-text search term to filter health professionals by name or specialty
       responses:
         '200':
           description: A list of health professionals
