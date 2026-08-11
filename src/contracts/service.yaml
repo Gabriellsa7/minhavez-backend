@@ -3691,6 +3691,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QueueManagementItem'
+        nextQueueItemId:
+          type: string
+          nullable: true
+          description: >-
+            ID of the item that should be called next, alternating between
+            the priority and normal lines.
 
     QueueManagementItem:
       type: object

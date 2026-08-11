@@ -182,6 +182,34 @@ export class QueueItemRepository implements IQueueItemRepository {
     return doc ? this.mapToDomain(doc) : null;
   }
 
+  async getLastCalledQueueItem(queueId: string): Promise<IQueueItem | null> {
+    const doc = await MQueueItem.findOne({
+      queueId,
+      calledAt: { $ne: null },
+    }).sort({
+      calledAt: -1,
+    });
+
+    return doc ? this.mapToDomain(doc) : null;
+  }
+
+  async getNextWaitingQueueItemByPriorityGroup(
+    queueId: string,
+    isPriority: boolean,
+  ): Promise<IQueueItem | null> {
+    const doc = await MQueueItem.findOne({
+      queueId,
+      status: EQueueItemStatus.WAITING,
+      priority: isPriority
+        ? EQueueItemPriority.HIGH
+        : { $ne: EQueueItemPriority.HIGH },
+    }).sort({
+      position: 1,
+    });
+
+    return doc ? this.mapToDomain(doc) : null;
+  }
+
   async getLastQueuePosition(queueId: string): Promise<number> {
     const last = await MQueueItem.findOne({
       queueId,

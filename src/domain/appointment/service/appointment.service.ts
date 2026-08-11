@@ -23,6 +23,8 @@ import { IHealthProfessionalRepository } from '../../health-professional.ts/repo
 import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
+import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
+import { EPatientPriority } from '../../patient/interfaces/patient.interface';
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
@@ -32,12 +34,14 @@ export class AppointmentService implements IAppointmentService {
   private appointmentReminderService?: AppointmentReminderService;
   private queueNotificationService?: QueueNotificationService;
   private notificationJobScheduler?: INotificationJobScheduler;
+  private patientRepository?: IPatientRepository;
 
   constructor(
     params: IParamsAppointmentService & {
       appointmentReminderService?: AppointmentReminderService;
       queueNotificationService?: QueueNotificationService;
       notificationJobScheduler?: INotificationJobScheduler;
+      patientRepository?: IPatientRepository;
     },
   ) {
     this.appointmentRepository = params.appointmentRepository;
@@ -47,6 +51,7 @@ export class AppointmentService implements IAppointmentService {
     this.appointmentReminderService = params.appointmentReminderService;
     this.queueNotificationService = params.queueNotificationService;
     this.notificationJobScheduler = params.notificationJobScheduler;
+    this.patientRepository = params.patientRepository;
   }
 
   async createAppointment(
@@ -150,11 +155,19 @@ export class AppointmentService implements IAppointmentService {
       let queueItem = existingQueueItem;
 
       if (!queueItem) {
+        const patient = await this.patientRepository?.getPatientById(
+          params.patientId,
+        );
+        const priority =
+          patient && patient.priority !== EPatientPriority.NORMAL
+            ? EQueueItemPriority.HIGH
+            : EQueueItemPriority.MEDIUM;
+
         queueItem = await this.queueItemRepository.createQueueItem({
           queueId: queue._id,
           patientId: params.patientId,
           position: queueItems.length + 1,
-          priority: EQueueItemPriority.MEDIUM,
+          priority,
           status: EQueueItemStatus.WAITING,
         });
         createdQueueItemId = queueItem._id;

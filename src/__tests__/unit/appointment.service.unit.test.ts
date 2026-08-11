@@ -19,6 +19,8 @@ import {
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
 import { IHealthProfessionalRepository } from '../../domain/health-professional.ts/repository/health-professional.repository.interface';
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
+import { IPatientRepository } from '../../domain/patient/repository/patient.repository.interface';
+import { EPatientPriority } from '../../domain/patient/interfaces/patient.interface';
 
 describe('AppointmentService', () => {
   it('should allow creating an appointment when the only matching booking is completed', async () => {
@@ -121,6 +123,144 @@ describe('AppointmentService', () => {
       ...params,
       queueItemId: 'queue-item-1',
     });
+  });
+
+  it('creates the queue item with HIGH priority for a non-NORMAL patient, so it joins the AP line', async () => {
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-id',
+        patientId: 'patient-3',
+        status: EAppointmentStatus.SCHEDULED,
+      }),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date(),
+      }),
+    } as unknown as IQueueRepository;
+
+    const createQueueItemMock = jest.fn().mockResolvedValue({
+      _id: 'queue-item-3',
+      queueId: 'queue-1',
+      patientId: 'patient-3',
+      position: 1,
+      priority: EQueueItemPriority.HIGH,
+      status: EQueueItemStatus.WAITING,
+    });
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn().mockResolvedValue([]),
+      createQueueItem: createQueueItemMock,
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const patientRepository = {
+      getPatientById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'patient-3', priority: EPatientPriority.ELDERLY }),
+    } as unknown as IPatientRepository;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      patientRepository,
+    });
+
+    await service.createAppointment({
+      patientId: 'patient-3',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date(),
+    });
+
+    expect(createQueueItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ priority: EQueueItemPriority.HIGH }),
+    );
+  });
+
+  it('creates the queue item with MEDIUM priority for a NORMAL patient, so it joins the AN line', async () => {
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-id',
+        patientId: 'patient-4',
+        status: EAppointmentStatus.SCHEDULED,
+      }),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date(),
+      }),
+    } as unknown as IQueueRepository;
+
+    const createQueueItemMock = jest.fn().mockResolvedValue({
+      _id: 'queue-item-4',
+      queueId: 'queue-1',
+      patientId: 'patient-4',
+      position: 1,
+      priority: EQueueItemPriority.MEDIUM,
+      status: EQueueItemStatus.WAITING,
+    });
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn().mockResolvedValue([]),
+      createQueueItem: createQueueItemMock,
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const patientRepository = {
+      getPatientById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'patient-4', priority: EPatientPriority.NORMAL }),
+    } as unknown as IPatientRepository;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      patientRepository,
+    });
+
+    await service.createAppointment({
+      patientId: 'patient-4',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date(),
+    });
+
+    expect(createQueueItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ priority: EQueueItemPriority.MEDIUM }),
+    );
   });
 
   it('notifies the patient when a brand-new queue item lands exactly on a position threshold', async () => {

@@ -7,6 +7,8 @@ export interface IQueueManagement {
   queue: IQueue;
   currentItem: IQueueManagementItem | null;
   items: IQueueManagementItem[];
+  /** The item that should be called next, honoring the priority/normal round-robin. */
+  nextQueueItemId: string | null;
 }
 
 export interface IQueueManagementItem {

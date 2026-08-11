@@ -14,6 +14,7 @@ import { IAppointmentRepository } from '../../appointment/repository/appointment
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
+import { pickNextWaitingQueueItem } from '../utils/pick-next-queue-item';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
@@ -224,8 +225,10 @@ export class QueueItemService implements IQueueItemService {
 
   private async advanceQueue(queueId: string): Promise<void> {
     try {
-      const next =
-        await this.queueItemRepository.getNextWaitingQueueItem(queueId);
+      const next = await pickNextWaitingQueueItem(
+        queueId,
+        this.queueItemRepository,
+      );
 
       if (next) {
         await this.queueItemRepository.updateQueueItemById(next._id, {

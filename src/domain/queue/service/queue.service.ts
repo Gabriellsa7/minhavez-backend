@@ -17,6 +17,7 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IQueueManagement } from '../interfaces/queue-management.interface';
 import { AppError } from '../../../shared/errors/AppError';
+import { pickNextWaitingQueueItem } from '../../queue-item/utils/pick-next-queue-item';
 
 const AFTERNOON_SHIFT_START_HOUR = 12;
 const AFTERNOON_SHIFT_START_MINUTE = 30;
@@ -251,7 +252,12 @@ export class QueueService implements IQueueService {
         throw new AppError(404, 'Queue not found');
       }
 
-      return queueManagement;
+      const nextItem = await pickNextWaitingQueueItem(
+        queueManagement.queue._id,
+        this.queueItemRepository,
+      );
+
+      return { ...queueManagement, nextQueueItemId: nextItem?._id ?? null };
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

@@ -29,6 +29,11 @@ export interface IQueueItemRepository {
     professionalId: string,
   ): Promise<IQueueItem[] | null>;
   getNextWaitingQueueItem(queueId: string): Promise<IQueueItem | null>;
+  getLastCalledQueueItem(queueId: string): Promise<IQueueItem | null>;
+  getNextWaitingQueueItemByPriorityGroup(
+    queueId: string,
+    isPriority: boolean,
+  ): Promise<IQueueItem | null>;
   getLastQueuePosition(queueId: string): Promise<number>;
   listQueueItems(filter: Partial<IQueueItem>): Promise<IQueueItem[]>;
 }

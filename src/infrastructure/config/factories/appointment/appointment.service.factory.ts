@@ -6,6 +6,7 @@ import { AppointmentRepository } from '../../../repository/appointment/appointme
 import { QueueRepository } from '../../../repository/queue/queue.repository';
 import { QueueItemRepository } from '../../../repository/queue-item/queue-item.repository';
 import { HealthProfessionalRepository } from '../../../repository/health-professional/health-professional.repository';
+import { PatientRepository } from '../../../repository/patient/patient.repository';
 import { NotificationRepository } from '../../../repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
 import { NotificationSocketGateway } from '../../../socket/notification.socket';
@@ -16,6 +17,7 @@ export class AppointmentServiceFactory {
     const queueRepo = new QueueRepository();
     const queueItemRepo = new QueueItemRepository();
     const professionalRepo = new HealthProfessionalRepository();
+    const patientRepo = new PatientRepository();
     const notificationRepository = new NotificationRepository();
     const notificationJobScheduler = new NotificationJobScheduler();
     const notificationService = new NotificationService({
@@ -36,6 +38,7 @@ export class AppointmentServiceFactory {
       queueRepository: queueRepo,
       queueItemRepository: queueItemRepo,
       professionalRepository: professionalRepo,
+      patientRepository: patientRepo,
       appointmentReminderService,
       queueNotificationService,
       notificationJobScheduler,

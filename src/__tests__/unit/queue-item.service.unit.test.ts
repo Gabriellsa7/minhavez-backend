@@ -37,6 +37,31 @@ function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
         .sort((left, right) => left.position - right.position);
       return waiting[0] ? { ...waiting[0] } : null;
     }),
+    getLastCalledQueueItem: jest.fn(async (queueId: string) => {
+      const called = items
+        .filter((item) => item.queueId === queueId && item.calledAt)
+        .sort(
+          (left, right) =>
+            (right.calledAt as Date).getTime() -
+            (left.calledAt as Date).getTime(),
+        );
+      return called[0] ? { ...called[0] } : null;
+    }),
+    getNextWaitingQueueItemByPriorityGroup: jest.fn(
+      async (queueId: string, isPriority: boolean) => {
+        const waiting = items
+          .filter(
+            (item) =>
+              item.queueId === queueId &&
+              item.status === EQueueItemStatus.WAITING &&
+              (isPriority
+                ? item.priority === EQueueItemPriority.HIGH
+                : item.priority !== EQueueItemPriority.HIGH),
+          )
+          .sort((left, right) => left.position - right.position);
+        return waiting[0] ? { ...waiting[0] } : null;
+      },
+    ),
     getLastQueuePosition: jest.fn(async () => items.length),
     createQueueItem: jest.fn(),
     deleteQueueItemById: jest.fn(),
