@@ -47,3 +47,21 @@ export interface IAuthPayload {
 export interface IRefreshTokenRequest {
   refreshToken: string;
 }
+
+export interface IForgotPasswordRequest {
+  email: string;
+}
+
+export interface IVerifyResetCodeRequest {
+  email: string;
+  code: string;
+}
+
+export interface IVerifyResetCodeResponse {
+  resetToken: string;
+}
+
+export interface IResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+}

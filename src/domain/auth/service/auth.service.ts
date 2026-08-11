@@ -1,27 +1,47 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import {
   IAuthTokenResponse,
   IAuthPayload,
   ILoginRequest,
   IRefreshTokenRequest,
+  IForgotPasswordRequest,
+  IVerifyResetCodeRequest,
+  IVerifyResetCodeResponse,
+  IResetPasswordRequest,
   EPrincipalType,
 } from '../interfaces/auth.interface';
 import { IAuthService } from '../interfaces/auth.service.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IPasswordResetRepository } from '../repository/password-reset.repository.interface';
+import { IEmailProvider } from '../interfaces/email-provider.interface';
 import { EUserRole } from '../../user/interfaces/user.interface';
+import { AppError } from '../../../shared/errors/AppError';
+import { buildPasswordResetEmail } from '../../../shared/utils/passwordResetEmailTemplate';
+
+const OTP_TTL_SECONDS = 10 * 60;
+const RESET_TOKEN_TTL_SECONDS = 10 * 60;
+const COOLDOWN_TTL_SECONDS = 60;
+const MAX_VERIFY_ATTEMPTS = 5;
 
 export class AuthService implements IAuthService {
   private userRepository: IUserRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private passwordResetRepository: IPasswordResetRepository;
+  private emailProvider: IEmailProvider;
 
   constructor(
     userRepository: IUserRepository,
     healthProfessionalRepository: IHealthProfessionalRepository,
+    passwordResetRepository: IPasswordResetRepository,
+    emailProvider: IEmailProvider,
   ) {
     this.userRepository = userRepository;
     this.healthProfessionalRepository = healthProfessionalRepository;
+    this.passwordResetRepository = passwordResetRepository;
+    this.emailProvider = emailProvider;
   }
 
   private generateTokens(payload: IAuthPayload) {
@@ -235,5 +255,92 @@ export class AuthService implements IAuthService {
     } catch {
       return false;
     }
+  }
+
+  async requestPasswordReset(data: IForgotPasswordRequest): Promise<void> {
+    const { email } = data;
+
+    const user = await this.userRepository.findUserByEmail(email);
+    if (!user) {
+      return;
+    }
+
+    if (await this.passwordResetRepository.isInCooldown(email)) {
+      return;
+    }
+
+    const code = crypto.randomInt(100000, 1000000).toString();
+
+    await this.passwordResetRepository.saveOtp(email, code, OTP_TTL_SECONDS);
+    await this.passwordResetRepository.resetAttempts(email);
+    await this.passwordResetRepository.setCooldown(
+      email,
+      COOLDOWN_TTL_SECONDS,
+    );
+
+    try {
+      const { subject, html, text } = buildPasswordResetEmail(code);
+      await this.emailProvider.sendMail({ to: email, subject, html, text });
+    } catch {
+      throw new AppError(
+        500,
+        'Não foi possível enviar o e-mail. Tente novamente mais tarde.',
+      );
+    }
+  }
+
+  async verifyResetCode(
+    data: IVerifyResetCodeRequest,
+  ): Promise<IVerifyResetCodeResponse> {
+    const { email, code } = data;
+
+    const attempts = await this.passwordResetRepository.incrementAttempts(
+      email,
+      OTP_TTL_SECONDS,
+    );
+
+    if (attempts > MAX_VERIFY_ATTEMPTS) {
+      await this.passwordResetRepository.deleteOtp(email);
+      throw new AppError(429, 'Muitas tentativas. Solicite um novo código.');
+    }
+
+    const storedCode = await this.passwordResetRepository.getOtp(email);
+
+    if (!storedCode || storedCode !== code) {
+      throw new AppError(400, 'Código inválido ou expirado.');
+    }
+
+    await this.passwordResetRepository.deleteOtp(email);
+    await this.passwordResetRepository.resetAttempts(email);
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await this.passwordResetRepository.saveResetToken(
+      resetToken,
+      email,
+      RESET_TOKEN_TTL_SECONDS,
+    );
+
+    return { resetToken };
+  }
+
+  async resetPassword(data: IResetPasswordRequest): Promise<void> {
+    const { resetToken, newPassword } = data;
+
+    const email =
+      await this.passwordResetRepository.getEmailByResetToken(resetToken);
+
+    if (!email) {
+      throw new AppError(400, 'Token inválido ou expirado.');
+    }
+
+    const user = await this.userRepository.findUserByEmail(email);
+
+    if (!user) {
+      throw new AppError(400, 'Usuário não encontrado.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.updatePassword(user._id, hashedPassword);
+    await this.passwordResetRepository.deleteResetToken(resetToken);
   }
 }

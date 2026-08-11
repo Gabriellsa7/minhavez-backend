@@ -2180,6 +2180,104 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /auth/forgot-password:
+    post:
+      tags:
+        - Users
+      summary: Request a password reset code
+      operationId: forgotPassword
+      description: Sends a 6-digit verification code to the given email if an account exists. Always returns a generic success response to avoid revealing whether the email is registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/verify-reset-code:
+    post:
+      tags:
+        - Users
+      summary: Verify a password reset code
+      operationId: verifyResetCode
+      description: Validates the code sent to the user's email and returns a short-lived reset token to be used in /auth/reset-password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyResetCodeRequest'
+      responses:
+        '200':
+          description: Code verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResetCodeResponse'
+        '400':
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Users
+      summary: Reset the password using a verified reset token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+        '400':
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /users/me:
     get:
       tags:
@@ -3034,6 +3132,62 @@ components:
         expiresIn:
           type: string
           description: Expiration time of the access token (e.g., "1h")
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          description: Email of the account requesting a password reset
+
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Generic confirmation message
+
+    VerifyResetCodeRequest:
+      type: object
+      required:
+        - email
+        - code
+      properties:
+        email:
+          type: string
+          description: Email the code was sent to
+        code:
+          type: string
+          description: 6-digit verification code received by email
+
+    VerifyResetCodeResponse:
+      type: object
+      properties:
+        resetToken:
+          type: string
+          description: Short-lived token authorizing the password reset
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - resetToken
+        - newPassword
+      properties:
+        resetToken:
+          type: string
+          description: Token obtained from /auth/verify-reset-code
+        newPassword:
+          type: string
+          description: New password to set
+
+    ResetPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message
 
     HealthUnit:
       type: object

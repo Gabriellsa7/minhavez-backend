@@ -20,4 +20,5 @@ export interface IUserRepository {
   findUserById(id: string): Promise<IUser | null>;
   listUsers(filter: Partial<IUser>): Promise<IUser[]>;
   disableDeviceToken(userId: string, token: string): Promise<void>;
+  updatePassword(id: string, hashedPassword: string): Promise<void>;
 }

@@ -115,6 +115,16 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  async updatePassword(id: string, hashedPassword: string): Promise<void> {
+    try {
+      await MUser.findByIdAndUpdate(id, { password: hashedPassword });
+    } catch (error) {
+      throw new Error(
+        `Error updating user password: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async disableDeviceToken(userId: string, token: string): Promise<void> {
     try {
       await MUser.updateOne(
