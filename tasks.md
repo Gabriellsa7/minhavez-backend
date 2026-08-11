@@ -13,7 +13,7 @@
 - Add a **Loading Skeleton** to the app to display while `isLoading` is `true` using the `react-native-skeleton-placeholder` dependency — **minha-vez-app** . DONE
 - Refactor the app, especially the **React Query** request handling — **minha-vez-app** .
 - Solve webSockt and notification error. - DONE
-- melhorar sistema de prioridade pra poder mesclar em uma fila norma, prioridade, normal,prioridade.
+- melhorar sistema de fila pra poder mesclar em uma fila entre pessoa normal, prioritaria, normal,prioritaria e etc. DONE
 - implementar sistema de exames colocando pra o admin fazer o upload do exame com base no cpf user mostrar o examo tanto pro usuario quanto para o medico.
 - implementar sistema pra que o medico possa marcar o retorno do paciente antes de encerrar o atendimento, adicionar uma flag pra caso seja paciente de retorno esse botão do retorno não irá mais aparecer pra aquele paciente.
 
