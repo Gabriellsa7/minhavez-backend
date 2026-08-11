@@ -1,8 +1,17 @@
 ## **Tasks**
 
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
-- Define a util to add an icon based on the health unit service type DONE
+- implementar sistema de exames colocando pra o admin fazer o upload do exame com base no cpf user mostrar o examo tanto pro usuario quanto para o medico.
+- implementar sistema pra que o medico possa marcar o retorno do paciente antes de encerrar o atendimento, adicionar uma flag pra caso seja paciente de retorno esse botão do retorno não irá mais aparecer pra aquele paciente.
+
+# Implementação futura:
+
+- Adiconar sistema de avaliação de medico e clina e mostrar um carzinho com a quantidade de estrilinhas que ele tem de 1 a 5.
+
+# Done:
+
 - Add queue code partner, ex: AP001 -> Atendimento prioritario, AN001 -> Atendimento normal, maybe the numbers can be reseted in the end of the day and used again in the oder day DONE
+- Define a util to add an icon based on the health unit service type DONE
 - Think how can I get the waiting time in back and front DONE
 - Add logic to show user password when he is writing using an eye icon to show when user click DONE
 - Add logic in backend and frontend to allow the user make a image upload for you profile - DONE
@@ -14,9 +23,3 @@
 - Refactor the app, especially the **React Query** request handling — **minha-vez-app** .
 - Solve webSockt and notification error. - DONE
 - melhorar sistema de fila pra poder mesclar em uma fila entre pessoa normal, prioritaria, normal,prioritaria e etc. DONE
-- implementar sistema de exames colocando pra o admin fazer o upload do exame com base no cpf user mostrar o examo tanto pro usuario quanto para o medico.
-- implementar sistema pra que o medico possa marcar o retorno do paciente antes de encerrar o atendimento, adicionar uma flag pra caso seja paciente de retorno esse botão do retorno não irá mais aparecer pra aquele paciente.
-
-# Implementação futura:
-
-- Adiconar sistema de avaliação de medico e clina e mostrar um carzinho com a quantidade de estrilinhas que ele tem de 1 a 5.
