@@ -1,6 +1,6 @@
-import crypto from 'crypto';
 import { HydratedDocument } from 'mongoose';
 import {
+  EQueueItemPriority,
   EQueueItemStatus,
   IQueueItem,
 } from '../../../domain/queue-item/interfaces/queue-item.interface';
@@ -33,8 +33,21 @@ export class QueueItemRepository implements IQueueItemRepository {
     };
   }
 
-  private generateQueueItemCode(): string {
-    return crypto.randomBytes(3).toString('hex').toUpperCase();
+  private getQueueItemCodePrefix(priority: EQueueItemPriority): string {
+    return priority === EQueueItemPriority.HIGH ? 'AP' : 'AN';
+  }
+
+  private async generateQueueItemCode(
+    queueId: string,
+    priority: EQueueItemPriority,
+  ): Promise<string> {
+    const prefix = this.getQueueItemCodePrefix(priority);
+    const count = await MQueueItem.countDocuments({
+      queueId,
+      code: { $regex: `^${prefix}\\d{3}$` },
+    });
+
+    return `${prefix}${String(count + 1).padStart(3, '0')}`;
   }
 
   async createQueueItem(
@@ -45,9 +58,16 @@ export class QueueItemRepository implements IQueueItemRepository {
 
     while (attempt < maxAttempts) {
       try {
+        const code =
+          queueItemData.code ??
+          (await this.generateQueueItemCode(
+            queueItemData.queueId,
+            queueItemData.priority,
+          ));
+
         const queueItemDoc = await MQueueItem.create({
           ...queueItemData,
-          code: queueItemData.code ?? this.generateQueueItemCode(),
+          code,
         });
 
         return this.mapToDomain(queueItemDoc);
