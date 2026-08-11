@@ -1184,6 +1184,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /queues/{id}/close:
+    patch:
+      tags:
+        - Queues
+      summary: Close queue by ID
+      operationId: closeQueue
+      description: Close an open queue.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the queue
+      responses:
+        '200':
+          description: Queue closed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+
+        '400':
+          description: Invalid queue state or queue cannot be closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '404':
+          description: Queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /queues/patient/{id}:
     get:
       tags:
@@ -3162,8 +3205,8 @@ components:
           description: The status of the queue entry
         queueDate:
           type: string
-          format: date
-          description: The date of the queue entry
+          format: date-time
+          description: The date and time of the queue entry
         openedAt:
           type: string
           format: date-time
@@ -3195,8 +3238,8 @@ components:
           description: The health unit identifier associated with the queue entry
         queueDate:
           type: string
-          format: date
-          description: The date of the queue entry
+          format: date-time
+          description: The date and time of the queue entry
         shift:
           type: string
           enum: [MORNING, AFTERNOON]
@@ -3227,7 +3270,11 @@ components:
           description: The patient identifier associated with the queue item
         code:
           type: string
-          description: The unique code assigned to the patient in this queue
+          description: >-
+            The ticket code assigned to the patient in this queue, e.g. AP001
+            for priority (HIGH) or AN001 for normal priority. Sequential per
+            queue and priority group, so it naturally resets each day since a
+            new queue is created daily.
         position:
           type: integer
           description: The position of the queue item in the queue
@@ -3264,6 +3311,15 @@ components:
           type: string
           format: date-time
           description: The date and time the queue item was last updated
+        estimatedWaitMinutes:
+          type: integer
+          nullable: true
+          description: >-
+            Estimated minutes until this patient is called, based on their
+            position in the queue and the professional's average appointment
+            duration. Only populated when returned from the queue management
+            endpoint. 0 if currently in service, null if it cannot be
+            estimated.
     CreateQueueItem:
       type: object
       required:
@@ -3574,11 +3630,23 @@ components:
           description: The ID of the health unit
         patientCode:
           type: string
-          description: The unique code assigned to the patient in this queue
+          description: >-
+            The ticket code assigned to the patient in this queue, e.g. AP001
+            for priority (HIGH) or AN001 for normal priority. Sequential per
+            queue and priority group, so it naturally resets each day since a
+            new queue is created daily.
         status:
           type: string
           enum: [OPEN, IN_PROGRESS, CLOSED]
           description: The status of the queue
+        shift:
+          type: string
+          enum: [MORNING, AFTERNOON]
+          description: The shift of the queue
+        queueDate:
+          type: string
+          format: date-time
+          description: The date and time of the queue entry
         openedAt:
           type: string
           format: date-time
@@ -3603,6 +3671,14 @@ components:
         queueSize:
           type: integer
           description: The number of items in the queue
+        estimatedWaitMinutes:
+          type: integer
+          nullable: true
+          description: >-
+            Estimated minutes until the patient is called, based on their
+            position in the queue and the professional's average appointment
+            duration. 0 if the patient is currently being served, null if it
+            cannot be estimated.
 
     QueueManagement:
       type: object
