@@ -3,10 +3,6 @@
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 
-# Implementação futura:
-
-- Implementar sistema de marcação de exame do paciente no app, ja que atualmente so é permitido marcar consulta e visualizar filas de consulta e seus resultados de exames que fez. Ainda não ha clinica que possa fazer exames então essa funcionalidade vai permitir cadastrar clinicas que façam exames com todas as infos que é necessaria pra ser uma clinica de exames busque quais as melhores infos e implemente essa task.
-
 # Done:
 
 - Add queue code partner, ex: AP001 -> Atendimento prioritario, AN001 -> Atendimento normal, maybe the numbers can be reseted in the end of the day and used again in the oder day. DONE
