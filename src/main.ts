@@ -18,6 +18,9 @@ import { NotificationControllerFactory } from './infrastructure/config/factories
 import { AppointmentControllerFactory } from './infrastructure/config/factories/appointment/appointment.controller.factory';
 import { RatingControllerFactory } from './infrastructure/config/factories/rating/rating.controller.factory';
 import { ExamControllerFactory } from './infrastructure/config/factories/exam/exam.controller.factory';
+import { ExamOfferingControllerFactory } from './infrastructure/config/factories/exam-offering/exam-offering.controller.factory';
+import { ExamAvailabilityControllerFactory } from './infrastructure/config/factories/exam-availability/exam-availability.controller.factory';
+import { ExamBookingControllerFactory } from './infrastructure/config/factories/exam-booking/exam-booking.controller.factory';
 import { AuthControllerFactory } from './infrastructure/config/factories/auth/auth.controller.factory';
 import { PushTokenServiceFactory } from './infrastructure/config/factories/notification/push-token.service.factory';
 import { corsMiddleware } from './interfaces/http/middlewary/cors';
@@ -40,6 +43,9 @@ const app = new Server({
     AppointmentControllerFactory.create(),
     RatingControllerFactory.create(),
     ExamControllerFactory.create(),
+    ExamOfferingControllerFactory.create(),
+    ExamAvailabilityControllerFactory.create(),
+    ExamBookingControllerFactory.create(),
     AuthControllerFactory.create(),
     new PushTokenController(PushTokenServiceFactory.create()),
     new InfrastructureController(),

@@ -3137,6 +3137,901 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /health-units/{id}/exam-offerings:
+    post:
+      tags:
+        - ExamScheduling
+      summary: Create an exam offering for a clinic
+      operationId: createExamOffering
+      description: Clinic admin registers a new exam this clinic performs.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The health unit ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExamOffering'
+      responses:
+        '201':
+          description: Exam offering created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamOffering'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Health unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - ExamScheduling
+      summary: List exam offerings for a clinic
+      operationId: listExamOfferings
+      description: Lists the exams a clinic performs. Patients only see active offerings; the owning admin may pass includeInactive=true to see all.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The health unit ID
+        - name: includeInactive
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A list of exam offerings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamOffering'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-offerings/{id}:
+    get:
+      tags:
+        - ExamScheduling
+      summary: Get an exam offering by ID
+      operationId: getExamOfferingById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exam offering found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamOffering'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Exam offering not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - ExamScheduling
+      summary: Update an exam offering
+      operationId: updateExamOffering
+      description: Update catalog fields or toggle isActive. There is no hard delete — deactivate instead.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExamOffering'
+      responses:
+        '200':
+          description: Exam offering updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamOffering'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Exam offering not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/exam-availability-rules:
+    put:
+      tags:
+        - ExamScheduling
+      summary: Replace the weekly exam availability rules for a clinic
+      operationId: upsertExamAvailabilityRules
+      description: Full replace of the clinic's weekly exam-booking hours/capacity, mirroring how openingHours is submitted for HealthUnit.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertExamAvailabilityRules'
+      responses:
+        '200':
+          description: Rules replaced
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamAvailabilityRule'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - ExamScheduling
+      summary: Get the weekly exam availability rules for a clinic
+      operationId: listExamAvailabilityRules
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamAvailabilityRule'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/exam-availability-blackouts:
+    post:
+      tags:
+        - ExamScheduling
+      summary: Add a blackout date for a clinic
+      operationId: addExamAvailabilityBlackout
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExamAvailabilityBlackout'
+      responses:
+        '201':
+          description: Blackout created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamAvailabilityBlackout'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Date already blacked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - ExamScheduling
+      summary: List blackout dates for a clinic
+      operationId: listExamAvailabilityBlackouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of blackout dates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamAvailabilityBlackout'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-availability-blackouts/{id}:
+    delete:
+      tags:
+        - ExamScheduling
+      summary: Remove a blackout date
+      operationId: removeExamAvailabilityBlackout
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Blackout removed
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Blackout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/exam-slots:
+    get:
+      tags:
+        - ExamScheduling
+      summary: Get real available exam-booking slots for a clinic on a given date
+      operationId: getExamSlots
+      description: Computes bookable times for the date from the clinic's weekly rules, minus blackout dates and already-full slots.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Available slots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamSlotsResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings:
+    post:
+      tags:
+        - ExamScheduling
+      summary: Book an exam slot
+      operationId: createExamBooking
+      description: Atomically reserves a seat in the requested slot and creates the booking. Returns 409 when the slot is already at capacity.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExamBooking'
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamBooking'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Slot is fully booked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings/{id}:
+    get:
+      tags:
+        - ExamScheduling
+      summary: Get an exam booking by ID
+      operationId: getExamBookingById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Booking found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamBooking'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{id}/exam-bookings:
+    get:
+      tags:
+        - ExamScheduling
+      summary: List an patient's exam bookings
+      operationId: listExamBookingsByPatient
+      description: "Meus exames agendados\" — restricted to the patient themself."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamBooking'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/exam-bookings:
+    get:
+      tags:
+        - ExamScheduling
+      summary: Staff agenda view of a clinic's exam bookings
+      operationId: listExamBookingsByHealthUnit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ExamBookingStatus'
+      responses:
+        '200':
+          description: A list of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamBooking'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings/{id}/cancel:
+    patch:
+      tags:
+        - ExamScheduling
+      summary: Cancel an exam booking
+      operationId: cancelExamBooking
+      description: Callable by the patient (while SCHEDULED) or clinic staff. Frees the reserved slot capacity.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Booking canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamBooking'
+        '400':
+          description: Booking can no longer be canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings/{id}/reschedule:
+    patch:
+      tags:
+        - ExamScheduling
+      summary: Reschedule an exam booking
+      operationId: rescheduleExamBooking
+      description: Implemented as cancel-current + create-new against the same offering/clinic, re-running the full availability and capacity checks.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RescheduleExamBooking'
+      responses:
+        '200':
+          description: Booking rescheduled (a new booking replaces the old one)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamBooking'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: New slot is fully booked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings/{id}/status:
+    patch:
+      tags:
+        - ExamScheduling
+      summary: Staff transitions a booking's status
+      operationId: updateExamBookingStatus
+      description: Staff-only. Valid transitions are SCHEDULED/CONFIRMED -> IN_PROGRESS, IN_PROGRESS -> COMPLETED, SCHEDULED/CONFIRMED -> NO_SHOW (only after scheduledAt has passed). Cancellation uses the /cancel endpoint instead.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExamBookingStatus'
+      responses:
+        '200':
+          description: Booking status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamBooking'
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /exam-bookings/{id}/link-result:
+    patch:
+      tags:
+        - ExamScheduling
+      summary: Link an uploaded exam result to a completed booking
+      operationId: linkExamBookingResult
+      description: Alternative to passing examBookingId on POST /exams — links after the fact.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - examId
+              properties:
+                examId:
+                  type: string
+      responses:
+        '204':
+          description: Linked successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking or exam not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -4549,6 +5444,10 @@ components:
         healthUnitName:
           type: string
           description: The name of the health unit, for display on cards
+        examBookingId:
+          type: string
+          nullable: true
+          description: The exam-scheduling booking this result was uploaded for, if any
         createdAt:
           type: string
           format: date-time
@@ -4603,6 +5502,318 @@ components:
           type: string
           description: Must be application/pdf
           example: 'application/pdf'
+        examBookingId:
+          type: string
+          description: Optional exam-scheduling booking to link this result to (alternative to PATCH /exam-bookings/{id}/link-result)
+
+    ExamOffering:
+      type: object
+      properties:
+        _id:
+          type: string
+        healthUnitId:
+          type: string
+        name:
+          type: string
+          example: 'Hemograma completo'
+        code:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        sampleType:
+          type: string
+          nullable: true
+        durationMinutes:
+          type: integer
+        resultTurnaroundEstimate:
+          type: string
+          nullable: true
+        requiresPreparation:
+          type: boolean
+        preparationInstructions:
+          type: string
+          nullable: true
+        requiresFasting:
+          type: boolean
+        fastingHours:
+          type: number
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        acceptedInsurances:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateExamOffering:
+      type: object
+      required:
+        - name
+        - durationMinutes
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        sampleType:
+          type: string
+        durationMinutes:
+          type: integer
+        resultTurnaroundEstimate:
+          type: string
+        requiresPreparation:
+          type: boolean
+        preparationInstructions:
+          type: string
+        requiresFasting:
+          type: boolean
+        fastingHours:
+          type: number
+        price:
+          type: number
+        acceptedInsurances:
+          type: array
+          items:
+            type: string
+    UpdateExamOffering:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        sampleType:
+          type: string
+        durationMinutes:
+          type: integer
+        resultTurnaroundEstimate:
+          type: string
+        requiresPreparation:
+          type: boolean
+        preparationInstructions:
+          type: string
+        requiresFasting:
+          type: boolean
+        fastingHours:
+          type: number
+        price:
+          type: number
+        acceptedInsurances:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+
+    ExamAvailabilityRule:
+      type: object
+      properties:
+        _id:
+          type: string
+        healthUnitId:
+          type: string
+        weekday:
+          $ref: '#/components/schemas/WeekDay'
+        startTime:
+          type: string
+          example: '08:00'
+        endTime:
+          type: string
+          example: '12:00'
+        slotDurationMinutes:
+          type: integer
+        capacityPerSlot:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ExamAvailabilityRuleInput:
+      type: object
+      required:
+        - weekday
+        - startTime
+        - endTime
+        - slotDurationMinutes
+        - capacityPerSlot
+      properties:
+        weekday:
+          $ref: '#/components/schemas/WeekDay'
+        startTime:
+          type: string
+        endTime:
+          type: string
+        slotDurationMinutes:
+          type: integer
+        capacityPerSlot:
+          type: integer
+        isActive:
+          type: boolean
+    UpsertExamAvailabilityRules:
+      type: object
+      required:
+        - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamAvailabilityRuleInput'
+    ExamAvailabilityBlackout:
+      type: object
+      properties:
+        _id:
+          type: string
+        healthUnitId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateExamAvailabilityBlackout:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date
+        reason:
+          type: string
+
+    ExamBookingStatus:
+      type: string
+      enum: [SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELED, NO_SHOW]
+    ExamSlot:
+      type: object
+      properties:
+        time:
+          type: string
+          example: '09:00'
+        remainingCapacity:
+          type: integer
+    ExamSlotsResponse:
+      type: object
+      properties:
+        date:
+          type: string
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamSlot'
+    ExamBooking:
+      type: object
+      properties:
+        _id:
+          type: string
+        patientId:
+          type: string
+        healthUnitId:
+          type: string
+        examOfferingId:
+          type: string
+        examOfferingName:
+          type: string
+        healthUnitName:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        priceSnapshot:
+          type: number
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ExamBookingStatus'
+        resultExamId:
+          type: string
+          nullable: true
+        canceledAt:
+          type: string
+          format: date-time
+          nullable: true
+        canceledBy:
+          type: string
+          enum: [PATIENT, STAFF]
+          nullable: true
+        cancelReason:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdByUserId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateExamBooking:
+      type: object
+      required:
+        - healthUnitId
+        - examOfferingId
+        - scheduledAt
+      properties:
+        healthUnitId:
+          type: string
+        examOfferingId:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+    RescheduleExamBooking:
+      type: object
+      required:
+        - scheduledAt
+      properties:
+        scheduledAt:
+          type: string
+          format: date-time
+    UpdateExamBookingStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/ExamBookingStatus'
 
   securitySchemes:
     bearerAuth:

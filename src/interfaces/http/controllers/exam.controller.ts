@@ -79,6 +79,7 @@ export class ExamController implements IController {
       fileBase64,
       fileName,
       mimeType,
+      examBookingId,
     } = req.body;
 
     try {
@@ -93,6 +94,7 @@ export class ExamController implements IController {
           fileBase64,
           fileName,
           mimeType,
+          examBookingId,
         },
         req.user!.sub,
       );

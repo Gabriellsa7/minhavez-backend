@@ -5,7 +5,7 @@
 
 # Implementação futura:
 
-- Implementar sistema de marcação de exame do paciente no app, ja que atualmente so é permitido marca consultar e visualizar filas de consulta e seus resultados de exames que ele fez. Ainda não a clinica que possa fazer exames então essa funcionalidade vai permitir cadastrar clinicas que façam exames
+- Implementar sistema de marcação de exame do paciente no app, ja que atualmente so é permitido marcar consulta e visualizar filas de consulta e seus resultados de exames que fez. Ainda não ha clinica que possa fazer exames então essa funcionalidade vai permitir cadastrar clinicas que façam exames com todas as infos que é necessaria pra ser uma clinica de exames busque quais as melhores infos e implemente essa task.
 
 # Done:
 

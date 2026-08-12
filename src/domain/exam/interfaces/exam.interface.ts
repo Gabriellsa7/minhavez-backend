@@ -11,6 +11,7 @@ export interface IExam {
   fileName: string;
   mimeType: string;
   fileSize?: number;
+  examBookingId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

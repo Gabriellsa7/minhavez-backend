@@ -3,6 +3,7 @@ import { IPatientRepository } from '../../patient/repository/patient.repository.
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
+import { IExamBookingRepository } from '../../exam-booking/repository/exam-booking.repository.interface';
 import { IExamWithContext, IExamWithFileUrl } from '../interfaces/exam.interface';
 
 export interface IParamsExamService {
@@ -11,6 +12,7 @@ export interface IParamsExamService {
   healthUnitRepository: IHealthUnitRepository;
   userRepository: IUserRepository;
   appointmentRepository: IAppointmentRepository;
+  examBookingRepository: IExamBookingRepository;
 }
 
 export interface IParamsRegisterExam {
@@ -23,6 +25,7 @@ export interface IParamsRegisterExam {
   fileBase64: string;
   fileName: string;
   mimeType: string;
+  examBookingId?: string;
 }
 
 export interface IRequestingUser {

@@ -22,6 +22,7 @@ export class ExamRepository implements IExamRepository {
       fileName: examDoc.fileName,
       mimeType: examDoc.mimeType,
       fileSize: examDoc.fileSize,
+      examBookingId: examDoc.examBookingId?.toString() ?? null,
       createdAt: examDoc.createdAt,
       updatedAt: examDoc.updatedAt,
     };
@@ -83,6 +84,19 @@ export class ExamRepository implements IExamRepository {
     } catch (error) {
       throw new Error(
         `Error listing exams by patient IDs: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async setExamBookingId(
+    examId: string,
+    examBookingId: string,
+  ): Promise<void> {
+    try {
+      await MExam.findByIdAndUpdate(examId, { examBookingId });
+    } catch (error) {
+      throw new Error(
+        `Error linking exam to booking: ${(error as Error).message}`,
       );
     }
   }
