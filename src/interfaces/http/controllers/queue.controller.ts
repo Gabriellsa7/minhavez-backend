@@ -29,6 +29,10 @@ export class QueueController implements IController {
       '/queue/professional/:professionalId/management',
       this.getQueueManagementByProfessionalId,
     );
+    this.router.get(
+      '/queue/professional/:professionalId/history',
+      this.getQueueHistoryByProfessionalId,
+    );
     this.router.post('/queues', this.createQueue);
     this.router.delete('/queues/:id', this.deleteQueueById);
     this.router.patch('/queues/:id/open', this.openQueue);
@@ -176,6 +180,36 @@ export class QueueController implements IController {
       res.status(200).json(queueManagement);
     } catch (error) {
       next(error);
+    }
+  };
+
+  getQueueHistoryByProfessionalId = async (
+    req: Request<{ professionalId: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { professionalId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    try {
+      const history = await this.queueService.getQueueHistoryByProfessionalId(
+        professionalId,
+        {
+          startDate:
+            typeof startDate === 'string' && startDate
+              ? new Date(startDate)
+              : undefined,
+          endDate:
+            typeof endDate === 'string' && endDate
+              ? new Date(endDate)
+              : undefined,
+        },
+      );
+
+      res.status(200).json(history);
+    } catch (error) {
+      res.status(500).json({
+        message: (error as Error).message,
+      });
     }
   };
 

@@ -28,6 +28,10 @@ export class HealthProfessionalController implements IController {
     );
     this.router.post('/health-professionals', this.createHealthProfessional);
     this.router.put('/health-professionals/:id', this.updateHealthProfessional);
+    this.router.post(
+      '/health-professionals/:id/image',
+      this.uploadHealthProfessionalImage,
+    );
     this.router.delete(
       '/health-professionals/:id',
       this.deleteHealthProfessional,
@@ -82,6 +86,32 @@ export class HealthProfessionalController implements IController {
       res.status(200).json(healthProfessional);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
+    }
+  };
+
+  uploadHealthProfessionalImage = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+    const { imageBase64, fileName, mimeType } = req.body;
+
+    try {
+      const updatedHealthProfessional =
+        await this.healthProfessionalService.uploadHealthProfessionalImage(id, {
+          imageBase64,
+          fileName,
+          mimeType,
+        });
+
+      if (!updatedHealthProfessional) {
+        res.status(404).json({ message: 'Health professional not found' });
+        return;
+      }
+
+      res.status(200).json(updatedHealthProfessional);
+    } catch (error) {
+      res.status(400).json({ message: (error as Error).message, status: 400 });
     }
   };
 

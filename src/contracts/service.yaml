@@ -912,6 +912,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /health-professionals/{id}/image:
+    post:
+      tags:
+        - HealthProfessionals
+      summary: Upload a health professional profile image
+      operationId: uploadHealthProfessionalImage
+      description: Upload an image to Cloudinary and attach the resulting URL to the health professional as their avatar.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health professional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadHealthProfessionalImage'
+      responses:
+        '200':
+          description: Health professional profile image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthProfessional'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /queues:
     get:
       tags:
@@ -1183,6 +1222,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/professional/{professionalId}/history:
+    get:
+      tags:
+        - Queues
+      summary: Get professional's attendance history
+      operationId: getQueueHistoryByProfessionalId
+      description: Retrieve the finished attendances for the professional, optionally filtered by a date range.
+      parameters:
+        - name: professionalId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Professional identifier.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filters attendances whose queue date is on or after this date.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filters attendances whose queue date is on or before this date.
+      responses:
+        '200':
+          description: Attendance history retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueueHistoryEntry'
         '500':
           description: Internal server error.
           content:
@@ -3502,6 +3585,20 @@ components:
         mimeType:
           type: string
           description: Mime type of the image being uploaded
+    UploadHealthProfessionalImage:
+      type: object
+      required:
+        - imageBase64
+      properties:
+        imageBase64:
+          type: string
+          description: Base64 encoded image data, optionally as a data URI
+        fileName:
+          type: string
+          description: Original file name used for the upload
+        mimeType:
+          type: string
+          description: Mime type of the image being uploaded
     Patient:
       type: object
       properties:
@@ -3667,6 +3764,10 @@ components:
         room:
           type: string
           description: The room number or identifier where the health professional operates
+        avatar:
+          type: string
+          nullable: true
+          description: The profile image URL of the health professional
         createdAt:
           type: string
           format: date-time
@@ -4345,6 +4446,23 @@ components:
           $ref: '#/components/schemas/Patient'
         user:
           $ref: '#/components/schemas/User'
+
+    QueueHistoryEntry:
+      type: object
+      properties:
+        queueItem:
+          $ref: '#/components/schemas/QueueItem'
+        patient:
+          $ref: '#/components/schemas/Patient'
+        user:
+          $ref: '#/components/schemas/User'
+        queueDate:
+          type: string
+          format: date-time
+          description: The date of the queue this attendance belongs to
+        shift:
+          type: string
+          enum: [MORNING, AFTERNOON]
 
     WeekDay:
       type: string

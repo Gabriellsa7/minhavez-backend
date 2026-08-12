@@ -10,6 +10,7 @@ export interface IHealthProfessional {
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
   active: boolean;
+  avatar?: string;
   createdAt: Date;
   updatedAt: Date;
 }

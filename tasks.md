@@ -1,6 +1,7 @@
 ## **Tasks**
 
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
+- Fazer ajustes visuais no manager medico e admin e app tbm.
 
 # Implementação futura:
 

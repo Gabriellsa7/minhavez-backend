@@ -83,6 +83,11 @@ export const healthProfessionalSchema = new mongoose.Schema(
       default: true,
     },
 
+    avatar: {
+      type: String,
+      required: false,
+    },
+
     schedule: {
       type: scheduleSchema,
       required: true,
@@ -108,6 +113,7 @@ export interface IHealthProfessionalSchema {
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
   active: boolean;
+  avatar?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -12,6 +12,10 @@ import {
 } from '../../../domain/queue/repository/queue.repository.interface';
 import { MQueue } from '../../db/mongo/models/queue.model';
 import { IQueueManagement } from '../../../domain/queue/interfaces/queue-management.interface';
+import {
+  IQueueHistoryEntry,
+  IQueueHistoryFilter,
+} from '../../../domain/queue/interfaces/queue-history.interface';
 import { EQueueItemStatus } from '../../../domain/queue-item/interfaces/queue-item.interface';
 
 export class QueueRepository implements IQueueRepository {
@@ -410,6 +414,119 @@ export class QueueRepository implements IQueueRepository {
       return queueDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing queues: ${(error as Error).message}`);
+    }
+  }
+
+  async getQueueHistoryByProfessionalId(
+    professionalId: string,
+    filter?: IQueueHistoryFilter,
+  ): Promise<IQueueHistoryEntry[]> {
+    try {
+      const match: Record<string, unknown> = { professionalId };
+
+      if (filter?.startDate || filter?.endDate) {
+        const queueDateFilter: Record<string, Date> = {};
+
+        if (filter.startDate) queueDateFilter.$gte = filter.startDate;
+        if (filter.endDate) queueDateFilter.$lte = filter.endDate;
+
+        match.queueDate = queueDateFilter;
+      }
+
+      const result = await MQueue.aggregate([
+        { $match: match },
+
+        {
+          $lookup: {
+            from: 'queueitems',
+            localField: '_id',
+            foreignField: 'queueId',
+            as: 'queueItems',
+          },
+        },
+
+        { $unwind: '$queueItems' },
+
+        {
+          $match: {
+            'queueItems.status': EQueueItemStatus.FINISHED,
+          },
+        },
+
+        {
+          $lookup: {
+            from: 'patients',
+            localField: 'queueItems.patientId',
+            foreignField: '_id',
+            as: 'patient',
+          },
+        },
+
+        { $unwind: '$patient' },
+
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'patient.userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+
+        { $unwind: '$user' },
+
+        { $sort: { 'queueItems.finishedAt': -1 } },
+
+        {
+          $project: {
+            _id: 0,
+
+            queueItem: {
+              _id: { $toString: '$queueItems._id' },
+              queueId: { $toString: '$queueItems.queueId' },
+              patientId: { $toString: '$queueItems.patientId' },
+              code: '$queueItems.code',
+              position: '$queueItems.position',
+              priority: '$queueItems.priority',
+              status: '$queueItems.status',
+              checkInTime: '$queueItems.checkInTime',
+              calledAt: '$queueItems.calledAt',
+              finishedAt: '$queueItems.finishedAt',
+              createdAt: '$queueItems.createdAt',
+              updatedAt: '$queueItems.updatedAt',
+            },
+
+            patient: {
+              _id: { $toString: '$patient._id' },
+              userId: { $toString: '$patient.userId' },
+              cpf: '$patient.cpf',
+              birthDate: '$patient.birthDate',
+              priority: '$patient.priority',
+              phone: '$patient.phone',
+              createdAt: '$patient.createdAt',
+              updatedAt: '$patient.updatedAt',
+            },
+
+            user: {
+              _id: { $toString: '$user._id' },
+              name: '$user.name',
+              email: '$user.email',
+              role: '$user.role',
+              active: '$user.active',
+              createdAt: '$user.createdAt',
+            },
+
+            queueDate: '$queueDate',
+            shift: '$shift',
+          },
+        },
+      ]);
+
+      return result as IQueueHistoryEntry[];
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue history: ${(error as Error).message}`,
+      );
     }
   }
 }

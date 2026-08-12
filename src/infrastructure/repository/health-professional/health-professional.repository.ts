@@ -26,6 +26,7 @@ export class HealthProfessionalRepository
       password: healthProfessionalDoc.password,
       professionalLicense: healthProfessionalDoc.professionalLicense,
       active: healthProfessionalDoc.active,
+      avatar: healthProfessionalDoc.avatar,
       schedule: healthProfessionalDoc.schedule,
       createdAt: healthProfessionalDoc.createdAt,
       updatedAt: healthProfessionalDoc.updatedAt,
@@ -158,6 +159,7 @@ export class HealthProfessionalRepository
         professionalLicense: professional.professionalLicense,
         schedule: professional.schedule,
         active: professional.active,
+        avatar: professional.avatar,
         createdAt: professional.createdAt,
         updatedAt: professional.updatedAt,
       };

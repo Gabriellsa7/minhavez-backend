@@ -8,6 +8,10 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IQueue } from './queue.interface';
 import { IQueueManagement } from './queue-management.interface';
+import {
+  IQueueHistoryEntry,
+  IQueueHistoryFilter,
+} from './queue-history.interface';
 
 export interface IParamsService {
   queueRepository: IQueueRepository;
@@ -36,6 +40,10 @@ export interface IQueueService {
   closeQueue(queueId: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
+  getQueueHistoryByProfessionalId(
+    professionalId: string,
+    filter?: IQueueHistoryFilter,
+  ): Promise<IQueueHistoryEntry[]>;
 }
 
 export interface IQueueWithDetails extends IQueue {

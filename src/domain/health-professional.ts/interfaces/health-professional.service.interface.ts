@@ -9,6 +9,12 @@ export interface IParamsHealthProfessionalService {
   healthProfessionalRepository: IHealthProfessionalRepository;
 }
 
+export interface IParamsUploadHealthProfessionalImage {
+  imageBase64: string;
+  fileName?: string;
+  mimeType?: string;
+}
+
 export interface IHealthProfessionalService {
   createHealthProfessional(
     params: IParamsCreateHealthProfessional,
@@ -21,6 +27,10 @@ export interface IHealthProfessionalService {
   updateHealthProfessionalById(
     _id: string,
     params: IParamsUpdateHealthProfessional,
+  ): Promise<IHealthProfessional | null>;
+  uploadHealthProfessionalImage(
+    _id: string,
+    params: IParamsUploadHealthProfessionalImage,
   ): Promise<IHealthProfessional | null>;
   deleteHealthProfessionalById(
     _id: string,

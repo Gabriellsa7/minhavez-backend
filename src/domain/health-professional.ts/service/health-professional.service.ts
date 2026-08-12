@@ -2,6 +2,7 @@ import { IHealthProfessional } from '../interfaces/health-professional.interface
 import {
   IHealthProfessionalService,
   IParamsHealthProfessionalService,
+  IParamsUploadHealthProfessionalImage,
 } from '../interfaces/health-professional.service.interface';
 import bcrypt from 'bcrypt';
 import {
@@ -9,6 +10,7 @@ import {
   IParamsUpdateHealthProfessional,
   IHealthProfessionalRepository,
 } from '../repository/health-professional.repository.interface';
+import { uploadImageToCloudinary } from '../../../infrastructure/external/cloudinary/cloudinary-upload';
 
 export class HealthProfessionalService implements IHealthProfessionalService {
   private healthProfessionalRepository: IHealthProfessionalRepository;
@@ -107,6 +109,37 @@ export class HealthProfessionalService implements IHealthProfessionalService {
     } catch (error) {
       throw new Error(
         `Error updating health professional: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async uploadHealthProfessionalImage(
+    _id: string,
+    params: IParamsUploadHealthProfessionalImage,
+  ): Promise<IHealthProfessional | null> {
+    try {
+      const existingHealthProfessional =
+        await this.healthProfessionalRepository.getHealthProfessionalById(_id);
+
+      if (!existingHealthProfessional) {
+        throw new Error('Health professional not found');
+      }
+
+      const uploadedImage = await uploadImageToCloudinary({
+        imageBase64: params.imageBase64,
+        fileName: params.fileName,
+        mimeType: params.mimeType,
+      });
+
+      return await this.healthProfessionalRepository.updateHealthProfessionalById(
+        _id,
+        {
+          avatar: uploadedImage.secureUrl,
+        } as unknown as IParamsUpdateHealthProfessional,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error uploading health professional image: ${(error as Error).message}`,
       );
     }
   }

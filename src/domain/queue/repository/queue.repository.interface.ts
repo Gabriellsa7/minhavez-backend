@@ -1,5 +1,9 @@
 import { IQueueManagement } from '../interfaces/queue-management.interface';
 import {
+  IQueueHistoryEntry,
+  IQueueHistoryFilter,
+} from '../interfaces/queue-history.interface';
+import {
   EQueueShift,
   EQueueStatus,
   IQueue,
@@ -32,4 +36,8 @@ export interface IQueueRepository {
   ): Promise<IQueue | null>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
+  getQueueHistoryByProfessionalId(
+    professionalId: string,
+    filter?: IQueueHistoryFilter,
+  ): Promise<IQueueHistoryEntry[]>;
 }

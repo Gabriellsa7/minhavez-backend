@@ -16,6 +16,10 @@ import { IQueueItemRepository } from '../../queue-item/repository/queue-item.rep
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IQueueManagement } from '../interfaces/queue-management.interface';
+import {
+  IQueueHistoryEntry,
+  IQueueHistoryFilter,
+} from '../interfaces/queue-history.interface';
 import { AppError } from '../../../shared/errors/AppError';
 import { pickNextWaitingQueueItem } from '../../queue-item/utils/pick-next-queue-item';
 
@@ -368,6 +372,22 @@ export class QueueService implements IQueueService {
       return await this.queueRepository.listQueues(filter);
     } catch (error) {
       throw new Error(`Error listing queues: ${(error as Error).message}`);
+    }
+  }
+
+  async getQueueHistoryByProfessionalId(
+    professionalId: string,
+    filter?: IQueueHistoryFilter,
+  ): Promise<IQueueHistoryEntry[]> {
+    try {
+      return await this.queueRepository.getQueueHistoryByProfessionalId(
+        professionalId,
+        filter,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error retrieving queue history: ${(error as Error).message}`,
+      );
     }
   }
 }
