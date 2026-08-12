@@ -4,6 +4,9 @@
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Alterar input de sala pra ser so o numero exemplo 10, 40 e etc ao inves de texto e numero, limitar a numeração ate 9999.
 - Implementar sistema de marcar exame como concluido, será um novo painel no manager porem agora pra um usuario que tem sua classificação EXAMPROFESSIONAL, esse vai acessar essa nova aba ver a lista de pessoas que tem pra fazer exame quando a pessoa chegar ela marca iniciar ai vai ficar com status iniciado até acabar o exame e conforme for concluindo ela vai marcando como concluida e o status ira pra finalizado, terá a tela de historico pra mostrar o exames e tela de perfil.
+- Adicionar opção do paciente cancelar consulta com regra de que so pode cancelar ate meio dia do dia anterior.
+- alterar cores dos places holder dos inputs pra deixar masi escura pra visibilidade.
+- adicionar mensagens de erros visuais pra erros que são causados pelo preenchimente de forma errada pelo user.
 
 ## Implementação Futura:
 
