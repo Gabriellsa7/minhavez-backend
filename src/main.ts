@@ -56,8 +56,8 @@ const app = new Server({
 
 async function start() {
   await app.databaseSetup();
-  NotificationSocketGateway.getInstance();
-  app.listen();
+  const httpServer = app.listen();
+  NotificationSocketGateway.getInstance().attachHttpServer(httpServer);
 
   const notificationWorker = new NotificationWorker();
   notificationWorker.start();
