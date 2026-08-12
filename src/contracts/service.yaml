@@ -2115,6 +2115,127 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
 
+  /appointments/{id}/rating-eligibility:
+    get:
+      tags:
+        - Ratings
+      summary: Get rating eligibility for an appointment
+      operationId: getRatingEligibility
+      description: Checks whether the patient can still rate the professional and/or the clinic for this appointment (only true the first time the patient completes an appointment with that professional/clinic).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the appointment
+      responses:
+        '200':
+          description: Rating eligibility for the appointment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingEligibility'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /appointments/{id}/ratings:
+    post:
+      tags:
+        - Ratings
+      summary: Submit a rating for an appointment
+      operationId: submitRating
+      description: Submits a star rating (and optional comment) for the professional and/or the clinic tied to this appointment.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRatingPayload'
+      responses:
+        '201':
+          description: Rating saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-professionals/{id}/rating-summary:
+    get:
+      tags:
+        - Ratings
+      summary: Get a professional's aggregate rating
+      operationId: getProfessionalRatingSummary
+      description: Retrieve the average star rating and rating count for a health professional.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health professional
+      responses:
+        '200':
+          description: Aggregate rating summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingSummary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-units/{id}/rating-summary:
+    get:
+      tags:
+        - Ratings
+      summary: Get a health unit's aggregate rating
+      operationId: getHealthUnitRatingSummary
+      description: Retrieve the average star rating and rating count for a health unit (clinic).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health unit
+      responses:
+        '200':
+          description: Aggregate rating summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingSummary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   # additional paths expected to be useful in the near future
   /auth/login:
     post:
@@ -4053,6 +4174,85 @@ components:
           format: date-time
           nullable: true
           description: The date and time the appointment was finished (null if not finished yet)
+
+    Rating:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier of the rating
+        appointmentId:
+          type: string
+          description: The appointment this rating was submitted for
+        patientId:
+          type: string
+          description: The patient who submitted the rating
+        professionalId:
+          type: string
+          description: The professional this rating is associated with
+        healthUnitId:
+          type: string
+          description: The health unit this rating is associated with
+        professionalStars:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Star rating given to the professional (1-5)
+        professionalComment:
+          type: string
+          description: Optional comment about the professional
+        clinicStars:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Star rating given to the clinic (1-5)
+        clinicComment:
+          type: string
+          description: Optional comment about the clinic
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateRatingPayload:
+      type: object
+      properties:
+        professionalStars:
+          type: integer
+          minimum: 1
+          maximum: 5
+        professionalComment:
+          type: string
+        clinicStars:
+          type: integer
+          minimum: 1
+          maximum: 5
+        clinicComment:
+          type: string
+    RatingEligibility:
+      type: object
+      properties:
+        canRateProfessional:
+          type: boolean
+          description: Whether the patient can still rate the professional for this appointment
+        canRateClinic:
+          type: boolean
+          description: Whether the patient can still rate the clinic for this appointment
+        professionalId:
+          type: string
+        healthUnitId:
+          type: string
+    RatingSummary:
+      type: object
+      properties:
+        average:
+          type: number
+          nullable: true
+          description: Average star rating, or null when there are no ratings yet
+        count:
+          type: integer
+          description: Number of ratings included in the average
 
     QueueWithDetails:
       type: object

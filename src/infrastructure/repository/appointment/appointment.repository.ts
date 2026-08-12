@@ -162,6 +162,9 @@ export class AppointmentRepository implements IAppointmentRepository {
           filter.queueItemId as string,
         );
       }
+      if (filter.status) {
+        mongoFilter.status = filter.status;
+      }
 
       const appointmentDocs = await MAppointment.find(mongoFilter);
       return appointmentDocs.map((doc) => this.mapToDomain(doc));
