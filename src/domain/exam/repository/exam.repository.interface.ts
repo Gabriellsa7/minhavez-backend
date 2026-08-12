@@ -12,6 +12,7 @@ export interface IParamsCreateExam {
   fileName: string;
   mimeType: string;
   fileSize?: number;
+  examBookingId?: string | null;
 }
 
 export interface IExamRepository {
@@ -20,4 +21,5 @@ export interface IExamRepository {
   listExamsByPatientId(patientId: string): Promise<IExam[]>;
   listExamsByHealthUnitId(healthUnitId: string): Promise<IExam[]>;
   listExamsByPatientIds(patientIds: string[]): Promise<IExam[]>;
+  setExamBookingId(examId: string, examBookingId: string): Promise<void>;
 }

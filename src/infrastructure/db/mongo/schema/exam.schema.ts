@@ -65,6 +65,13 @@ export const examSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+
+    examBookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'examBooking',
+      required: false,
+      default: null,
+    },
   },
   {
     _id: true,
@@ -84,6 +91,7 @@ export interface IExamSchema {
   fileName: string;
   mimeType: string;
   fileSize?: number;
+  examBookingId?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }

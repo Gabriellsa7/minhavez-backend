@@ -18,6 +18,8 @@ import { IPatientRepository } from '../../patient/repository/patient.repository.
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
+import { IExamBookingRepository } from '../../exam-booking/repository/exam-booking.repository.interface';
+import { EExamBookingStatus } from '../../exam-booking/interfaces/exam-booking.interface';
 import {
   generateSignedExamFileUrl,
   uploadPdfToCloudinary,
@@ -29,6 +31,7 @@ export class ExamService implements IExamService {
   private healthUnitRepository: IHealthUnitRepository;
   private userRepository: IUserRepository;
   private appointmentRepository: IAppointmentRepository;
+  private examBookingRepository: IExamBookingRepository;
 
   constructor(params: IParamsExamService) {
     this.examRepository = params.examRepository;
@@ -36,6 +39,7 @@ export class ExamService implements IExamService {
     this.healthUnitRepository = params.healthUnitRepository;
     this.userRepository = params.userRepository;
     this.appointmentRepository = params.appointmentRepository;
+    this.examBookingRepository = params.examBookingRepository;
   }
 
   async registerExam(
@@ -77,6 +81,37 @@ export class ExamService implements IExamService {
       );
     }
 
+    if (params.examBookingId) {
+      const booking = await this.examBookingRepository.getExamBookingById(
+        params.examBookingId,
+      );
+
+      if (!booking) {
+        throw new AppError(400, 'Exam booking not found');
+      }
+
+      if (
+        booking.patientId !== patient._id ||
+        booking.healthUnitId !== params.healthUnitId
+      ) {
+        throw new AppError(
+          400,
+          'This booking does not belong to the same patient/clinic',
+        );
+      }
+
+      if (booking.status !== EExamBookingStatus.COMPLETED) {
+        throw new AppError(
+          400,
+          'Only completed bookings can be linked to a result',
+        );
+      }
+
+      if (booking.resultExamId) {
+        throw new AppError(400, 'This booking already has a linked result');
+      }
+    }
+
     const upload = await uploadPdfToCloudinary({
       fileBase64: params.fileBase64,
       fileName: params.fileName,
@@ -94,7 +129,15 @@ export class ExamService implements IExamService {
       fileName: params.fileName,
       mimeType: params.mimeType,
       fileSize: upload.fileSize,
+      examBookingId: params.examBookingId,
     });
+
+    if (params.examBookingId) {
+      await this.examBookingRepository.updateExamBookingById(
+        params.examBookingId,
+        { resultExamId: exam._id },
+      );
+    }
 
     return this.enrichExam(exam, patient, healthUnit);
   }

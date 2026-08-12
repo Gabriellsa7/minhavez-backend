@@ -2,12 +2,14 @@
 
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
+- Alterar input de sala pra ser so o numero exemplo 10, 40 e etc ao inves de texto e numero, limitar a numeração ate 9999.
+- Implementar sistema de marcar exame como concluido, será um novo painel no manager porem agora pra um usuario que tem sua classificação EXAMPROFESSIONAL, esse vai acessar essa nova aba ver a lista de pessoas que tem pra fazer exame e conforme for concluindo ela vai marcando como concluida, terá a tela de historico pra mostrar o exames e tela de perfil.
 
-# Implementação futura:
+## Implementação Futura:
 
-- Implementar sistema de marcação de exame do paciente no app, ja que atualmente so é permitido marca consultar e visualizar filas de consulta e seus resultados de exames que ele fez. Ainda não a clinica que possa fazer exames então essa funcionalidade vai permitir cadastrar clinicas que façam exames
+- Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN.
 
-# Done:
+## Done:
 
 - Add queue code partner, ex: AP001 -> Atendimento prioritario, AN001 -> Atendimento normal, maybe the numbers can be reseted in the end of the day and used again in the oder day. DONE
 - Adiconar sistema de avaliação de medico e clinica e mostrar um carzinho com a quantidade de estrilinhas que ele tem de 1 a 5. DONE

@@ -4,6 +4,7 @@ import { PatientRepository } from '../../../repository/patient/patient.repositor
 import { HealthUnitRepository } from '../../../repository/health-unit/health-unit.repository';
 import { UserRepository } from '../../../repository/user/user.repository';
 import { AppointmentRepository } from '../../../repository/appointment/appointment.repository';
+import { ExamBookingRepository } from '../../../repository/exam-booking/exam-booking.repository';
 
 export class ExamServiceFactory {
   static create() {
@@ -13,6 +14,7 @@ export class ExamServiceFactory {
       healthUnitRepository: new HealthUnitRepository(),
       userRepository: new UserRepository(),
       appointmentRepository: new AppointmentRepository(),
+      examBookingRepository: new ExamBookingRepository(),
     });
   }
 }
