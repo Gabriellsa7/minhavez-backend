@@ -31,6 +31,11 @@ export class ExamController implements IController {
       this.registerExam,
     );
     this.router.get('/exams/:id', authMiddleware, this.getExamById);
+    this.router.patch(
+      '/exams/:id/download',
+      authMiddleware,
+      this.downloadExam,
+    );
     this.router.get(
       '/patients/:id/exams',
       authMiddleware,
@@ -64,10 +69,12 @@ export class ExamController implements IController {
 
   private handleError(res: Response, error: unknown): void {
     if (error instanceof AppError) {
-      res.status(error.status).json({ message: error.message });
+      res
+        .status(error.status)
+        .json({ status: error.status, message: error.message });
       return;
     }
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ status: 500, message: (error as Error).message });
   }
 
   registerExam = async (req: Request, res: Response): Promise<void> => {
@@ -120,6 +127,21 @@ export class ExamController implements IController {
   ): Promise<void> => {
     try {
       const exam = await this.examService.getExamForRequester(
+        req.params.id,
+        this.toRequestingUser(req),
+      );
+      res.status(200).json(exam);
+    } catch (error) {
+      this.handleError(res, error);
+    }
+  };
+
+  downloadExam = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const exam = await this.examService.downloadExamFile(
         req.params.id,
         this.toRequestingUser(req),
       );

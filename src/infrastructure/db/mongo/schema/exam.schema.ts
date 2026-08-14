@@ -72,6 +72,12 @@ export const examSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
+
+    downloadCount: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
   },
   {
     _id: true,
@@ -92,6 +98,7 @@ export interface IExamSchema {
   mimeType: string;
   fileSize?: number;
   examBookingId?: Types.ObjectId | null;
+  downloadCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }

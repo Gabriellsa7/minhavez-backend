@@ -3050,6 +3050,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /exams/{id}/download:
+    patch:
+      tags:
+        - Exams
+      summary: Register a download of an exam's file
+      operationId: downloadExam
+      description: Increments the exam's download counter, then returns a freshly-generated signed URL to the PDF file.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The exam ID
+      responses:
+        '200':
+          description: Download registered, file URL returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamWithFileUrl'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to access this exam
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Exam not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /patients/{id}/exams:
     get:
       tags:
@@ -5504,6 +5551,10 @@ components:
           type: string
           nullable: true
           description: The exam-scheduling booking this result was uploaded for, if any
+        downloadCount:
+          type: integer
+          description: How many times the exam file has been downloaded (not viewed).
+          example: 0
         createdAt:
           type: string
           format: date-time

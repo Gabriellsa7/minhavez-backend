@@ -22,4 +22,5 @@ export interface IExamRepository {
   listExamsByHealthUnitId(healthUnitId: string): Promise<IExam[]>;
   listExamsByPatientIds(patientIds: string[]): Promise<IExam[]>;
   setExamBookingId(examId: string, examBookingId: string): Promise<void>;
+  incrementDownloadCount(id: string): Promise<IExam | null>;
 }

@@ -266,6 +266,32 @@ export class ExamService implements IExamService {
     };
   }
 
+  async downloadExamFile(
+    id: string,
+    requester: IRequestingUser,
+  ): Promise<IExamWithFileUrl> {
+    const exam = await this.examRepository.getExamById(id);
+
+    if (!exam) {
+      throw new AppError(404, 'Exam not found');
+    }
+
+    await this.assertCanAccessExam(exam, requester);
+
+    const updatedExam = await this.examRepository.incrementDownloadCount(id);
+
+    if (!updatedExam) {
+      throw new AppError(404, 'Exam not found');
+    }
+
+    const enriched = await this.enrichExam(updatedExam);
+
+    return {
+      ...enriched,
+      fileUrl: generateSignedExamFileUrl(updatedExam.filePublicId),
+    };
+  }
+
   async listExamsByPatientId(
     patientId: string,
     requester: IRequestingUser,

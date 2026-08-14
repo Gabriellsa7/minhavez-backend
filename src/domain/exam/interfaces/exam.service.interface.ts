@@ -54,6 +54,10 @@ export interface IExamService {
     id: string,
     requester: IRequestingUser,
   ): Promise<IExamWithFileUrl>;
+  downloadExamFile(
+    id: string,
+    requester: IRequestingUser,
+  ): Promise<IExamWithFileUrl>;
   listExamsByPatientId(
     patientId: string,
     requester: IRequestingUser,

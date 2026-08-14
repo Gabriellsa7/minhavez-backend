@@ -23,6 +23,7 @@ export class ExamRepository implements IExamRepository {
       mimeType: examDoc.mimeType,
       fileSize: examDoc.fileSize,
       examBookingId: examDoc.examBookingId?.toString() ?? null,
+      downloadCount: examDoc.downloadCount ?? 0,
       createdAt: examDoc.createdAt,
       updatedAt: examDoc.updatedAt,
     };
@@ -97,6 +98,24 @@ export class ExamRepository implements IExamRepository {
     } catch (error) {
       throw new Error(
         `Error linking exam to booking: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async incrementDownloadCount(id: string): Promise<IExam | null> {
+    try {
+      const examDoc = await MExam.findOneAndUpdate(
+        { _id: id },
+        { $inc: { downloadCount: 1 } },
+        { new: true },
+      );
+
+      if (!examDoc) return null;
+
+      return this.mapToDomain(examDoc);
+    } catch (error) {
+      throw new Error(
+        `Error incrementing exam download count: ${(error as Error).message}`,
       );
     }
   }
