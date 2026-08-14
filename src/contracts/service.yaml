@@ -5005,6 +5005,7 @@ components:
             - QUEUE_NEAR
             - QUEUE_NEXT
             - QUEUE_CALLED
+            - EXAM_READY
         message:
           type: string
           description: The content of the notification
@@ -5067,6 +5068,7 @@ components:
             - QUEUE_NEAR
             - QUEUE_NEXT
             - QUEUE_CALLED
+            - EXAM_READY
         message:
           type: string
           description: The content of the notification

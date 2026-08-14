@@ -5,6 +5,7 @@ import {
   IAuthPayload,
 } from '../../../domain/auth/interfaces/auth.interface';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import { EHealthProfessionalType } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 declare module 'express' {
   interface Request {
     user?: IAuthPayload;
@@ -96,6 +97,32 @@ export const authorizeAdminOrHealthProfessional = (
     req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL;
 
   if (!isAdmin && !isHealthProfessional) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
+export const authorizeAdminOrExamProfessional = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  const isAdmin =
+    req.user.principalType === EPrincipalType.USER &&
+    req.user.role === EUserRole.ADMIN;
+
+  const isExamProfessional =
+    req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
+    req.user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL;
+
+  if (!isAdmin && !isExamProfessional) {
     sendError(req, res, 403, 'Forbidden');
     return;
   }

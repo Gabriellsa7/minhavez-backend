@@ -1,8 +1,10 @@
 import { Request, Response, Router } from 'express';
 import { PatientService } from '../../../domain/patient/service/patient.service';
 import { IController } from './IController';
-import { authMiddleware, authorize } from '../middlewary/auth.middleware';
-import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import {
+  authMiddleware,
+  authorizeAdminOrExamProfessional,
+} from '../middlewary/auth.middleware';
 import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
 
 export class PatientController implements IController {
@@ -22,7 +24,7 @@ export class PatientController implements IController {
     this.router.get(
       '/patients/cpf/:cpf',
       authMiddleware,
-      authorize(EUserRole.ADMIN),
+      authorizeAdminOrExamProfessional,
       this.getPatientByCpf,
     );
     this.router.post('/patients', this.createPatient);

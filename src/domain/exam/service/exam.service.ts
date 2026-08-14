@@ -1,5 +1,7 @@
+import { Logger } from 'traceability';
 import { AppError } from '../../../shared/errors/AppError';
 import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
+import { buildExamReadyForAdminEmail } from '../../../shared/utils/examReadyEmailTemplate';
 import { IPatient } from '../../patient/interfaces/patient.interface';
 import {
   ALLOWED_EXAM_MIME_TYPE,
@@ -9,6 +11,7 @@ import {
 } from '../interfaces/exam.interface';
 import {
   IExamService,
+  IExamUploader,
   IParamsExamService,
   IParamsRegisterExam,
   IRequestingUser,
@@ -19,6 +22,9 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { IExamBookingRepository } from '../../exam-booking/repository/exam-booking.repository.interface';
+import { IEmailProvider } from '../../auth/interfaces/email-provider.interface';
+import { INotificationService } from '../../notification/interfaces/notification.service.interface';
+import { ENotificationType } from '../../notification/interfaces/notification.interface';
 import { EExamBookingStatus } from '../../exam-booking/interfaces/exam-booking.interface';
 import {
   generateSignedExamFileUrl,
@@ -32,6 +38,8 @@ export class ExamService implements IExamService {
   private userRepository: IUserRepository;
   private appointmentRepository: IAppointmentRepository;
   private examBookingRepository: IExamBookingRepository;
+  private emailProvider: IEmailProvider;
+  private notificationService: Pick<INotificationService, 'createNotification'>;
 
   constructor(params: IParamsExamService) {
     this.examRepository = params.examRepository;
@@ -40,11 +48,13 @@ export class ExamService implements IExamService {
     this.userRepository = params.userRepository;
     this.appointmentRepository = params.appointmentRepository;
     this.examBookingRepository = params.examBookingRepository;
+    this.emailProvider = params.emailProvider;
+    this.notificationService = params.notificationService;
   }
 
   async registerExam(
     params: IParamsRegisterExam,
-    requestingAdminUserId: string,
+    uploader: IExamUploader,
   ): Promise<IExamWithContext> {
     if (params.mimeType !== ALLOWED_EXAM_MIME_TYPE) {
       throw new AppError(400, 'Only PDF files are allowed for exam results');
@@ -74,7 +84,14 @@ export class ExamService implements IExamService {
       throw new AppError(404, 'Health unit not found');
     }
 
-    if (healthUnit.userId !== requestingAdminUserId) {
+    if (uploader.isExamProfessional) {
+      if (healthUnit._id !== uploader.healthUnitId) {
+        throw new AppError(
+          403,
+          'You can only register exams for your own health unit',
+        );
+      }
+    } else if (healthUnit.userId !== uploader.sub) {
       throw new AppError(
         403,
         'You can only register exams for a health unit you own',
@@ -120,7 +137,7 @@ export class ExamService implements IExamService {
     const exam = await this.examRepository.createExam({
       patientId: patient._id,
       healthUnitId: params.healthUnitId,
-      uploadedByUserId: requestingAdminUserId,
+      uploadedByUserId: uploader.sub,
       examType: params.examType,
       examDate: params.examDate ?? null,
       doctorName: params.doctorName,
@@ -139,7 +156,94 @@ export class ExamService implements IExamService {
       );
     }
 
-    return this.enrichExam(exam, patient, healthUnit);
+    const enriched = await this.enrichExam(exam, patient, healthUnit);
+
+    if (uploader.isExamProfessional) {
+      await this.notifyAdminExamIsReady(
+        params.fileBase64,
+        params.fileName,
+        params.mimeType,
+        healthUnit,
+        enriched,
+        uploader,
+      );
+      await this.notifyPatientExamIsReady(enriched, exam._id);
+    }
+
+    return enriched;
+  }
+
+  private async notifyPatientExamIsReady(
+    exam: IExamWithContext,
+    examId: string,
+  ): Promise<void> {
+    try {
+      await this.notificationService.createNotification({
+        patientId: exam.patientId,
+        title: 'Resultado de exame disponível',
+        message: `Seu resultado de ${exam.examType} já está disponível para visualização.`,
+        type: ENotificationType.EXAM_READY,
+        data: { examId },
+      });
+    } catch (error) {
+      Logger.error('Failed to notify patient about exam ready', {
+        examId,
+        error: (error as Error).message,
+      });
+    }
+  }
+
+  private async notifyAdminExamIsReady(
+    fileBase64: string,
+    fileName: string,
+    mimeType: string,
+    healthUnit: { userId?: string; name: string },
+    exam: IExamWithContext,
+    uploader: IExamUploader,
+  ): Promise<void> {
+    try {
+      const admin = healthUnit.userId
+        ? await this.userRepository.findById(healthUnit.userId)
+        : null;
+
+      if (!admin) {
+        Logger.error('Exam-ready email skipped: health unit owner not found', {
+          healthUnitUserId: healthUnit.userId,
+        });
+        return;
+      }
+
+      const cleanBase64 = fileBase64.includes(',')
+        ? fileBase64.split(',')[1]
+        : fileBase64;
+
+      const { subject, html, text } = buildExamReadyForAdminEmail({
+        patientName: exam.patientName,
+        patientCpf: exam.patientCpf,
+        examType: exam.examType,
+        healthUnitName: healthUnit.name,
+        uploaderName: uploader.name,
+      });
+
+      await this.emailProvider.sendMail({
+        to: admin.email,
+        subject,
+        html,
+        text,
+        attachments: [
+          {
+            filename: fileName,
+            content: Buffer.from(cleanBase64, 'base64'),
+            contentType: mimeType,
+          },
+        ],
+      });
+    } catch (error) {
+      Logger.error('Failed to send exam-ready email to admin', {
+        examId: exam._id,
+        error: (error as Error).message,
+      });
+    }
   }
 
   async getExamForRequester(

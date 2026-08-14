@@ -392,16 +392,46 @@ export class ExamBookingService implements IExamBookingService {
       throw new AppError(404, 'Patient not found');
     }
 
-    if (requester.isAdmin || patient.userId !== requester.sub) {
-      throw new AppError(403, 'Forbidden');
-    }
-
     const bookings =
       await this.examBookingRepository.listExamBookingsByPatientId(
         patientId,
       );
 
-    return Promise.all(bookings.map((booking) => this.enrich(booking)));
+    if (requester.isAdmin) {
+      const uniqueHealthUnitIds = [
+        ...new Set(bookings.map((booking) => booking.healthUnitId)),
+      ];
+      const healthUnits = await Promise.all(
+        uniqueHealthUnitIds.map((id) =>
+          this.healthUnitRepository.getHealthUnitById(id),
+        ),
+      );
+      const ownedHealthUnitIds = new Set(
+        healthUnits
+          .filter((healthUnit) => healthUnit?.userId === requester.sub)
+          .map((healthUnit) => healthUnit!._id),
+      );
+
+      return Promise.all(
+        bookings
+          .filter((booking) => ownedHealthUnitIds.has(booking.healthUnitId))
+          .map((booking) => this.enrich(booking)),
+      );
+    }
+
+    if (requester.isExamProfessional) {
+      return Promise.all(
+        bookings
+          .filter((booking) => booking.healthUnitId === requester.healthUnitId)
+          .map((booking) => this.enrich(booking)),
+      );
+    }
+
+    if (patient.userId === requester.sub) {
+      return Promise.all(bookings.map((booking) => this.enrich(booking)));
+    }
+
+    throw new AppError(403, 'Forbidden');
   }
 
   async listBookingsByHealthUnitId(

@@ -5,11 +5,13 @@ import { IRequestingUser } from '../../../domain/exam/interfaces/exam.service.in
 import {
   authMiddleware,
   authorize,
+  authorizeAdminOrExamProfessional,
   authorizePrincipalTypes,
 } from '../middlewary/auth.middleware';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 import { AppError } from '../../../shared/errors/AppError';
+import { IExamUploader } from '../../../domain/exam/interfaces/exam.service.interface';
 
 export class ExamController implements IController {
   router: Router;
@@ -25,7 +27,7 @@ export class ExamController implements IController {
     this.router.post(
       '/exams',
       authMiddleware,
-      authorize(EUserRole.ADMIN),
+      authorizeAdminOrExamProfessional,
       this.registerExam,
     );
     this.router.get('/exams/:id', authMiddleware, this.getExamById);
@@ -82,6 +84,14 @@ export class ExamController implements IController {
       examBookingId,
     } = req.body;
 
+    const uploader: IExamUploader = {
+      sub: req.user!.sub,
+      name: req.user!.name,
+      isExamProfessional:
+        req.user!.principalType === EPrincipalType.HEALTH_PROFESSIONAL,
+      healthUnitId: req.user!.healthUnitId,
+    };
+
     try {
       const exam = await this.examService.registerExam(
         {
@@ -96,7 +106,7 @@ export class ExamController implements IController {
           mimeType,
           examBookingId,
         },
-        req.user!.sub,
+        uploader,
       );
       res.status(201).json(exam);
     } catch (error) {

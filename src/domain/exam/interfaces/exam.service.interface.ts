@@ -4,6 +4,8 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { IExamBookingRepository } from '../../exam-booking/repository/exam-booking.repository.interface';
+import { IEmailProvider } from '../../auth/interfaces/email-provider.interface';
+import { INotificationService } from '../../notification/interfaces/notification.service.interface';
 import { IExamWithContext, IExamWithFileUrl } from '../interfaces/exam.interface';
 
 export interface IParamsExamService {
@@ -13,6 +15,8 @@ export interface IParamsExamService {
   userRepository: IUserRepository;
   appointmentRepository: IAppointmentRepository;
   examBookingRepository: IExamBookingRepository;
+  emailProvider: IEmailProvider;
+  notificationService: Pick<INotificationService, 'createNotification'>;
 }
 
 export interface IParamsRegisterExam {
@@ -34,10 +38,17 @@ export interface IRequestingUser {
   isHealthProfessional: boolean;
 }
 
+export interface IExamUploader {
+  sub: string;
+  name: string;
+  isExamProfessional: boolean;
+  healthUnitId?: string;
+}
+
 export interface IExamService {
   registerExam(
     params: IParamsRegisterExam,
-    requestingAdminUserId: string,
+    uploader: IExamUploader,
   ): Promise<IExamWithContext>;
   getExamForRequester(
     id: string,

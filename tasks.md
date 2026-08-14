@@ -3,10 +3,11 @@
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - configurar papertrail.
+- permirtir usuario baixar exame mais de uma vez maximo 3.
 
 ## Implementação Futura:
 
-- Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN.
+- Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN para que eles possam mandar para o medico e pro USer como é feito atualmente, ou seja será uma nova tela pra isso.
 
 ## Done:
 

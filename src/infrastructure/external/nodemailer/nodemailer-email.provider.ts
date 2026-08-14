@@ -32,6 +32,7 @@ export class NodemailerEmailProvider implements IEmailProvider {
         subject: payload.subject,
         html: payload.html,
         text: payload.text,
+        attachments: payload.attachments,
       });
       Logger.info('Email sent', { to: payload.to, subject: payload.subject });
     } catch (error) {

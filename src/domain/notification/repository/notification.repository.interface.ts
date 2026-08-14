@@ -12,6 +12,7 @@ export interface IParamsCreateNotification {
   priority?: number;
   scheduledAt?: Date;
   deviceToken?: string;
+  data?: Record<string, unknown>;
 }
 
 export interface IParamsUpdateNotification {

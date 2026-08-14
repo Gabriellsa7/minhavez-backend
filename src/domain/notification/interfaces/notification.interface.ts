@@ -30,6 +30,7 @@ export enum ENotificationType {
   QUEUE_NEAR = 'QUEUE_NEAR',
   QUEUE_NEXT = 'QUEUE_NEXT',
   QUEUE_CALLED = 'QUEUE_CALLED',
+  EXAM_READY = 'EXAM_READY',
 }
 
 export enum ENotificationStatus {
