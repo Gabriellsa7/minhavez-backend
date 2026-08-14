@@ -4,9 +4,8 @@
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Alterar input de sala pra ser so o numero exemplo 10, 40 e etc ao inves de texto e numero, limitar a numeração ate 9999.
 - Implementar sistema de marcar exame como concluido, será um novo painel no manager porem agora pra um usuario que tem sua classificação EXAMPROFESSIONAL, esse vai acessar essa nova aba ver a lista de pessoas que tem pra fazer exame quando a pessoa chegar ela marca iniciar ai vai ficar com status iniciado até acabar o exame e conforme for concluindo ela vai marcando como concluida e o status ira pra finalizado, terá a tela de historico pra mostrar o exames e tela de perfil após exame ficar com status finalizado sumindo assim da tela do usuario tbm.
-- Adicionar opção do paciente cancelar consulta com regra de que so pode cancelar ate meio dia do dia anterior.
-- alterar cores dos places holder dos inputs pra deixar masi escura pra visibilidade.
-- adicionar mensagens de erros visuais pra erros que são causados pelo preenchimente de forma errada pelo user.
+- Adicionar opção do paciente cancelar consulta com regra de que so pode cancelar ate meio dia do dia anterior, pode ser colocada na tela que abre quando ele clica pra ver as infos da fila o butão em vermelho na parte de baixo, assim que ele clicar abra um modal perguntando se ele deseja cancelar mesmo com o butão de confirmar e um x na parte de cima pra fechar o modal caso ele não queira cancelar, se for necessario implementar algo no back implemente.
+- configurar papertrail.
 
 ## Implementação Futura:
 
@@ -28,3 +27,5 @@
 - Refactor the app, especially the **React Query** request handling — **minha-vez-app** .
 - Solve webSockt and notification error. - DONE
 - melhorar sistema de fila pra poder mesclar em uma fila entre pessoa normal, prioritaria, normal,prioritaria e etc. DONE
+- alterar cores dos places holder dos inputs pra deixar masi escura pra visibilidade. - DONE
+- adicionar mensagens de erros visuais pra erros que são causados pelo preenchimente de forma errada pelo user ex: data errada, CPF invalido e etc. - DONE

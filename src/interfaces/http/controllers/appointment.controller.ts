@@ -1,10 +1,17 @@
 import { Request, Response, Router } from 'express';
 import { IController } from './IController';
-import { IAppointmentService } from '../../../domain/appointment/interfaces/appointment.service.interface';
+import {
+  IAppointmentRequester,
+  IAppointmentService,
+} from '../../../domain/appointment/interfaces/appointment.service.interface';
 import {
   IParamsCreateAppointment,
   IParamsUpdateAppointment,
 } from '../../../domain/appointment/repository/appointment.repository.interface';
+import { authMiddleware } from '../middlewary/auth.middleware';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
+import { AppError } from '../../../shared/errors/AppError';
 
 export class AppointmentController implements IController {
   router: Router;
@@ -37,7 +44,30 @@ export class AppointmentController implements IController {
     );
     this.router.post('/appointments', this.createAppointment);
     this.router.put('/appointments/:id', this.updateAppointment);
+    this.router.patch(
+      '/appointments/:id/cancel',
+      authMiddleware,
+      this.cancelAppointment,
+    );
     this.router.delete('/appointments/:id', this.deleteAppointment);
+  }
+
+  private toRequester(req: Request): IAppointmentRequester {
+    const user = req.user!;
+    return {
+      sub: user.sub,
+      isAdmin:
+        user.principalType === EPrincipalType.USER &&
+        user.role === EUserRole.ADMIN,
+    };
+  }
+
+  private handleError(res: Response, error: unknown): void {
+    if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    res.status(500).json({ error: (error as Error).message });
   }
 
   getAppointments = async (req: Request, res: Response): Promise<void> => {
@@ -198,6 +228,21 @@ export class AppointmentController implements IController {
       res.status(200).json(updatedAppointment);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
+    }
+  };
+
+  cancelAppointment = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const appointment = await this.appointmentService.cancelAppointment(
+        req.params.id,
+        this.toRequester(req),
+      );
+      res.status(200).json(appointment);
+    } catch (error) {
+      this.handleError(res, error);
     }
   };
 

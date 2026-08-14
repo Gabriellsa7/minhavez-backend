@@ -42,6 +42,7 @@ export class AppointmentServiceFactory {
       appointmentReminderService,
       queueNotificationService,
       notificationJobScheduler,
+      notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });
   }
 }

@@ -2198,6 +2198,60 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
 
+  /appointments/{id}/cancel:
+    patch:
+      tags:
+        - Appointments
+      summary: Cancel an appointment
+      operationId: cancelAppointment
+      description: Cancels a SCHEDULED appointment. Only allowed by the owning patient (or an admin), and only before noon of the day prior to the appointment.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the appointment
+      responses:
+        '200':
+          description: Appointment canceled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '400':
+          description: Appointment can no longer be canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /appointments/{id}/rating-eligibility:
     get:
       tags:

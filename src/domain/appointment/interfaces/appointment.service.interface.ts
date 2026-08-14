@@ -14,6 +14,11 @@ export interface IParamsAppointmentService {
   professionalRepository: IHealthProfessionalRepository;
 }
 
+export interface IAppointmentRequester {
+  sub: string;
+  isAdmin: boolean;
+}
+
 export interface IAppointmentService {
   createAppointment(params: IParamsCreateAppointment): Promise<IAppointment>;
   getAppointmentById(id: string): Promise<IAppointment | null>;
@@ -27,6 +32,10 @@ export interface IAppointmentService {
     id: string,
     params: IParamsUpdateAppointment,
   ): Promise<IAppointment | null>;
+  cancelAppointment(
+    id: string,
+    requester: IAppointmentRequester,
+  ): Promise<IAppointment>;
   deleteAppointmentById(id: string): Promise<IAppointment | null>;
   clearAppointmentHistoryByPatientId(
     patientId: string,

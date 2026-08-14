@@ -6,7 +6,9 @@ import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import {
   EQueueItemPriority,
   EQueueItemStatus,
+  IQueueItem,
 } from '../../queue-item/interfaces/queue-item.interface';
+import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 import {
   IParamsCreateAppointment,
   IParamsUpdateAppointment,
@@ -15,6 +17,7 @@ import {
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import {
+  IAppointmentRequester,
   IAppointmentService,
   IParamsAppointmentService,
 } from '../interfaces/appointment.service.interface';
@@ -25,6 +28,10 @@ import { QueueNotificationService } from '../../notification/service/queue-notif
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../patient/interfaces/patient.interface';
+import { AppError } from '../../../shared/errors/AppError';
+
+const CANCEL_CUTOFF_HOUR = 12;
+const CANCEL_CUTOFF_MINUTE = 0;
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
@@ -35,6 +42,7 @@ export class AppointmentService implements IAppointmentService {
   private queueNotificationService?: QueueNotificationService;
   private notificationJobScheduler?: INotificationJobScheduler;
   private patientRepository?: IPatientRepository;
+  private notificationSocketGateway?: INotificationSocketGateway;
 
   constructor(
     params: IParamsAppointmentService & {
@@ -42,6 +50,7 @@ export class AppointmentService implements IAppointmentService {
       queueNotificationService?: QueueNotificationService;
       notificationJobScheduler?: INotificationJobScheduler;
       patientRepository?: IPatientRepository;
+      notificationSocketGateway?: INotificationSocketGateway;
     },
   ) {
     this.appointmentRepository = params.appointmentRepository;
@@ -52,6 +61,7 @@ export class AppointmentService implements IAppointmentService {
     this.queueNotificationService = params.queueNotificationService;
     this.notificationJobScheduler = params.notificationJobScheduler;
     this.patientRepository = params.patientRepository;
+    this.notificationSocketGateway = params.notificationSocketGateway;
   }
 
   async createAppointment(
@@ -349,6 +359,126 @@ export class AppointmentService implements IAppointmentService {
         `Error updating appointment: ${(error as Error).message}`,
       );
     }
+  }
+
+  async cancelAppointment(
+    id: string,
+    requester: IAppointmentRequester,
+  ): Promise<IAppointment> {
+    const appointment = await this.appointmentRepository.getAppointmentById(
+      id,
+    );
+
+    if (!appointment) {
+      throw new AppError(404, 'Appointment not found');
+    }
+
+    if (!requester.isAdmin) {
+      const patient = await this.patientRepository?.getPatientByUserId(
+        requester.sub,
+      );
+
+      if (!patient || patient._id !== appointment.patientId) {
+        throw new AppError(403, 'Forbidden');
+      }
+    }
+
+    if (appointment.status !== EAppointmentStatus.SCHEDULED) {
+      throw new AppError(400, 'Esta consulta não pode mais ser cancelada');
+    }
+
+    if (!this.canCancelAppointment(new Date(appointment.dateTime))) {
+      throw new AppError(
+        400,
+        'O cancelamento só pode ser feito até meio-dia do dia anterior à consulta',
+      );
+    }
+
+    const updated = await this.updateAppointmentById(id, {
+      status: EAppointmentStatus.CANCELED,
+    });
+
+    if (appointment.queueItemId) {
+      await this.removeQueueItemAfterCancellation(appointment.queueItemId);
+    }
+
+    return updated!;
+  }
+
+  private canCancelAppointment(dateTime: Date, now: Date = new Date()): boolean {
+    const cutoff = new Date(dateTime);
+    cutoff.setDate(cutoff.getDate() - 1);
+    cutoff.setHours(CANCEL_CUTOFF_HOUR, CANCEL_CUTOFF_MINUTE, 0, 0);
+
+    return now.getTime() < cutoff.getTime();
+  }
+
+  /** Best-effort: the appointment is already canceled either way — a
+   * failure here should not undo the cancellation, just leave the queue
+   * item/queue in place for manual cleanup. */
+  private async removeQueueItemAfterCancellation(
+    queueItemId: string,
+  ): Promise<void> {
+    try {
+      const queueItem =
+        await this.queueItemRepository.getQueueItemById(queueItemId);
+
+      if (!queueItem || queueItem.status !== EQueueItemStatus.WAITING) {
+        return;
+      }
+
+      await this.queueItemRepository.deleteQueueItemById(queueItemId);
+
+      const remainingItems = await this.queueItemRepository.listQueueItems({
+        queueId: queueItem.queueId,
+      });
+
+      if (remainingItems.length === 0) {
+        await this.queueRepository.deleteQueueById(queueItem.queueId);
+        return;
+      }
+
+      await this.recalculateQueuePositions(queueItem.queueId);
+    } catch (error) {
+      console.error(
+        'Error removing queue item after appointment cancellation:',
+        error,
+      );
+    }
+  }
+
+  /** Mirrors QueueItemService's recalculatePositions: after a queue item is
+   * removed, the remaining WAITING items must be re-indexed so nobody keeps
+   * occupying a slot ahead of where they actually stand in line. */
+  private async recalculateQueuePositions(queueId: string): Promise<void> {
+    const waitingItems = (
+      await this.queueItemRepository.listQueueItems({ queueId })
+    )
+      .filter((item) => item.status === EQueueItemStatus.WAITING)
+      .sort((left, right) => left.position - right.position);
+
+    const changed: IQueueItem[] = [];
+    for (const [index, item] of waitingItems.entries()) {
+      const position = index + 1;
+      if (item.position !== position) {
+        const updatedItem = await this.queueItemRepository.updateQueueItemById(
+          item._id,
+          { position },
+        );
+        if (updatedItem) changed.push(updatedItem);
+      }
+    }
+
+    for (const item of changed) {
+      await this.queueNotificationService?.handleQueuePositionChange(item);
+    }
+
+    this.notificationSocketGateway?.broadcastNotification({
+      type: 'queue.updated',
+      queueId,
+      changedQueueItemIds: changed.map((item) => item._id),
+      connectedAt: new Date().toISOString(),
+    });
   }
 
   async deleteAppointmentById(id: string): Promise<IAppointment | null> {
