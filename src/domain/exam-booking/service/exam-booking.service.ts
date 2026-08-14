@@ -5,6 +5,7 @@ import { IExamAvailabilityRule } from '../../exam-availability/interfaces/exam-a
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IExamRepository } from '../../exam/repository/exam.repository.interface';
+import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IExamBookingRepository } from '../repository/exam-booking.repository.interface';
 import {
   EExamBookingCanceledBy,
@@ -33,6 +34,7 @@ export class ExamBookingService implements IExamBookingService {
   private patientRepository: IPatientRepository;
   private healthUnitRepository: IHealthUnitRepository;
   private examRepository: IExamRepository;
+  private userRepository: IUserRepository;
 
   constructor(params: IParamsExamBookingService) {
     this.examBookingRepository = params.examBookingRepository;
@@ -41,12 +43,28 @@ export class ExamBookingService implements IExamBookingService {
     this.patientRepository = params.patientRepository;
     this.healthUnitRepository = params.healthUnitRepository;
     this.examRepository = params.examRepository;
+    this.userRepository = params.userRepository;
   }
 
   private async assertOwnsHealthUnit(
     healthUnitId: string,
     requester: IExamBookingRequester,
   ) {
+    if (requester.isExamProfessional) {
+      if (requester.healthUnitId !== healthUnitId) {
+        throw new AppError(403, 'Forbidden');
+      }
+
+      const healthUnit =
+        await this.healthUnitRepository.getHealthUnitById(healthUnitId);
+
+      if (!healthUnit) {
+        throw new AppError(404, 'Health unit not found');
+      }
+
+      return healthUnit;
+    }
+
     if (!requester.isAdmin) {
       throw new AppError(403, 'Forbidden');
     }
@@ -119,17 +137,24 @@ export class ExamBookingService implements IExamBookingService {
   private async enrich(
     booking: IExamBooking,
   ): Promise<IExamBookingWithContext> {
-    const [offering, healthUnit] = await Promise.all([
+    const [offering, healthUnit, patient] = await Promise.all([
       this.examOfferingRepository.getExamOfferingById(
         booking.examOfferingId,
       ),
       this.healthUnitRepository.getHealthUnitById(booking.healthUnitId),
+      this.patientRepository.getPatientById(booking.patientId),
     ]);
+
+    const user = patient
+      ? await this.userRepository.findById(patient.userId)
+      : null;
 
     return {
       ...booking,
       examOfferingName: offering?.name ?? '',
       healthUnitName: healthUnit?.name ?? '',
+      patientName: user?.name ?? '',
+      patientCpf: patient?.cpf ?? '',
     };
   }
 
@@ -382,7 +407,12 @@ export class ExamBookingService implements IExamBookingService {
   async listBookingsByHealthUnitId(
     healthUnitId: string,
     requester: IExamBookingRequester,
-    filter: { date?: Date; status?: EExamBookingStatus },
+    filter: {
+      date?: Date;
+      startDate?: Date;
+      endDate?: Date;
+      status?: EExamBookingStatus;
+    },
   ): Promise<IExamBookingWithContext[]> {
     await this.assertOwnsHealthUnit(healthUnitId, requester);
 

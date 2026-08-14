@@ -44,4 +44,6 @@ export function isResultAvailable(booking: IExamBooking): boolean {
 export interface IExamBookingWithContext extends IExamBooking {
   examOfferingName: string;
   healthUnitName: string;
+  patientName: string;
+  patientCpf: string;
 }

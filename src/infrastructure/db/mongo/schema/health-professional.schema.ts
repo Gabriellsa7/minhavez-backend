@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
-import { IHealthProfessionalSchedule } from '../../../../domain/health-professional.ts/interfaces/health-professional.interface';
+import {
+  EHealthProfessionalType,
+  IHealthProfessionalSchedule,
+} from '../../../../domain/health-professional.ts/interfaces/health-professional.interface';
 
 const scheduleSchema = new mongoose.Schema(
   {
@@ -49,6 +52,12 @@ export const healthProfessionalSchema = new mongoose.Schema(
     specialty: {
       type: String,
       required: true,
+    },
+
+    type: {
+      type: String,
+      enum: Object.values(EHealthProfessionalType),
+      default: EHealthProfessionalType.GENERAL,
     },
 
     room: {
@@ -112,6 +121,7 @@ export interface IHealthProfessionalSchema {
   password: string;
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
+  type: EHealthProfessionalType;
   active: boolean;
   avatar?: string;
   createdAt: Date;

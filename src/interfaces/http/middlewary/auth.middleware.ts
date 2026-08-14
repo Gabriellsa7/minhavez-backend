@@ -78,6 +78,31 @@ export const authorize =
     next();
   };
 
+export const authorizeAdminOrHealthProfessional = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  const isAdmin =
+    req.user.principalType === EPrincipalType.USER &&
+    req.user.role === EUserRole.ADMIN;
+
+  const isHealthProfessional =
+    req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL;
+
+  if (!isAdmin && !isHealthProfessional) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
 export const authorizePrincipalTypes =
   (...principalTypes: EPrincipalType[]) =>
   (req: Request, res: Response, next: NextFunction) => {

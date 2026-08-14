@@ -1,4 +1,5 @@
 import {
+  EHealthProfessionalType,
   IHealthProfessional,
   IHealthProfessionalSchedule,
 } from '../interfaces/health-professional.interface';
@@ -13,6 +14,7 @@ export interface IParamsCreateHealthProfessional {
   professionalLicense: string;
   room: string;
   schedule: IHealthProfessionalSchedule;
+  type?: EHealthProfessionalType;
 }
 
 export interface IParamsUpdateHealthProfessional {

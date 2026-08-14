@@ -129,6 +129,8 @@ export class AuthService implements IAuthService {
         email: professional.email,
         name: professional.name,
         principalType: EPrincipalType.HEALTH_PROFESSIONAL,
+        healthProfessionalType: professional.type,
+        healthUnitId: professional.healthUnitId,
       };
 
       const { accessToken, refreshToken, expiresIn } =
@@ -145,6 +147,8 @@ export class AuthService implements IAuthService {
           id: professional._id.toString(),
           name: professional.name,
           email: professional.email,
+          healthProfessionalType: professional.type,
+          healthUnitId: professional.healthUnitId,
         },
       };
     }
@@ -188,6 +192,9 @@ export class AuthService implements IAuthService {
           email: professional.email,
 
           principalType: EPrincipalType.HEALTH_PROFESSIONAL,
+
+          healthProfessionalType: professional.type,
+          healthUnitId: professional.healthUnitId,
         };
       } else {
         const user = await this.userRepository.findById(decoded.sub);
@@ -224,6 +231,8 @@ export class AuthService implements IAuthService {
           name: principal.name,
           email: principal.email,
           role: payload.role,
+          healthProfessionalType: payload.healthProfessionalType,
+          healthUnitId: payload.healthUnitId,
         },
       };
     } catch {

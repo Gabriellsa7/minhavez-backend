@@ -1,6 +1,9 @@
 import { HydratedDocument, FilterQuery } from 'mongoose';
 import { IHealthProfessionalSchema } from '../../db/mongo/schema/health-professional.schema';
-import { IHealthProfessional } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
+import {
+  EHealthProfessionalType,
+  IHealthProfessional,
+} from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 import {
   IParamsCreateHealthProfessional,
   IParamsUpdateHealthProfessional,
@@ -25,6 +28,7 @@ export class HealthProfessionalRepository
       room: healthProfessionalDoc.room,
       password: healthProfessionalDoc.password,
       professionalLicense: healthProfessionalDoc.professionalLicense,
+      type: healthProfessionalDoc.type,
       active: healthProfessionalDoc.active,
       avatar: healthProfessionalDoc.avatar,
       schedule: healthProfessionalDoc.schedule,
@@ -157,6 +161,7 @@ export class HealthProfessionalRepository
         room: professional.room,
         password: professional.password,
         professionalLicense: professional.professionalLicense,
+        type: professional.type,
         schedule: professional.schedule,
         active: professional.active,
         avatar: professional.avatar,
@@ -214,6 +219,15 @@ export class HealthProfessionalRepository
       }
       if (filter.userId) {
         mongoFilter.userId = filter.userId;
+      }
+
+      if (filter.type) {
+        mongoFilter.type = filter.type;
+      } else {
+        // Exam professionals don't take regular consultations — this listing
+        // backs the patient-facing "pick a professional to book" screens, so
+        // they must be excluded unless a caller explicitly asks for a type.
+        mongoFilter.type = { $ne: EHealthProfessionalType.EXAM_PROFESSIONAL };
       }
 
       if (search) {

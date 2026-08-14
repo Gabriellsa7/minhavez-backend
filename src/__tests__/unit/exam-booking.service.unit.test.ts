@@ -158,6 +158,10 @@ function buildService(overrides?: {
     setExamBookingId: jest.fn(),
   };
 
+  const userRepository = {
+    findById: jest.fn(async () => ({ _id: 'user-1', name: 'John Doe' })),
+  };
+
   const service = new ExamBookingService({
     examBookingRepository: examBookingRepository as never,
     examOfferingRepository: examOfferingRepository as never,
@@ -165,13 +169,14 @@ function buildService(overrides?: {
     patientRepository: patientRepository as never,
     healthUnitRepository: healthUnitRepository as never,
     examRepository: examRepository as never,
+    userRepository: userRepository as never,
   });
 
   return { service, examBookingRepository, scheduledAt };
 }
 
 describe('ExamBookingService.createBooking', () => {
-  const requester = { sub: 'user-1', isAdmin: false };
+  const requester = { sub: 'user-1', isAdmin: false, isExamProfessional: false };
 
   it('books a valid future slot successfully', async () => {
     const { service, scheduledAt } = buildService();
@@ -283,7 +288,7 @@ describe('ExamBookingService.createBooking', () => {
     await expect(
       service.createBooking(
         { healthUnitId: 'unit-1', examOfferingId: 'offering-1', scheduledAt },
-        { sub: 'admin-1', isAdmin: true },
+        { sub: 'admin-1', isAdmin: true, isExamProfessional: false },
       ),
     ).rejects.toMatchObject({ status: 403 });
   });
@@ -323,7 +328,7 @@ describe('ExamBookingService status transitions', () => {
       service.updateStatus(
         'booking-1',
         EExamBookingStatus.IN_PROGRESS,
-        { sub: 'user-1', isAdmin: false },
+        { sub: 'user-1', isAdmin: false, isExamProfessional: false },
       ),
     ).rejects.toMatchObject({ status: 403 });
   });
@@ -336,6 +341,7 @@ describe('ExamBookingService status transitions', () => {
     await service.updateStatus('booking-1', EExamBookingStatus.IN_PROGRESS, {
       sub: 'admin-1',
       isAdmin: true,
+      isExamProfessional: false,
     });
 
     examBookingRepository.getExamBookingById.mockResolvedValue({
@@ -346,7 +352,7 @@ describe('ExamBookingService status transitions', () => {
     const completed = await service.updateStatus(
       'booking-1',
       EExamBookingStatus.COMPLETED,
-      { sub: 'admin-1', isAdmin: true },
+      { sub: 'admin-1', isAdmin: true, isExamProfessional: false },
     );
 
     expect(completed.status).toBe(EExamBookingStatus.COMPLETED);
@@ -362,6 +368,7 @@ describe('ExamBookingService status transitions', () => {
       service.updateStatus('booking-1', EExamBookingStatus.IN_PROGRESS, {
         sub: 'admin-1',
         isAdmin: true,
+        isExamProfessional: false,
       }),
     ).rejects.toMatchObject({ status: 400 });
   });
@@ -373,7 +380,7 @@ describe('ExamBookingService status transitions', () => {
     });
 
     await expect(
-      service.cancelBooking('booking-1', { sub: 'user-1', isAdmin: false }),
+      service.cancelBooking('booking-1', { sub: 'user-1', isAdmin: false, isExamProfessional: false }),
     ).rejects.toMatchObject({ status: 400 });
   });
 });

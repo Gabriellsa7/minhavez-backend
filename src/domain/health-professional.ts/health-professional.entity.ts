@@ -1,4 +1,5 @@
 import {
+  EHealthProfessionalType,
   IHealthProfessional,
   IHealthProfessionalSchedule,
 } from './interfaces/health-professional.interface';
@@ -14,6 +15,7 @@ export class HealthProfessional implements IHealthProfessional {
   room: string;
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
+  type: EHealthProfessionalType;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +31,7 @@ export class HealthProfessional implements IHealthProfessional {
     this.room = data.room;
     this.schedule = data.schedule;
     this.professionalLicense = data.professionalLicense;
+    this.type = data.type;
     this.active = data.active;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;

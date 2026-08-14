@@ -3,6 +3,7 @@ import { IExamAvailabilityRepository } from '../../exam-availability/repository/
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IExamRepository } from '../../exam/repository/exam.repository.interface';
+import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IExamBookingRepository } from '../repository/exam-booking.repository.interface';
 import {
   EExamBookingStatus,
@@ -16,6 +17,7 @@ export interface IParamsExamBookingService {
   patientRepository: IPatientRepository;
   healthUnitRepository: IHealthUnitRepository;
   examRepository: IExamRepository;
+  userRepository: IUserRepository;
 }
 
 export interface IParamsCreateExamBooking {
@@ -28,6 +30,8 @@ export interface IParamsCreateExamBooking {
 export interface IExamBookingRequester {
   sub: string;
   isAdmin: boolean;
+  isExamProfessional: boolean;
+  healthUnitId?: string;
 }
 
 export interface IExamSlotAvailability {
@@ -66,7 +70,12 @@ export interface IExamBookingService {
   listBookingsByHealthUnitId(
     healthUnitId: string,
     requester: IExamBookingRequester,
-    filter: { date?: Date; status?: EExamBookingStatus },
+    filter: {
+      date?: Date;
+      startDate?: Date;
+      endDate?: Date;
+      status?: EExamBookingStatus;
+    },
   ): Promise<IExamBookingWithContext[]>;
   getAvailableSlots(
     healthUnitId: string,

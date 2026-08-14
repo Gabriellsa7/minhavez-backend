@@ -60,14 +60,19 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
       if (!rule.slotDurationMinutes || rule.slotDurationMinutes <= 0) {
         throw new AppError(400, 'slotDurationMinutes must be greater than 0');
       }
-      if (!rule.capacityPerSlot || rule.capacityPerSlot <= 0) {
-        throw new AppError(400, 'capacityPerSlot must be greater than 0');
-      }
     }
+
+    // Exams only ever have one patient per time slot — there's no queue and
+    // no shared room the way regular appointments have, so capacity is not
+    // admin-configurable, unlike what the field name might suggest.
+    const singleCapacityRules = rules.map((rule) => ({
+      ...rule,
+      capacityPerSlot: 1,
+    }));
 
     return this.examAvailabilityRepository.replaceRulesForHealthUnit(
       healthUnitId,
-      rules,
+      singleCapacityRules,
     );
   }
 

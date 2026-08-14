@@ -177,6 +177,32 @@ export class ExamBookingRepository implements IExamBookingRepository {
         const end = new Date(start);
         end.setUTCDate(end.getUTCDate() + 1);
         mongoFilter.scheduledAt = { $gte: start, $lt: end };
+      } else if (filter.startDate || filter.endDate) {
+        const scheduledAt: Record<string, Date> = {};
+
+        if (filter.startDate) {
+          scheduledAt.$gte = new Date(
+            Date.UTC(
+              filter.startDate.getUTCFullYear(),
+              filter.startDate.getUTCMonth(),
+              filter.startDate.getUTCDate(),
+            ),
+          );
+        }
+
+        if (filter.endDate) {
+          const end = new Date(
+            Date.UTC(
+              filter.endDate.getUTCFullYear(),
+              filter.endDate.getUTCMonth(),
+              filter.endDate.getUTCDate(),
+            ),
+          );
+          end.setUTCDate(end.getUTCDate() + 1);
+          scheduledAt.$lt = end;
+        }
+
+        mongoFilter.scheduledAt = scheduledAt;
       }
 
       const docs = await MExamBooking.find(mongoFilter).sort({

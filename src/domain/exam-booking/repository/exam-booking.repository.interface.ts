@@ -26,6 +26,8 @@ export interface IParamsUpdateExamBooking {
 
 export interface IListExamBookingsByHealthUnitFilter {
   date?: Date;
+  startDate?: Date;
+  endDate?: Date;
   status?: EExamBookingStatus;
 }
 

@@ -5,9 +5,14 @@ import {
   IExamBookingService,
 } from '../../../domain/exam-booking/interfaces/exam-booking.service.interface';
 import { EExamBookingStatus } from '../../../domain/exam-booking/interfaces/exam-booking.interface';
-import { authMiddleware, authorize } from '../middlewary/auth.middleware';
+import {
+  authMiddleware,
+  authorize,
+  authorizeAdminOrHealthProfessional,
+} from '../middlewary/auth.middleware';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
+import { EHealthProfessionalType } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 import { AppError } from '../../../shared/errors/AppError';
 
 export class ExamBookingController implements IController {
@@ -45,7 +50,7 @@ export class ExamBookingController implements IController {
     this.router.get(
       '/health-units/:id/exam-bookings',
       authMiddleware,
-      authorize(EUserRole.ADMIN),
+      authorizeAdminOrHealthProfessional,
       this.listBookingsByHealthUnit,
     );
     this.router.patch(
@@ -62,7 +67,7 @@ export class ExamBookingController implements IController {
     this.router.patch(
       '/exam-bookings/:id/status',
       authMiddleware,
-      authorize(EUserRole.ADMIN),
+      authorizeAdminOrHealthProfessional,
       this.updateStatus,
     );
     this.router.patch(
@@ -75,20 +80,37 @@ export class ExamBookingController implements IController {
 
   private toRequester(req: Request): IExamBookingRequester {
     const user = req.user!;
+    const isHealthProfessional =
+      user.principalType === EPrincipalType.HEALTH_PROFESSIONAL;
+
     return {
       sub: user.sub,
       isAdmin:
         user.principalType === EPrincipalType.USER &&
         user.role === EUserRole.ADMIN,
+      isExamProfessional:
+        isHealthProfessional &&
+        user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL,
+      healthUnitId: isHealthProfessional ? user.healthUnitId : undefined,
     };
   }
 
-  private handleError(res: Response, error: unknown): void {
+  private handleError(req: Request, res: Response, error: unknown): void {
     if (error instanceof AppError) {
-      res.status(error.status).json({ message: error.message });
+      res.status(error.status).json({
+        status: error.status,
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+      });
       return;
     }
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({
+      status: 500,
+      message: (error as Error).message,
+      timestamp: new Date().toISOString(),
+      path: req.originalUrl,
+    });
   }
 
   getAvailableSlots = async (
@@ -103,7 +125,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json({ date: req.query.date, slots });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -120,7 +142,7 @@ export class ExamBookingController implements IController {
       );
       res.status(201).json(booking);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -135,7 +157,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json(booking);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -150,7 +172,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json(bookings);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -164,12 +186,18 @@ export class ExamBookingController implements IController {
         this.toRequester(req),
         {
           date: req.query.date ? new Date(req.query.date as string) : undefined,
+          startDate: req.query.startDate
+            ? new Date(req.query.startDate as string)
+            : undefined,
+          endDate: req.query.endDate
+            ? new Date(req.query.endDate as string)
+            : undefined,
           status: req.query.status as EExamBookingStatus | undefined,
         },
       );
       res.status(200).json(bookings);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -185,7 +213,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json(booking);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -201,7 +229,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json(booking);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -217,7 +245,7 @@ export class ExamBookingController implements IController {
       );
       res.status(200).json(booking);
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 
@@ -233,7 +261,7 @@ export class ExamBookingController implements IController {
       );
       res.status(204).send();
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(req, res, error);
     }
   };
 

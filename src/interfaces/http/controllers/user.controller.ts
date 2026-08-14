@@ -142,6 +142,8 @@ export class UserController implements IController {
         avatar: dbUser?.avatar ?? null,
         principalType: user.principalType,
         role: dbUser?.role ?? user.role,
+        healthProfessionalType: user.healthProfessionalType,
+        healthUnitId: user.healthUnitId,
       });
     } catch (error) {
       res.status(500).json({

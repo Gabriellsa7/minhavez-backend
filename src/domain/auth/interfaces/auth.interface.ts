@@ -1,4 +1,5 @@
 import { EUserRole } from '../../user/interfaces/user.interface';
+import { EHealthProfessionalType } from '../../health-professional.ts/interfaces/health-professional.interface';
 
 export interface ILoginRequest {
   email: string;
@@ -20,6 +21,8 @@ export interface IAuthPrincipal {
   name: string;
   email: string;
   role?: EUserRole;
+  healthProfessionalType?: EHealthProfessionalType;
+  healthUnitId?: string;
 }
 
 export interface IAuthTokenResponse {
@@ -38,6 +41,9 @@ export interface IAuthPayload {
   principalType: EPrincipalType;
 
   role?: EUserRole;
+
+  healthProfessionalType?: EHealthProfessionalType;
+  healthUnitId?: string;
 
   iat?: number;
   exp?: number;

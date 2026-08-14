@@ -1,3 +1,8 @@
+export enum EHealthProfessionalType {
+  GENERAL = 'GENERAL',
+  EXAM_PROFESSIONAL = 'EXAM_PROFESSIONAL',
+}
+
 export interface IHealthProfessional {
   _id: string;
   userId: string;
@@ -9,6 +14,7 @@ export interface IHealthProfessional {
   room: string;
   schedule: IHealthProfessionalSchedule;
   professionalLicense: string;
+  type: EHealthProfessionalType;
   active: boolean;
   avatar?: string;
   createdAt: Date;
