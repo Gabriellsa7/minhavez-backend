@@ -9,6 +9,10 @@ const OPEN_API_SPEC_FILE_LOCATION = path.resolve(
 );
 
 import 'dotenv/config';
+import { configurePapertrailLogging } from './infrastructure/logging/configure-papertrail';
+
+configurePapertrailLogging();
+
 import { HealthUnitControllerFactory } from './infrastructure/config/factories/health-unit/health-unit.controller.factory';
 import { PatientControllerFactory } from './infrastructure/config/factories/patient/patient.controller.factory';
 import { HealthProfessionalControllerFactory } from './infrastructure/config/factories/health-professional/health-professional.controller.factory';
