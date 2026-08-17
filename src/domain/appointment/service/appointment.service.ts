@@ -23,6 +23,8 @@ import {
 } from '../interfaces/appointment.service.interface';
 import { getQueueShift } from '../../../shared/utils/getQueueShift';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
+import { isHealthUnitOpenAt } from '../../health-unit/utils/opening-hours.util';
 import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
@@ -38,6 +40,7 @@ export class AppointmentService implements IAppointmentService {
   private queueRepository: IQueueRepository;
   private queueItemRepository: IQueueItemRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private healthUnitRepository: IHealthUnitRepository;
   private appointmentReminderService?: AppointmentReminderService;
   private queueNotificationService?: QueueNotificationService;
   private notificationJobScheduler?: INotificationJobScheduler;
@@ -57,6 +60,7 @@ export class AppointmentService implements IAppointmentService {
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
     this.healthProfessionalRepository = params.professionalRepository;
+    this.healthUnitRepository = params.healthUnitRepository;
     this.appointmentReminderService = params.appointmentReminderService;
     this.queueNotificationService = params.queueNotificationService;
     this.notificationJobScheduler = params.notificationJobScheduler;
@@ -95,6 +99,20 @@ export class AppointmentService implements IAppointmentService {
 
       if (!professional) {
         throw new Error('Health professional not found');
+      }
+
+      const healthUnit = await this.healthUnitRepository.getHealthUnitById(
+        params.healthUnitId,
+      );
+
+      if (!healthUnit) {
+        throw new Error('Health unit not found');
+      }
+
+      if (!isHealthUnitOpenAt(healthUnit.openingHours, appointmentDateTime)) {
+        throw new Error(
+          'This health unit is closed at the selected date and time',
+        );
       }
 
       const duration = professional.schedule.appointmentDuration;

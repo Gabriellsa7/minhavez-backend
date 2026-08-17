@@ -1,6 +1,5 @@
 ## **Tasks**
 
-- Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
 
@@ -33,3 +32,4 @@
 - Configurar papertrail.
 - Implementar uma forma de permitir o user sobreescrever o Theme do SO exemplo: O SO dele ta em modo claro mas ele quer o app em modo escura ai ele aperta em um botão la em profile e muda o thema pra escuro.
 - Alterar a mostragem da data de nascimento para DD/MM/AAAA pois é o padrão do Brasil.
+- Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.

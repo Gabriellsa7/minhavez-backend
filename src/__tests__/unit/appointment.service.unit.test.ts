@@ -21,6 +21,27 @@ import { IHealthProfessionalRepository } from '../../domain/health-professional.
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
 import { IPatientRepository } from '../../domain/patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../domain/patient/interfaces/patient.interface';
+import { IHealthUnitRepository } from '../../domain/health-unit/repository/health-unit.repository.interface';
+import { IHealthUnit, WeekDay } from '../../domain/health-unit/interfaces/health-unit.interface';
+
+/** Open every day, all day, so existing tests (which don't exercise
+ * operating-hours validation) keep passing regardless of the appointment
+ * dateTime they use. */
+function buildOpenAllDayHealthUnitRepository(): IHealthUnitRepository {
+  const healthUnit: Partial<IHealthUnit> = {
+    _id: 'unit-1',
+    openingHours: Object.values(WeekDay).map((day) => ({
+      day,
+      open: '00:00',
+      close: '23:59',
+      isClosed: false,
+    })),
+  };
+
+  return {
+    getHealthUnitById: jest.fn().mockResolvedValue(healthUnit),
+  } as unknown as IHealthUnitRepository;
+}
 
 describe('AppointmentService', () => {
   it('should allow creating an appointment when the only matching booking is completed', async () => {
@@ -107,6 +128,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
     });
 
     const params: IParamsCreateAppointment = {
@@ -181,6 +203,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
       patientRepository,
     });
 
@@ -250,6 +273,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
       patientRepository,
     });
 
@@ -319,6 +343,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
       queueNotificationService,
     });
 
@@ -385,6 +410,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
       queueNotificationService,
     });
 
@@ -473,6 +499,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
     });
 
     await service.createAppointment({
@@ -545,6 +572,7 @@ describe('AppointmentService', () => {
       queueRepository,
       queueItemRepository,
       professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
     });
 
     await expect(
@@ -557,6 +585,143 @@ describe('AppointmentService', () => {
         originQueueItemId: 'origin-queue-item-id',
       }),
     ).resolves.toMatchObject({ _id: 'new-return-id' });
+  });
+
+  describe('createAppointment - health unit operating hours', () => {
+    const buildDeps = (openingHours: IHealthUnit['openingHours']) => {
+      const repository = {
+        listAppointments: jest.fn().mockResolvedValue([]),
+        createAppointment: jest.fn().mockResolvedValue({
+          _id: 'new-id',
+          status: EAppointmentStatus.SCHEDULED,
+        }),
+      } as unknown as IAppointmentRepository;
+
+      const queueRepository = {
+        listQueues: jest.fn().mockResolvedValue([]),
+        createQueue: jest.fn().mockResolvedValue({
+          _id: 'queue-1',
+          professionalId: 'professional-1',
+          healthUnitId: 'unit-1',
+          status: EQueueStatus.OPEN,
+          shift: EQueueShift.MORNING,
+          queueDate: new Date(),
+        }),
+      } as unknown as IQueueRepository;
+
+      const queueItemRepository = {
+        listQueueItems: jest.fn().mockResolvedValue([]),
+        createQueueItem: jest.fn().mockResolvedValue({
+          _id: 'queue-item-1',
+          queueId: 'queue-1',
+          patientId: 'patient-1',
+          position: 1,
+          priority: EQueueItemPriority.MEDIUM,
+          status: EQueueItemStatus.WAITING,
+        }),
+      } as unknown as IQueueItemRepository;
+
+      const professionalRepository = {
+        getHealthProfessionalById: jest.fn().mockResolvedValue({
+          _id: 'professional-1',
+          schedule: { appointmentDuration: 30 },
+        }),
+      } as unknown as IHealthProfessionalRepository;
+
+      const healthUnitRepository = {
+        getHealthUnitById: jest.fn().mockResolvedValue({
+          _id: 'unit-1',
+          openingHours,
+        } as Partial<IHealthUnit>),
+      } as unknown as IHealthUnitRepository;
+
+      return new AppointmentService({
+        appointmentRepository: repository,
+        queueRepository,
+        queueItemRepository,
+        professionalRepository,
+        healthUnitRepository,
+      });
+    };
+
+    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
+    const params: IParamsCreateAppointment = {
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date('2026-07-06T13:00:00.000Z'),
+    };
+
+    it('rejects a booking on a day the health unit is closed', async () => {
+      const service = buildDeps([
+        { day: WeekDay.MONDAY, open: '08:00', close: '18:00', isClosed: true },
+      ]);
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'This health unit is closed at the selected date and time',
+      );
+    });
+
+    it('rejects a booking before the health unit opens', async () => {
+      const service = buildDeps([
+        { day: WeekDay.MONDAY, open: '13:00', close: '18:00', isClosed: false },
+      ]);
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'This health unit is closed at the selected date and time',
+      );
+    });
+
+    it('rejects a booking at or after the health unit closes', async () => {
+      const service = buildDeps([
+        { day: WeekDay.MONDAY, open: '08:00', close: '10:00', isClosed: false },
+      ]);
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'This health unit is closed at the selected date and time',
+      );
+    });
+
+    it('allows a booking within the health unit operating hours', async () => {
+      const service = buildDeps([
+        { day: WeekDay.MONDAY, open: '08:00', close: '18:00', isClosed: false },
+      ]);
+
+      await expect(service.createAppointment(params)).resolves.toMatchObject({
+        _id: 'new-id',
+        status: EAppointmentStatus.SCHEDULED,
+      });
+    });
+
+    it('rejects when the health unit does not exist', async () => {
+      const healthUnitRepository = {
+        getHealthUnitById: jest.fn().mockResolvedValue(null),
+      } as unknown as IHealthUnitRepository;
+
+      const repository = {
+        listAppointments: jest.fn().mockResolvedValue([]),
+        createAppointment: jest.fn(),
+      } as unknown as IAppointmentRepository;
+
+      const professionalRepository = {
+        getHealthProfessionalById: jest.fn().mockResolvedValue({
+          _id: 'professional-1',
+          schedule: { appointmentDuration: 30 },
+        }),
+      } as unknown as IHealthProfessionalRepository;
+
+      const service = new AppointmentService({
+        appointmentRepository: repository,
+        queueRepository: {} as IQueueRepository,
+        queueItemRepository: {} as IQueueItemRepository,
+        professionalRepository,
+        healthUnitRepository,
+      });
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'Health unit not found',
+      );
+    });
   });
 
   describe('cancelAppointment', () => {
@@ -617,6 +782,7 @@ describe('AppointmentService', () => {
         queueRepository,
         queueItemRepository,
         professionalRepository: {} as IHealthProfessionalRepository,
+        healthUnitRepository: {} as IHealthUnitRepository,
         patientRepository,
       });
 

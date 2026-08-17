@@ -7,11 +7,13 @@ import { IQueueRepository } from '../../queue/repository/queue.repository.interf
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IAppointment } from './appointment.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 export interface IParamsAppointmentService {
   appointmentRepository: IAppointmentRepository;
   queueRepository: IQueueRepository;
   queueItemRepository: IQueueItemRepository;
   professionalRepository: IHealthProfessionalRepository;
+  healthUnitRepository: IHealthUnitRepository;
 }
 
 export interface IAppointmentRequester {
