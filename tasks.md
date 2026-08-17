@@ -2,8 +2,8 @@
 
 - Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
-- Configurar papertrail.
-- Adicionar modo escuro com base no dispositivo da pessoa.
+- Alterar a mostragem da data de nascimento para DD/MM/AAAA pois é o padrão do Brasil.
+- Criar alertas de erro no papertrail pra vir pro meu email.
 
 ## Done:
 
@@ -30,3 +30,6 @@
 - Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN para que eles possam mandar para o medico e pro USer como é feito atualmente, ou seja será uma nova tela pra isso. - DONE
 - Criar tela do ver todos em serviços oferecidos - DONE
 - Toda mensagem de erro e textos que tiver em ingles por em portugues - DONE
+- Implement Dark theme based on user SO
+- Configurar papertrail.
+- Implementar uma forma de permitir o user sobreescrever o Theme do SO exemplo: O SO dele ta em modo claro mas ele quer o app em modo escura ai ele aperta em um botão la em profile e muda o thema pra escuro.
