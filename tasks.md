@@ -1,10 +1,9 @@
 ## **Tasks**
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
-- Implementar uma nova tela pra listar todas as configs de Profile tipo um mais configurações ou configurações deixando em perfil so a imagem e nove, informções pessoas, informações de saude novo card que tem o design no figma e ver notificações e sair da conta.
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Implementar a opção do paciente editar sua prioridade em profile, pois atualmente ele não pode editar e pode acontecer de em algum momento da vide ele ter algum problema e entar em prioridade ele ter alguma prioridade.
 - Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso. Pois no fluxo atual não há nada que separe isso, o que pode dificultar para a futura implementação do gamification.
+- Implementar na raiz do projeto do front, vars.scss e por todas as cores la de forma separadas usando o padrão: `$primary` e etc.
 
 ## Implementação Futura
 
@@ -43,3 +42,5 @@
 - Melhorar o sistema de cadastrar alguem com prioridade de atendimento, atualmente todo usuario quando cadastrado fica como normal, preciso que adicione ele em prioritario assim que se cadastrar e sua idade for maior que 60, colocar nova opção da hora do cadastro com dados baseados no meu enum do back no contrato pra ele selecionar se ele tem alguma coisa ou não usando um dropdown com os dados do enum pra que ele possa entrar em prioridade. - DONE
 - No sistema de prioridade no dropdown por doenças cronicas ou algo assim ao selecionar esse opção aparecer uma mensagemzinha abaixo dela em amarelo dizendo pra levar comprovante no dia ou anexar em perfil o comprovante olgo nesse estilo de texto coloque o mais recomendado. - DONE
 - Criar nova tela em profile pra ele anexar PDF ou imagem do comprovante de exame de alguma doença que ele tenha, nessa tela ele tbm vai por informações como tipo sanguineo e etc não é obrigatorio pois nem todos sabem tipo sanguineo e etc ai lembre de modificar a mensagem em amarelo no modal de cadastro de paciente pra que agora tenha a info dele fazer o upload . - DONE
+- Implementar a opção do paciente editar sua prioridade em profile, pois atualmente ele não pode editar e pode acontecer de em algum momento da vida ele ter algum problema e entar em prioridade. - DONE
+- Implementar uma nova tela que ira ficar todas as configs de Profile tipo um mais configurações ou configurações ja que atualmente tem varios buttons de navegação em profile, deixando em perfil so a imagem e nome, informções pessoas, informações de saude novo card que tem o design no figma e ver notificações e sair da conta.
