@@ -75,3 +75,67 @@ describe('PatientService.createPatient', () => {
     ).rejects.toThrow('A patient with this user ID already exists');
   });
 });
+
+describe('PatientService.updatePatientById', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('forces ELDERLY priority when the existing patient is older than 60', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
+    const { service, patientRepository } = buildService({
+      getPatientById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'patient-1', birthDate: '1960-01-01' }),
+      updatePatientById: jest
+        .fn()
+        .mockImplementation((_id, params) =>
+          Promise.resolve({ _id, medicalDocuments: [], ...params }),
+        ),
+    });
+
+    const patient = await service.updatePatientById('patient-1', {
+      priority: EPatientPriority.CHRONIC_CONDITION,
+    });
+
+    expect(patient?.priority).toBe(EPatientPriority.ELDERLY);
+    expect(patientRepository.updatePatientById).toHaveBeenCalledWith(
+      'patient-1',
+      expect.objectContaining({ priority: EPatientPriority.ELDERLY }),
+    );
+  });
+
+  it('keeps the selected priority reason when the existing patient is 60 or younger', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
+    const { service } = buildService({
+      getPatientById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'patient-1', birthDate: '2000-01-01' }),
+      updatePatientById: jest
+        .fn()
+        .mockImplementation((_id, params) =>
+          Promise.resolve({ _id, medicalDocuments: [], ...params }),
+        ),
+    });
+
+    const patient = await service.updatePatientById('patient-1', {
+      priority: EPatientPriority.PREGNANT,
+    });
+
+    expect(patient?.priority).toBe(EPatientPriority.PREGNANT);
+  });
+
+  it('does not look up the patient when priority is not part of the update', async () => {
+    const { service, patientRepository } = buildService({
+      updatePatientById: jest
+        .fn()
+        .mockImplementation((_id, params) =>
+          Promise.resolve({ _id, medicalDocuments: [], ...params }),
+        ),
+    });
+
+    await service.updatePatientById('patient-1', { phone: '11988887777' });
+
+    expect(patientRepository.getPatientById).not.toHaveBeenCalled();
+  });
+});

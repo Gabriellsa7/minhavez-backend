@@ -103,9 +103,21 @@ export class PatientService implements IPatientService {
     params: IParamsUpdatePatient,
   ): Promise<IPatient | null> {
     try {
+      const updateParams = { ...params };
+
+      if (updateParams.priority !== undefined) {
+        const birthDate =
+          updateParams.birthDate ??
+          (await this.patientRepository.getPatientById(_id))?.birthDate;
+
+        if (birthDate && calculateAge(birthDate) > ELDERLY_AGE_THRESHOLD) {
+          updateParams.priority = EPatientPriority.ELDERLY;
+        }
+      }
+
       const patient = await this.patientRepository.updatePatientById(
         _id,
-        params,
+        updateParams,
       );
 
       if (!patient) {

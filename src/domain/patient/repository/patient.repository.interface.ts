@@ -8,9 +8,7 @@ export interface IParamsCreatePatient {
   priority: string;
 }
 
-export interface IParamsUpdatePatient {
-  patientData: Partial<IPatient>;
-}
+export type IParamsUpdatePatient = Partial<IPatient>;
 
 export interface IPatientRepository {
   createPatient(patientData: IParamsCreatePatient): Promise<IPatient>;
