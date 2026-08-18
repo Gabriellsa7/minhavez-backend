@@ -1,6 +1,9 @@
 import { HydratedDocument } from 'mongoose';
 import { IPatientSchema } from '../../db/mongo/schema/patient.schema';
-import { IPatient } from '../../../domain/patient/interfaces/patient.interface';
+import {
+  IPatient,
+  IPatientMedicalDocument,
+} from '../../../domain/patient/interfaces/patient.interface';
 import {
   IParamsCreatePatient,
   IParamsUpdatePatient,
@@ -17,6 +20,18 @@ export class PatientRepository implements IPatientRepository {
       birthDate: patientDoc.birthDate,
       priority: patientDoc.priority,
       phone: patientDoc.phone,
+      bloodType: patientDoc.bloodType,
+      allergies: patientDoc.allergies,
+      medicalObservations: patientDoc.medicalObservations,
+      medicalDocuments: (patientDoc.medicalDocuments ?? []).map((doc) => ({
+        _id: doc._id.toString(),
+        filePublicId: doc.filePublicId,
+        fileFormat: doc.fileFormat,
+        fileName: doc.fileName,
+        mimeType: doc.mimeType,
+        fileSize: doc.fileSize,
+        uploadedAt: doc.uploadedAt,
+      })),
       createdAt: patientDoc.createdAt,
       updatedAt: patientDoc.updatedAt,
     };
@@ -106,6 +121,48 @@ export class PatientRepository implements IPatientRepository {
       return patientDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing patients: ${(error as Error).message}`);
+    }
+  }
+
+  async addMedicalDocument(
+    patientId: string,
+    document: Omit<IPatientMedicalDocument, '_id'>,
+  ): Promise<IPatient | null> {
+    try {
+      const patientDoc = await MPatient.findByIdAndUpdate(
+        patientId,
+        { $push: { medicalDocuments: document } },
+        { new: true },
+      );
+
+      if (!patientDoc) return null;
+
+      return this.mapToDomain(patientDoc);
+    } catch (error) {
+      throw new Error(
+        `Error adding medical document: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async removeMedicalDocument(
+    patientId: string,
+    documentId: string,
+  ): Promise<IPatient | null> {
+    try {
+      const patientDoc = await MPatient.findByIdAndUpdate(
+        patientId,
+        { $pull: { medicalDocuments: { _id: documentId } } },
+        { new: true },
+      );
+
+      if (!patientDoc) return null;
+
+      return this.mapToDomain(patientDoc);
+    } catch (error) {
+      throw new Error(
+        `Error removing medical document: ${(error as Error).message}`,
+      );
     }
   }
 }

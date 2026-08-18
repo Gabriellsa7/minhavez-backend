@@ -592,7 +592,9 @@ paths:
         - Patients
       summary: Update a patient
       operationId: updatePatient
-      description: Update the information of an existing patient by ID.
+      description: Update the information of an existing patient by ID. Restricted to the patient themself.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -619,6 +621,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to update this patient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Patient not found
           content:
@@ -653,6 +667,171 @@ paths:
                 $ref: '#/components/schemas/SuccessMessage'
         '404':
           description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{id}/documents:
+    post:
+      tags:
+        - Patients
+      summary: Attach a medical proof document to a patient
+      operationId: uploadPatientMedicalDocument
+      description: Patient self-uploads a PDF or image (e.g. proof of a chronic condition/disease) securely. Restricted to the patient themself.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadPatientMedicalDocument'
+      responses:
+        '201':
+          description: Document attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        '400':
+          description: Bad request (unsupported file type or file too large)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to update this patient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{id}/documents/{documentId}:
+    delete:
+      tags:
+        - Patients
+      summary: Remove a medical proof document from a patient
+      operationId: removePatientMedicalDocument
+      description: Restricted to the patient themself.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the patient
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the medical document
+      responses:
+        '200':
+          description: Document removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to update this patient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Patient or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{id}/documents/{documentId}/download:
+    get:
+      tags:
+        - Patients
+      summary: Get a signed download URL for a patient's medical document
+      operationId: downloadPatientMedicalDocument
+      description: Returns a freshly-generated signed URL to view/download the document. Restricted to the patient themself.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the patient
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the medical document
+      responses:
+        '200':
+          description: Signed URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientMedicalDocumentDownloadUrl'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized to access this patient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Patient or document not found
           content:
             application/json:
               schema:
@@ -4621,7 +4800,34 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
+            - CHRONIC_CONDITION
           description: The priority level of the patient (1-5)
+        bloodType:
+          type: string
+          nullable: true
+          enum:
+            - A+
+            - A-
+            - B+
+            - B-
+            - AB+
+            - AB-
+            - O+
+            - O-
+          description: The patient's blood type, self-reported and optional
+        allergies:
+          type: string
+          nullable: true
+          description: Free-text description of the patient's allergies, self-reported and optional
+        medicalObservations:
+          type: string
+          nullable: true
+          description: Free-text notes on chronic conditions/observations, self-reported and optional
+        medicalDocuments:
+          type: array
+          description: Medical proof documents (PDF/image) the patient has attached
+          items:
+            $ref: '#/components/schemas/PatientMedicalDocument'
         createdAt:
           type: string
           format: date-time
@@ -4630,6 +4836,55 @@ components:
           type: string
           format: date-time
           description: The date and time the patient was last updated
+    PatientMedicalDocument:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier of the medical document
+        fileName:
+          type: string
+          description: The original file name of the uploaded document
+        mimeType:
+          type: string
+          description: The MIME type of the document
+          example: 'application/pdf'
+        fileSize:
+          type: integer
+          nullable: true
+          description: The file size in bytes
+        uploadedAt:
+          type: string
+          format: date-time
+    UploadPatientMedicalDocument:
+      type: object
+      required:
+        - fileBase64
+        - fileName
+        - mimeType
+      properties:
+        fileBase64:
+          type: string
+          description: Base64-encoded file contents (PDF, JPEG or PNG)
+        fileName:
+          type: string
+          description: The original file name
+        mimeType:
+          type: string
+          description: The MIME type of the file
+          enum:
+            - application/pdf
+            - image/jpeg
+            - image/png
+    PatientMedicalDocumentDownloadUrl:
+      type: object
+      properties:
+        fileUrl:
+          type: string
+          description: A freshly-generated, signed, non-guessable URL to view/download the document. Regenerated on every request, never persisted.
+        fileName:
+          type: string
+          description: The original file name
     CreatePatient:
       type: object
       required:
@@ -4659,6 +4914,7 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
+            - CHRONIC_CONDITION
           description: |
             Priority classification of the patient.
 
@@ -4666,7 +4922,7 @@ components:
             ELDERLY - Elderly patient
             PREGNANT - Pregnant patient
             DISABLED - Patient with disability
-            EMERGENCY - Emergency case
+            CHRONIC_CONDITION - Chronic condition/health issue
     UpdatePatient:
       type: object
       properties:
@@ -4690,7 +4946,29 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
+            - CHRONIC_CONDITION
           description: The priority level of the patient (1-5)
+        bloodType:
+          type: string
+          nullable: true
+          enum:
+            - A+
+            - A-
+            - B+
+            - B-
+            - AB+
+            - AB-
+            - O+
+            - O-
+          description: The patient's blood type, self-reported and optional
+        allergies:
+          type: string
+          nullable: true
+          description: Free-text description of the patient's allergies, self-reported and optional
+        medicalObservations:
+          type: string
+          nullable: true
+          description: Free-text notes on chronic conditions/observations, self-reported and optional
     HealthProfessionalSchedule:
       type: object
       required:

@@ -102,3 +102,66 @@ export function generateSignedExamFileUrl(
     expires_at: Math.floor(Date.now() / 1000) + expiresInSeconds,
   });
 }
+
+interface IUploadPatientDocumentParams {
+  fileBase64: string;
+  fileName: string;
+  format: string;
+  mimeType: string;
+}
+
+interface IUploadPatientDocumentResult {
+  publicId: string;
+  fileSize?: number;
+}
+
+/**
+ * Same rationale as `uploadPdfToCloudinary`: everything (PDFs and images
+ * alike) is stored as `resource_type: 'image'` with `type: 'authenticated'`
+ * so it's never reachable by a guessable/public URL, and PDFs specifically
+ * avoid the forced `Content-Disposition: attachment` that `raw` delivery
+ * would impose on this account.
+ */
+export async function uploadPatientDocumentToCloudinary({
+  fileBase64,
+  fileName,
+  format,
+  mimeType,
+}: IUploadPatientDocumentParams): Promise<IUploadPatientDocumentResult> {
+  configureCloudinary();
+
+  const uploadFolder = process.env.CLOUDINARY_UPLOAD_FOLDER || 'minha-vez-app';
+  const cleanBase64 = fileBase64.includes(',')
+    ? fileBase64.split(',')[1]
+    : fileBase64;
+
+  const result = await cloudinary.uploader.upload(
+    `data:${mimeType};base64,${cleanBase64}`,
+    {
+      resource_type: 'image',
+      type: 'authenticated',
+      folder: `${uploadFolder}/patient-documents`,
+      format,
+      context: { original_filename: fileName },
+    },
+  );
+
+  return {
+    publicId: result.public_id,
+    fileSize: result.bytes,
+  };
+}
+
+export function generateSignedPatientDocumentUrl(
+  publicId: string,
+  format: string,
+  expiresInSeconds = 10 * 60,
+): string {
+  configureCloudinary();
+
+  return cloudinary.utils.private_download_url(publicId, format, {
+    resource_type: 'image',
+    type: 'authenticated',
+    expires_at: Math.floor(Date.now() / 1000) + expiresInSeconds,
+  });
+}

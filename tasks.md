@@ -1,15 +1,16 @@
 ## **Tasks**
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
+- Implementar uma nova tela pra listar todas as configs de Profile tipo um mais configurações ou configurações deixando em perfil so a imagem e nove, informções pessoas, informações de saude novo card que tem o design no figma e ver notificações e sair da conta.
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Melhorar o sistema de cadastrar alguem com prioridade de atendimento.
-- Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso.
+- Implementar a opção do paciente editar sua prioridade em profile, pois atualmente ele não pode editar e pode acontecer de em algum momento da vide ele ter algum problema e entar em prioridade ele ter alguma prioridade.
+- Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso. Pois no fluxo atual não há nada que separe isso, o que pode dificultar para a futura implementação do gamification.
 
 ## Implementação Futura
 
 - criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
 
-## Done:
+## Done
 
 - Add queue code partner, ex: AP001 -> Atendimento prioritario, AN001 -> Atendimento normal, maybe the numbers can be reseted in the end of the day and used again in the oder day. DONE
 - Adiconar sistema de avaliação de medico e clinica e mostrar um carzinho com a quantidade de estrilinhas que ele tem de 1 a 5. DONE
@@ -34,8 +35,11 @@
 - Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN para que eles possam mandar para o medico e pro USer como é feito atualmente, ou seja será uma nova tela pra isso. - DONE
 - Criar tela do ver todos em serviços oferecidos - DONE
 - Toda mensagem de erro e textos que tiver em ingles por em portugues - DONE
-- Implement Dark theme based on user SO
-- Configurar papertrail.
-- Implementar uma forma de permitir o user sobreescrever o Theme do SO exemplo: O SO dele ta em modo claro mas ele quer o app em modo escura ai ele aperta em um botão la em profile e muda o thema pra escuro.
-- Alterar a mostragem da data de nascimento para DD/MM/AAAA pois é o padrão do Brasil.
-- Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability.
+- Implement Dark theme based on user SO - DONE
+- Configurar papertrail. - DONE
+- Implementar uma forma de permitir o user sobreescrever o Theme do SO exemplo: O SO dele ta em modo claro mas ele quer o app em modo escura ai ele aperta em um botão la em profile e muda o thema pra escuro. - DONE
+- Alterar a mostragem da data de nascimento para DD/MM/AAAA pois é o padrão do Brasil. - DONE
+- Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability. - DONE
+- Melhorar o sistema de cadastrar alguem com prioridade de atendimento, atualmente todo usuario quando cadastrado fica como normal, preciso que adicione ele em prioritario assim que se cadastrar e sua idade for maior que 60, colocar nova opção da hora do cadastro com dados baseados no meu enum do back no contrato pra ele selecionar se ele tem alguma coisa ou não usando um dropdown com os dados do enum pra que ele possa entrar em prioridade. - DONE
+- No sistema de prioridade no dropdown por doenças cronicas ou algo assim ao selecionar esse opção aparecer uma mensagemzinha abaixo dela em amarelo dizendo pra levar comprovante no dia ou anexar em perfil o comprovante olgo nesse estilo de texto coloque o mais recomendado. - DONE
+- Criar nova tela em profile pra ele anexar PDF ou imagem do comprovante de exame de alguma doença que ele tenha, nessa tela ele tbm vai por informações como tipo sanguineo e etc não é obrigatorio pois nem todos sabem tipo sanguineo e etc ai lembre de modificar a mensagem em amarelo no modal de cadastro de paciente pra que agora tenha a info dele fazer o upload . - DONE

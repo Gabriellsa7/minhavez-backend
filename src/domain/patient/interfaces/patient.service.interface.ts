@@ -9,6 +9,12 @@ export interface IParamsPatientService {
   patientRepository: IPatientRepository;
 }
 
+export interface IParamsUploadMedicalDocument {
+  fileBase64: string;
+  fileName: string;
+  mimeType: string;
+}
+
 export interface IPatientService {
   createPatient(params: IParamsCreatePatient): Promise<IPatient>;
   getPatientById(_id: string): Promise<IPatient | null>;
@@ -20,4 +26,19 @@ export interface IPatientService {
   ): Promise<IPatient | null>;
   deletePatientById(_id: string): Promise<IPatient | null>;
   listPatients(filter: Partial<IPatient>): Promise<IPatient[]>;
+  uploadMedicalDocument(
+    patientId: string,
+    requesterId: string,
+    params: IParamsUploadMedicalDocument,
+  ): Promise<IPatient>;
+  removeMedicalDocument(
+    patientId: string,
+    requesterId: string,
+    documentId: string,
+  ): Promise<IPatient>;
+  getMedicalDocumentDownloadUrl(
+    patientId: string,
+    requesterId: string,
+    documentId: string,
+  ): Promise<{ fileUrl: string; fileName: string }>;
 }

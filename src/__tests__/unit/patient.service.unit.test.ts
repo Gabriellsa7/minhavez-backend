@@ -5,7 +5,7 @@ import { IPatientRepository } from '../../domain/patient/repository/patient.repo
 function buildService(overrides: Partial<IPatientRepository> = {}) {
   const patientRepository: IPatientRepository = {
     createPatient: jest.fn().mockImplementation((params) =>
-      Promise.resolve({ _id: 'patient-1', ...params }),
+      Promise.resolve({ _id: 'patient-1', medicalDocuments: [], ...params }),
     ),
     updatePatientById: jest.fn(),
     deletePatientById: jest.fn(),
@@ -13,6 +13,8 @@ function buildService(overrides: Partial<IPatientRepository> = {}) {
     getPatientByUserId: jest.fn().mockResolvedValue(null),
     getPatientByCpf: jest.fn(),
     listPatients: jest.fn(),
+    addMedicalDocument: jest.fn(),
+    removeMedicalDocument: jest.fn(),
     ...overrides,
   };
 

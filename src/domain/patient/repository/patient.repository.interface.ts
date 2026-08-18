@@ -1,4 +1,4 @@
-import { IPatient } from '../interfaces/patient.interface';
+import { IPatient, IPatientMedicalDocument } from '../interfaces/patient.interface';
 
 export interface IParamsCreatePatient {
   userId: string;
@@ -23,4 +23,12 @@ export interface IPatientRepository {
   getPatientByUserId(userId: string): Promise<IPatient | null>;
   getPatientByCpf(cpf: string): Promise<IPatient | null>;
   listPatients(filter: Partial<IPatient>): Promise<IPatient[]>;
+  addMedicalDocument(
+    patientId: string,
+    document: Omit<IPatientMedicalDocument, '_id'>,
+  ): Promise<IPatient | null>;
+  removeMedicalDocument(
+    patientId: string,
+    documentId: string,
+  ): Promise<IPatient | null>;
 }

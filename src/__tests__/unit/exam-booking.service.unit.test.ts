@@ -32,6 +32,7 @@ const PATIENT: IPatient = {
   birthDate: '1990-01-01',
   priority: 'NORMAL' as IPatient['priority'],
   phone: '11999999999',
+  medicalDocuments: [],
   createdAt: new Date(),
   updatedAt: new Date(),
 };
