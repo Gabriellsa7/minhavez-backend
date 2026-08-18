@@ -2,14 +2,10 @@
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Implementar na raiz do projeto do front, vars.scss e por todas as cores la de forma separadas usando o padrão: `$primary` e etc.
-- Impementar sistema de versão para que sempre que um build for realizado ele subir uma versão tipo 1.1.1 e etc seguindo o padrão de mercado atualmente o app ja esta no quarto build que eu me lembre, ai coloca a versçao e uma mensagenzinha sendo feito por gabriel santana santos como copyrigth assim como na imagem acima de exemplo a versão seŕa mostrada na parte de baixo de profile apos o ultimo componente.
-- Verificar pq a resposta esta demorando.
-- AJustar a font do não informado em tipo sanguinio diminuir o texto.
 
 ## Implementação Futura
 
-- criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
+- Criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
 
 ## Done
 
@@ -47,3 +43,8 @@
 - Implementar a opção do paciente editar sua prioridade em profile, pois atualmente ele não pode editar e pode acontecer de em algum momento da vida ele ter algum problema e entar em prioridade. - DONE
 - Implementar uma nova tela que ira ficar todas as configs de Profile tipo um mais configurações ou configurações ja que atualmente tem varios buttons de navegação em profile, deixando em perfil so a imagem e nome, informções pessoas, informações de saude novo card que tem o design no figma e ver notificações e sair da conta. - DONE
 - Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso. Pois no fluxo atual não há nada que separe isso, o que pode dificultar para a futura implementação do gamification. - DONE
+- AJustar a font do não informado em tipo sanguinio diminuir o texto. - DONE
+- Impementar sistema de versão para que sempre que um build for realizado ele subir uma versão tipo 1.1.1 e etc seguindo o padrão de mercado atualmente o app ja esta no quarto build que eu me lembre, ai coloca a versçao e uma mensagenzinha sendo feito por gabriel santana santos como copyrigth assim como na imagem acima de exemplo a versão seŕa mostrada na parte de baixo de profile apos o ultimo componente. - DONE
+- `Implementar na raiz do projeto do front, vars.scss e por todas as cores la de forma separadas usando o padrão: $primary e etc.` - DONE
+- Implementar uma nova funcionalidade pra quando o user clicar na sua imagem de perfil que está no header e tbm no header da home ele redirecionar pra profile.
+- Implementar funcionalidade pra quando o user clicar em sua imagem em profile ele ampliar a imagem assim como no whatsapp pra que ele consiga ver sua imagem
