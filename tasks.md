@@ -2,6 +2,12 @@
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
+- Melhorar o sistema de cadastrar alguem com prioridade de atendimento.
+- Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso.
+
+## Implementação Futura
+
+- criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
 
 ## Done:
 
