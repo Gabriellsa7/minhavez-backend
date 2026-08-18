@@ -1,4 +1,4 @@
-import { IPatient } from '../interfaces/patient.interface';
+import { EPatientPriority, IPatient } from '../interfaces/patient.interface';
 import {
   IParamsPatientService,
   IPatientService,
@@ -8,6 +8,9 @@ import {
   IParamsUpdatePatient,
   IPatientRepository,
 } from '../repository/patient.repository.interface';
+import { calculateAge } from '../../../shared/utils/calculateAge';
+
+const ELDERLY_AGE_THRESHOLD = 60;
 
 export class PatientService implements IPatientService {
   private patientRepository: IPatientRepository;
@@ -26,7 +29,13 @@ export class PatientService implements IPatientService {
         throw new Error('A patient with this user ID already exists');
       }
 
-      return await this.patientRepository.createPatient(params);
+      const isElderly = calculateAge(params.birthDate) > ELDERLY_AGE_THRESHOLD;
+      const priority = isElderly ? EPatientPriority.ELDERLY : params.priority;
+
+      return await this.patientRepository.createPatient({
+        ...params,
+        priority,
+      });
     } catch (error) {
       throw new Error(`Error creating user: ${(error as Error).message}`);
     }
