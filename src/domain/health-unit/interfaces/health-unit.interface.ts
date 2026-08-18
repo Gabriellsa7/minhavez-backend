@@ -9,8 +9,14 @@ export interface IHealthUnit {
   openingHours: IHealthUnitOpeningHours[];
   email: string;
   img?: string;
+  unitType: EHealthUnitType;
   createdAt?: Date;
   updateAt?: Date;
+}
+
+export enum EHealthUnitType {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
 }
 
 export interface IService {

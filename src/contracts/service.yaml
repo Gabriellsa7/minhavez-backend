@@ -295,7 +295,9 @@ paths:
         - HealthUnits
       summary: Create a new health unit
       operationId: createHealthUnit
-      description: Add a new health unit to the database.
+      description: Add a new health unit to the database. Restricted to Admin, who defines whether the unit is public or private at creation time.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -315,6 +317,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Server error
           content:
@@ -358,7 +372,9 @@ paths:
         - HealthUnits
       summary: Upload a health unit image
       operationId: uploadHealthUnitImage
-      description: Upload an image to Cloudinary and attach the resulting URL to the health unit.
+      description: Upload an image to Cloudinary and attach the resulting URL to the health unit. Restricted to Admin.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -381,6 +397,18 @@ paths:
                 $ref: '#/components/schemas/HealthUnit'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
           content:
             application/json:
               schema:
@@ -430,7 +458,9 @@ paths:
         - HealthUnits
       summary: Update a health unit
       operationId: updateHealthUnit
-      description: Update the information of an existing health unit by ID.
+      description: Update the information of an existing health unit by ID. Restricted to Admin.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -457,6 +487,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Health unit not found
           content:
@@ -474,7 +516,9 @@ paths:
         - HealthUnits
       summary: Delete a health unit
       operationId: deleteHealthUnit
-      description: Delete an existing health unit by ID.
+      description: Delete an existing health unit by ID. Restricted to Admin.
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -489,6 +533,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Health unit not found
           content:
@@ -4599,6 +4655,10 @@ components:
           type: string
           nullable: true
           description: The image URL of the health unit
+        unitType:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+          description: Whether the health unit is a public or private facility
         createdAt:
           type: string
           format: date-time
@@ -4672,6 +4732,7 @@ components:
         - email
         - services
         - openingHours
+        - unitType
       properties:
         userId:
           type: string
@@ -4703,6 +4764,10 @@ components:
           type: string
           nullable: true
           description: The image URL of the health unit
+        unitType:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+          description: Whether the health unit is a public or private facility. Defined by the admin at creation time.
     UpdateHealthUnit:
       type: object
       properties:
@@ -4732,6 +4797,10 @@ components:
           type: string
           nullable: true
           description: The image URL of the health unit
+        unitType:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+          description: Whether the health unit is a public or private facility
     UploadHealthUnitImage:
       type: object
       required:

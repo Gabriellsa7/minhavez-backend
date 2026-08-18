@@ -36,6 +36,7 @@ export class HealthUnitRepository implements IHealthUnitRepository {
       })),
       email: healthUnitDoc.email,
       img: healthUnitDoc.img ?? undefined,
+      unitType: healthUnitDoc.unitType,
       createdAt: healthUnitDoc.createdAt,
       updateAt: healthUnitDoc.updatedAt,
     });

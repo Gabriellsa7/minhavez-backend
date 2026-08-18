@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
-import { IHealthUnitAddress } from '../../../../domain/health-unit/interfaces/health-unit.interface';
+import {
+  EHealthUnitType,
+  IHealthUnitAddress,
+} from '../../../../domain/health-unit/interfaces/health-unit.interface';
 import { IServiceSchema, serviceSchema } from './service.schema';
 import { IOpeningHourSchema, openingHourSchema } from './opening-hour.schema';
 
@@ -58,6 +61,12 @@ export const healthUnitSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+
+    unitType: {
+      type: String,
+      enum: Object.values(EHealthUnitType),
+      required: true,
+    },
   },
   {
     _id: true,
@@ -75,6 +84,7 @@ export interface IHealthUnitSchema {
   openingHours: IOpeningHourSchema[];
   email: string;
   img?: string | null;
+  unitType: EHealthUnitType;
   createdAt: Date;
   updatedAt: Date;
 }

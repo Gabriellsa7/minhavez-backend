@@ -1,4 +1,7 @@
-import { IHealthUnit } from '../../domain/health-unit/interfaces/health-unit.interface';
+import {
+  EHealthUnitType,
+  IHealthUnit,
+} from '../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitRepository } from '../../domain/health-unit/repository/health-unit.repository.interface';
 import { HealthUnitService } from '../../domain/health-unit/service/health-unit.service';
 
@@ -21,6 +24,7 @@ describe('HealthUnitService', () => {
         email: 'central@example.com',
         services: [],
         openingHours: [],
+        unitType: EHealthUnitType.PUBLIC,
       },
     ];
     const getHealthUnitsByUserId = jest.fn().mockResolvedValue(healthUnits);

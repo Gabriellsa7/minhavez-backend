@@ -1,4 +1,5 @@
 import {
+  EHealthUnitType,
   IHealthUnit,
   IHealthUnitAddress,
   IHealthUnitOpeningHours,
@@ -26,6 +27,8 @@ export class HealthUnit implements IHealthUnit {
 
   img?: string;
 
+  unitType: EHealthUnitType;
+
   createdAt?: Date;
 
   updateAt?: Date;
@@ -41,6 +44,7 @@ export class HealthUnit implements IHealthUnit {
     this.services = data.services;
     this.email = data.email;
     this.img = data.img;
+    this.unitType = data.unitType;
     this.createdAt = data.createdAt;
     this.updateAt = data.updateAt;
   }

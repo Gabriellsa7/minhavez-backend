@@ -1,4 +1,5 @@
 import {
+  EHealthUnitType,
   IHealthUnit,
   IHealthUnitAddress,
   IHealthUnitOpeningHours,
@@ -15,6 +16,7 @@ export interface IParamsCreateHealthUnit {
   services: IService[];
   openingHours: IHealthUnitOpeningHours[];
   img?: string;
+  unitType: EHealthUnitType;
 }
 
 export interface IHealthUnitRepository {

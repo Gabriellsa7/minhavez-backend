@@ -2,6 +2,8 @@ import { Request, Response, Router } from 'express';
 import { IController } from './IController';
 import { HealthUnitService } from '../../../domain/health-unit/service/health-unit.service';
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
+import { authMiddleware, authorize } from '../middlewary/auth.middleware';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 
 export class HealthUnitController implements IController {
   router: Router;
@@ -17,10 +19,30 @@ export class HealthUnitController implements IController {
     this.router.get('/health-units', this.getHealthUnits);
     this.router.get('/health-units/user/:userId', this.getHealthUnitsByUserId);
     this.router.get('/health-units/:id', this.getHealthUnitById);
-    this.router.post('/health-units', this.createHealthUnit);
-    this.router.put('/health-units/:id', this.updateHealthUnit);
-    this.router.post('/health-units/:id/image', this.uploadHealthUnitImage);
-    this.router.delete('/health-units/:id', this.deleteHealthUnit);
+    this.router.post(
+      '/health-units',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.createHealthUnit,
+    );
+    this.router.put(
+      '/health-units/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.updateHealthUnit,
+    );
+    this.router.post(
+      '/health-units/:id/image',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.uploadHealthUnitImage,
+    );
+    this.router.delete(
+      '/health-units/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.deleteHealthUnit,
+    );
   }
 
   getHealthUnits = async (req: Request, res: Response): Promise<void> => {
@@ -76,6 +98,7 @@ export class HealthUnitController implements IController {
       email,
       img,
       openingHours,
+      unitType,
     } = req.body;
     try {
       const newHealthUnit = await this.healthUnitService.createHealthUnit({
@@ -88,6 +111,7 @@ export class HealthUnitController implements IController {
         openingHours,
         email,
         img,
+        unitType,
       });
       res.status(201).json(newHealthUnit);
     } catch (error) {
