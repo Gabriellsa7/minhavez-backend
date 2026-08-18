@@ -4,6 +4,8 @@
 - Criar alertas de erro no papertrail pra vir pro meu email.
 - Implementar na raiz do projeto do front, vars.scss e por todas as cores la de forma separadas usando o padrão: `$primary` e etc.
 - Impementar sistema de versão para que sempre que um build for realizado ele subir uma versão tipo 1.1.1 e etc seguindo o padrão de mercado atualmente o app ja esta no quarto build que eu me lembre, ai coloca a versçao e uma mensagenzinha sendo feito por gabriel santana santos como copyrigth assim como na imagem acima de exemplo a versão seŕa mostrada na parte de baixo de profile apos o ultimo componente.
+- Verificar pq a resposta esta demorando.
+- AJustar a font do não informado em tipo sanguinio diminuir o texto.
 
 ## Implementação Futura
 
