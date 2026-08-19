@@ -2,7 +2,6 @@
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Minha-vez-app - no cardzinho que fica abaixo do search a home quando a mensagem fica muito grande os textos ficam colando um no outro permita a quebra de linha quando isso acontecer porem so quando o texto for ficar maior que o card.
 - Minha-vez-app - Verificar se a info que aparece no card de clinicas em explorar sobre as filas min de espera e pessoas na fila são mocadas se for implemente uma nova funcionalidade pra sempre mostrar isso se realmente tiver fila aberta ai vai mostra a qtd de pessoas que estão naquela fila que esta aberta no exato momento se não tiver fila aberta não mostrar no card.
 - Configurar Papertrail no painel manager.
 
@@ -61,3 +60,4 @@
 - Minha-vez-app - Implementar listas paginadas de clinicas, exames, historicos de consulta e etc, ou seja todo e qualquer lugar que possa ter varios cards adicionar a paginação com numero padrão de paginados de 10. - DONE
 - Criar script pra colar o mongoDB e gerar varias unidade de saude e profissonais vinculado a uma dessas unidade pra poder testar a paginação. - DONE
 - Minha-vez-app - Na tela de explorar no card que mostrar os especialistas renderizar dentro do circulo de imagem a foto do especialista. - DONE
+- Minha-vez-app - no cardzinho que fica abaixo do search a home quando a mensagem fica muito grande os textos ficam colando um no outro permita a quebra de linha quando isso acontecer porem so quando o texto for ficar maior que o card. - DONE
