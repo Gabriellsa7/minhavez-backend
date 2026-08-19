@@ -6,7 +6,9 @@
 - Minha-vez-manager - implementar mensagens de erros mais semanticas e visuais para o manager para facilitar os user a visualizar seus erros.
 - Minha-vez-manager - implementar modal que ira abrir ao clicar em um exame na tela de Exames disponiveis para que seja possivel visualizar as infos do exame.
 - Minha-vez-app - implementar nova tela para que ao clicar pra visualizar um exame agendado em meu exames ele mostrar tbm o Preparo para fazer aquele exame pois atualmente so mostra informações baiscas como valor, data, localização.
-- Minha-vez-app - Implementar um novo serviço rapidos que será, minhas consultas onde ao clicar vai redirecionar para um nova tela onde vai mostrar cards de todas as consultas que o user tem agendada mostrando infos da consulta e quando ele clicar vai redirecionar pra tela da fila daquela consulta.
+- Minha-vez-app - Implementar um novo card/button em serviço rapidos que será, minhas consultas onde ao clicar vai redirecionar para um nova tela onde vai mostrar cards de todas as consultas que o user tem agendada mostrando infos da consulta e quando ele clicar vai redirecionar pra tela da fila daquela consulta.
+- Minha-vez-app - implementar um Ver todos no mesmo view do Titulo Serviços Rapidos onde ao clicar abrira uma nova tela onde vai listar todos os serviços rapidos usando o mesmo formato dos cards da home coloca 4 por coluna e ao clicar cada um redireciona pra sua respectiva tela.
+- Minha-vez-app - Implementar listas paginadas de clinicas, exames, historicos de consulta e etc, ou seja todo e qualquer lugar que possa ter varios cards adicionar a paginação com numero padrão de paginados de 10.
 - Configurar Papertrail no painel manager.
 
 ## Implementação Futura
