@@ -2,6 +2,12 @@
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
+- Minha-vez-manager - implementar tema ecuro, ligth e padrão do navegador.
+- Minha-vez-manager - implementar mensagens de erros mais semanticas e visuais para o manager para facilitar os user a visualizar seus erros.
+- Minha-vez-manager - implementar modal que ira abrir ao clicar em um exame na tela de Exames disponiveis para que seja possivel visualizar as infos do exame.
+- Minha-vez-app - implementar nova tela para que ao clicar pra visualizar um exame agendado em meu exames ele mostrar tbm o Preparo para fazer aquele exame pois atualmente so mostra informações baiscas como valor, data, localização.
+- Minha-vez-app - Implementar um novo serviço rapidos que será, minhas consultas onde ao clicar vai redirecionar para um nova tela onde vai mostrar cards de todas as consultas que o user tem agendada mostrando infos da consulta e quando ele clicar vai redirecionar pra tela da fila daquela consulta.
+- Configurar Papertrail no painel manager.
 
 ## Implementação Futura
 
