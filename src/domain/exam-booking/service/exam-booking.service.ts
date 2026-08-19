@@ -26,6 +26,7 @@ import {
   generateSlotTimes,
   startOfUtcDay,
 } from '../utils/exam-slot';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class ExamBookingService implements IExamBookingService {
   private examBookingRepository: IExamBookingRepository;
@@ -385,7 +386,8 @@ export class ExamBookingService implements IExamBookingService {
   async listBookingsByPatientId(
     patientId: string,
     requester: IExamBookingRequester,
-  ): Promise<IExamBookingWithContext[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExamBookingWithContext[]; totalItems: number }> {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
@@ -396,6 +398,8 @@ export class ExamBookingService implements IExamBookingService {
       await this.examBookingRepository.listExamBookingsByPatientId(
         patientId,
       );
+
+    let authorizedBookings: IExamBooking[];
 
     if (requester.isAdmin) {
       const uniqueHealthUnitIds = [
@@ -412,26 +416,32 @@ export class ExamBookingService implements IExamBookingService {
           .map((healthUnit) => healthUnit!._id),
       );
 
-      return Promise.all(
-        bookings
-          .filter((booking) => ownedHealthUnitIds.has(booking.healthUnitId))
-          .map((booking) => this.enrich(booking)),
+      authorizedBookings = bookings.filter((booking) =>
+        ownedHealthUnitIds.has(booking.healthUnitId),
       );
-    }
-
-    if (requester.isExamProfessional) {
-      return Promise.all(
-        bookings
-          .filter((booking) => booking.healthUnitId === requester.healthUnitId)
-          .map((booking) => this.enrich(booking)),
+    } else if (requester.isExamProfessional) {
+      authorizedBookings = bookings.filter(
+        (booking) => booking.healthUnitId === requester.healthUnitId,
       );
+    } else if (patient.userId === requester.sub) {
+      authorizedBookings = bookings;
+    } else {
+      throw new AppError(403, 'Forbidden');
     }
 
-    if (patient.userId === requester.sub) {
-      return Promise.all(bookings.map((booking) => this.enrich(booking)));
-    }
+    const totalItems = authorizedBookings.length;
+    const pageBookings = pagination
+      ? authorizedBookings.slice(
+          pagination.skip,
+          pagination.skip + pagination.limit,
+        )
+      : authorizedBookings;
 
-    throw new AppError(403, 'Forbidden');
+    const items = await Promise.all(
+      pageBookings.map((booking) => this.enrich(booking)),
+    );
+
+    return { items, totalItems };
   }
 
   async listBookingsByHealthUnitId(

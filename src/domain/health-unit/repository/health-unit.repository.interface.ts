@@ -5,6 +5,7 @@ import {
   IHealthUnitOpeningHours,
   IService,
 } from '../interfaces/health-unit.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsCreateHealthUnit {
   userId: string;
@@ -34,5 +35,6 @@ export interface IHealthUnitRepository {
   listHealthUnits(
     filter: Partial<IHealthUnit>,
     search?: string,
-  ): Promise<IHealthUnit[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthUnit[]; totalItems: number }>;
 }

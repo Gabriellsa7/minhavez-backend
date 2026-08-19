@@ -3,6 +3,7 @@ import {
   IHealthProfessional,
   IHealthProfessionalSchedule,
 } from '../interfaces/health-professional.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsCreateHealthProfessional {
   userId: string;
@@ -38,7 +39,8 @@ export interface IHealthProfessionalRepository {
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
     search?: string,
-  ): Promise<IHealthProfessional[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthProfessional[]; totalItems: number }>;
   findHealthProfessionalByEmailWithPassword(
     email: string,
   ): Promise<(IHealthProfessional & { password: string }) | null>;

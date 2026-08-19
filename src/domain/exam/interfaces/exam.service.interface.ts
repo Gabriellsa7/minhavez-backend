@@ -7,6 +7,7 @@ import { IExamBookingRepository } from '../../exam-booking/repository/exam-booki
 import { IEmailProvider } from '../../auth/interfaces/email-provider.interface';
 import { INotificationService } from '../../notification/interfaces/notification.service.interface';
 import { IExamWithContext, IExamWithFileUrl } from '../interfaces/exam.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsExamService {
   examRepository: IExamRepository;
@@ -61,7 +62,8 @@ export interface IExamService {
   listExamsByPatientId(
     patientId: string,
     requester: IRequestingUser,
-  ): Promise<IExamWithContext[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExamWithContext[]; totalItems: number }>;
   listExamsByHealthUnitId(
     healthUnitId: string,
     requester: IRequestingUser,

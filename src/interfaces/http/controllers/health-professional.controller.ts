@@ -1,6 +1,10 @@
 import { Request, Response, Router } from 'express';
 import { IController } from './IController';
 import { HealthProfessionalService } from '../../../domain/health-professional.ts/service/health-professional.service';
+import {
+  buildPaginatedResponse,
+  parsePagination,
+} from '../../../shared/utils/pagination';
 
 export class HealthProfessionalController implements IController {
   router: Router;
@@ -49,12 +53,21 @@ export class HealthProfessionalController implements IController {
     try {
       const search =
         typeof req.query.search === 'string' ? req.query.search : undefined;
-      const healthProfessionals =
+      const specialty =
+        typeof req.query.specialty === 'string'
+          ? req.query.specialty
+          : undefined;
+      const pagination = parsePagination({
+        page: req.query.page as string | undefined,
+        limit: req.query.limit as string | undefined,
+      });
+      const { items, totalItems } =
         await this.healthProfessionalService.listHealthProfessionals(
-          {},
+          specialty ? { specialty } : {},
           search,
+          pagination,
         );
-      res.status(200).json(healthProfessionals);
+      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

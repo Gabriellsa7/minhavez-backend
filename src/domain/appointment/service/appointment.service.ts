@@ -16,6 +16,7 @@ import {
 } from '../repository/appointment.repository.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 import {
   IAppointmentRequester,
   IAppointmentService,
@@ -312,10 +313,14 @@ export class AppointmentService implements IAppointmentService {
 
   async listAppointmentsByPatientId(
     patientId: string,
-  ): Promise<IAppointment[]> {
+    status?: EAppointmentStatus[],
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IAppointment[]; totalItems: number }> {
     try {
       return await this.appointmentRepository.listAppointmentsByPatientId(
         patientId,
+        status,
+        pagination,
       );
     } catch (error) {
       throw new Error(

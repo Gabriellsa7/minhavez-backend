@@ -1,4 +1,5 @@
 import { IExam } from '../interfaces/exam.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsCreateExam {
   patientId: string;
@@ -18,7 +19,10 @@ export interface IParamsCreateExam {
 export interface IExamRepository {
   createExam(examData: IParamsCreateExam): Promise<IExam>;
   getExamById(id: string): Promise<IExam | null>;
-  listExamsByPatientId(patientId: string): Promise<IExam[]>;
+  listExamsByPatientId(
+    patientId: string,
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExam[]; totalItems: number }>;
   listExamsByHealthUnitId(healthUnitId: string): Promise<IExam[]>;
   listExamsByPatientIds(patientIds: string[]): Promise<IExam[]>;
   setExamBookingId(examId: string, examBookingId: string): Promise<void>;

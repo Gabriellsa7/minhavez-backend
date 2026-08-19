@@ -8,6 +8,8 @@ import { IQueueItemRepository } from '../../queue-item/repository/queue-item.rep
 import { IAppointment } from './appointment.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
+import { EAppointmentStatus } from './appointment.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 export interface IParamsAppointmentService {
   appointmentRepository: IAppointmentRepository;
   queueRepository: IQueueRepository;
@@ -25,7 +27,11 @@ export interface IAppointmentService {
   createAppointment(params: IParamsCreateAppointment): Promise<IAppointment>;
   getAppointmentById(id: string): Promise<IAppointment | null>;
   listAppointments(filter: Partial<IAppointment>): Promise<IAppointment[]>;
-  listAppointmentsByPatientId(patientId: string): Promise<IAppointment[]>;
+  listAppointmentsByPatientId(
+    patientId: string,
+    status?: EAppointmentStatus[],
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IAppointment[]; totalItems: number }>;
   listAppointmentsByHealthUnitId(healthUnitId: string): Promise<IAppointment[]>;
   listAppointmentsByProfessionalId(
     professionalId: string,

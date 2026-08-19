@@ -1,4 +1,5 @@
-import { IAppointment } from '../interfaces/appointment.interface';
+import { IAppointment, EAppointmentStatus } from '../interfaces/appointment.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsCreateAppointment {
   patientId: string;
@@ -28,7 +29,11 @@ export interface IAppointmentRepository {
   ): Promise<IAppointment[]>;
   getAppointmentById(id: string): Promise<IAppointment | null>;
   listAppointments(filter: Partial<IAppointment>): Promise<IAppointment[]>;
-  listAppointmentsByPatientId(patientId: string): Promise<IAppointment[]>;
+  listAppointmentsByPatientId(
+    patientId: string,
+    status?: EAppointmentStatus[],
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IAppointment[]; totalItems: number }>;
   listAppointmentsByHealthUnitId(healthUnitId: string): Promise<IAppointment[]>;
   listAppointmentsByProfessionalId(
     professionalId: string,

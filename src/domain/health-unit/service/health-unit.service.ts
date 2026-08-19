@@ -9,6 +9,7 @@ import {
 } from '../repository/health-unit.repository.interface';
 import { uploadImageToCloudinary } from '../../../infrastructure/external/cloudinary/cloudinary-upload';
 import { IHealthUnitImageUploadParams } from '../interfaces/health-unit.service.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class HealthUnitService implements IHealthUnitService {
   private healthUnitRepository: IHealthUnitRepository;
@@ -145,9 +146,14 @@ export class HealthUnitService implements IHealthUnitService {
   async listHealthUnits(
     filter: Partial<IHealthUnit>,
     search?: string,
-  ): Promise<IHealthUnit[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthUnit[]; totalItems: number }> {
     try {
-      return await this.healthUnitRepository.listHealthUnits(filter, search);
+      return await this.healthUnitRepository.listHealthUnits(
+        filter,
+        search,
+        pagination,
+      );
     } catch (error) {
       throw new Error(
         `Error listing health units: ${(error as Error).message}`,

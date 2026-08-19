@@ -9,6 +9,7 @@ import {
   EExamBookingStatus,
   IExamBookingWithContext,
 } from './exam-booking.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsExamBookingService {
   examBookingRepository: IExamBookingRepository;
@@ -66,7 +67,8 @@ export interface IExamBookingService {
   listBookingsByPatientId(
     patientId: string,
     requester: IExamBookingRequester,
-  ): Promise<IExamBookingWithContext[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExamBookingWithContext[]; totalItems: number }>;
   listBookingsByHealthUnitId(
     healthUnitId: string,
     requester: IExamBookingRequester,

@@ -4,6 +4,7 @@ import {
   IParamsUpdateHealthProfessional,
 } from '../repository/health-professional.repository.interface';
 import { IHealthProfessional } from './health-professional.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsHealthProfessionalService {
   healthProfessionalRepository: IHealthProfessionalRepository;
@@ -38,5 +39,6 @@ export interface IHealthProfessionalService {
   listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
     search?: string,
-  ): Promise<IHealthProfessional[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthProfessional[]; totalItems: number }>;
 }

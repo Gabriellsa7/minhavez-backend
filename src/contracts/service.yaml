@@ -275,15 +275,28 @@ paths:
           schema:
             type: string
           description: Free-text search term to filter health units by name, description or address
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number. When omitted (together with limit), the full unpaginated list is returned.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Items per page (default 10 when page or limit is provided).
       responses:
         '200':
-          description: A list of health units
+          description: A paginated list of health units
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthUnit'
+                $ref: '#/components/schemas/PaginatedHealthUnits'
         '500':
           description: Server error
           content:
@@ -992,15 +1005,34 @@ paths:
           schema:
             type: string
           description: Free-text search term to filter health professionals by name or specialty
+        - name: specialty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter health professionals by exact specialty
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number. When omitted (together with limit), the full unpaginated list is returned.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Items per page (default 10 when page or limit is provided).
       responses:
         '200':
-          description: A list of health professionals
+          description: A paginated list of health professionals
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HealthProfessional'
+                $ref: '#/components/schemas/PaginatedHealthProfessionals'
         '500':
           description: Server error
           content:
@@ -2841,15 +2873,40 @@ paths:
           schema:
             type: string
           description: Patient ID
+        - name: status
+          in: query
+          required: false
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+          description: Comma-separated list of appointment statuses to filter by (e.g. "COMPLETED,CANCELED")
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number. When omitted (together with limit), the full unpaginated list is returned.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Items per page (default 10 when page or limit is provided).
       responses:
         '200':
-          description: Appointments belonging to the patient
+          description: Paginated appointments belonging to the patient
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Appointment'
+                $ref: '#/components/schemas/PaginatedAppointments'
         '404':
           description: Patient not found
           content:
@@ -3348,15 +3405,28 @@ paths:
           schema:
             type: string
           description: The patient ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number. When omitted (together with limit), the full unpaginated list is returned.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Items per page (default 10 when page or limit is provided).
       responses:
         '200':
-          description: A list of exams
+          description: A paginated list of exams
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Exam'
+                $ref: '#/components/schemas/PaginatedExams'
         '401':
           description: Not authenticated
           content:
@@ -4041,15 +4111,28 @@ paths:
           required: true
           schema:
             type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number. When omitted (together with limit), the full unpaginated list is returned.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Items per page (default 10 when page or limit is provided).
       responses:
         '200':
-          description: A list of bookings
+          description: A paginated list of bookings
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ExamBooking'
+                $ref: '#/components/schemas/PaginatedExamBookings'
         '401':
           description: Not authenticated
           content:
@@ -4371,6 +4454,72 @@ paths:
 
 components:
   schemas:
+    PaginationMeta:
+      type: object
+      required: [page, limit, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        totalItems:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    PaginatedHealthUnits:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/HealthUnit'
+    PaginatedHealthProfessionals:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/HealthProfessional'
+    PaginatedAppointments:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Appointment'
+    PaginatedExams:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Exam'
+    PaginatedExamBookings:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExamBooking'
     InfrastructureStatus:
       type: object
       additionalProperties: true

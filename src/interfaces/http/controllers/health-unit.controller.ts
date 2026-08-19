@@ -4,6 +4,10 @@ import { HealthUnitService } from '../../../domain/health-unit/service/health-un
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { authMiddleware, authorize } from '../middlewary/auth.middleware';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import {
+  buildPaginatedResponse,
+  parsePagination,
+} from '../../../shared/utils/pagination';
 
 export class HealthUnitController implements IController {
   router: Router;
@@ -49,11 +53,16 @@ export class HealthUnitController implements IController {
     try {
       const search =
         typeof req.query.search === 'string' ? req.query.search : undefined;
-      const healthUnits = await this.healthUnitService.listHealthUnits(
+      const pagination = parsePagination({
+        page: req.query.page as string | undefined,
+        limit: req.query.limit as string | undefined,
+      });
+      const { items, totalItems } = await this.healthUnitService.listHealthUnits(
         {},
         search,
+        pagination,
       );
-      res.status(200).json(healthUnits);
+      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

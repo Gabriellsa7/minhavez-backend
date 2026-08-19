@@ -12,6 +12,10 @@ import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 import { AppError } from '../../../shared/errors/AppError';
 import { IExamUploader } from '../../../domain/exam/interfaces/exam.service.interface';
+import {
+  buildPaginatedResponse,
+  parsePagination,
+} from '../../../shared/utils/pagination';
 
 export class ExamController implements IController {
   router: Router;
@@ -156,11 +160,16 @@ export class ExamController implements IController {
     res: Response,
   ): Promise<void> => {
     try {
-      const exams = await this.examService.listExamsByPatientId(
+      const pagination = parsePagination({
+        page: req.query.page as string | undefined,
+        limit: req.query.limit as string | undefined,
+      });
+      const { items, totalItems } = await this.examService.listExamsByPatientId(
         req.params.id,
         this.toRequestingUser(req),
+        pagination,
       );
-      res.status(200).json(exams);
+      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       this.handleError(res, error);
     }

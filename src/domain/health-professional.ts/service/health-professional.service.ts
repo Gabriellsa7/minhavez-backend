@@ -11,6 +11,7 @@ import {
   IHealthProfessionalRepository,
 } from '../repository/health-professional.repository.interface';
 import { uploadImageToCloudinary } from '../../../infrastructure/external/cloudinary/cloudinary-upload';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class HealthProfessionalService implements IHealthProfessionalService {
   private healthProfessionalRepository: IHealthProfessionalRepository;
@@ -168,11 +169,13 @@ export class HealthProfessionalService implements IHealthProfessionalService {
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
     search?: string,
-  ): Promise<IHealthProfessional[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthProfessional[]; totalItems: number }> {
     try {
       return await this.healthProfessionalRepository.listHealthProfessionals(
         filter,
         search,
+        pagination,
       );
     } catch (error) {
       throw new Error(

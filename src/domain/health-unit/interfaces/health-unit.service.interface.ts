@@ -3,6 +3,7 @@ import {
   IParamsCreateHealthUnit,
 } from '../repository/health-unit.repository.interface';
 import { IHealthUnit } from './health-unit.interface';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsHealthUnitService {
   healthRepository: IHealthUnitRepository;
@@ -25,7 +26,8 @@ export interface IHealthUnitService {
   listHealthUnits(
     filter: Partial<IHealthUnit>,
     search?: string,
-  ): Promise<IHealthUnit[]>;
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthUnit[]; totalItems: number }>;
 }
 
 export interface IHealthUnitImageUploadParams {

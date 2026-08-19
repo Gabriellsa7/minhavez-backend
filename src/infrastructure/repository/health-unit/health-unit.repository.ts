@@ -7,6 +7,7 @@ import {
 import { IHealthUnit } from '../../../domain/health-unit/interfaces/health-unit.interface';
 import { IHealthUnitSchema } from '../../db/mongo/schema/health-unit.schema';
 import { MHealthUnit } from '../../db/mongo/models/health-unit.model';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class HealthUnitRepository implements IHealthUnitRepository {
   private mapToDomain(
@@ -132,7 +133,8 @@ export class HealthUnitRepository implements IHealthUnitRepository {
   async listHealthUnits(
     filter: Partial<IHealthUnit>,
     search?: string,
-  ): Promise<IHealthUnit[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthUnit[]; totalItems: number }> {
     try {
       const mongoFilter: FilterQuery<IHealthUnitSchema> = { ...filter };
 
@@ -150,8 +152,18 @@ export class HealthUnitRepository implements IHealthUnitRepository {
         ];
       }
 
-      const healthUnitsDocs = await MHealthUnit.find(mongoFilter);
-      return healthUnitsDocs.map((doc) => this.mapToDomain(doc));
+      const [healthUnitsDocs, totalItems] = await Promise.all([
+        MHealthUnit.find(mongoFilter)
+          .sort({ name: 1 })
+          .skip(pagination?.skip ?? 0)
+          .limit(pagination?.limit ?? 0),
+        MHealthUnit.countDocuments(mongoFilter),
+      ]);
+
+      return {
+        items: healthUnitsDocs.map((doc) => this.mapToDomain(doc)),
+        totalItems,
+      };
     } catch (error) {
       throw new Error(
         `Error listing health units: ${(error as Error).message}`,

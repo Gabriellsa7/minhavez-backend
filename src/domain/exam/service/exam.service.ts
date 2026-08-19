@@ -2,6 +2,7 @@ import { Logger } from 'traceability';
 import { AppError } from '../../../shared/errors/AppError';
 import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
 import { buildExamReadyForAdminEmail } from '../../../shared/utils/examReadyEmailTemplate';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 import { IPatient } from '../../patient/interfaces/patient.interface';
 import {
   ALLOWED_EXAM_MIME_TYPE,
@@ -295,7 +296,8 @@ export class ExamService implements IExamService {
   async listExamsByPatientId(
     patientId: string,
     requester: IRequestingUser,
-  ): Promise<IExamWithContext[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExamWithContext[]; totalItems: number }> {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
@@ -304,9 +306,14 @@ export class ExamService implements IExamService {
 
     await this.assertCanAccessPatientExams(patient, requester);
 
-    const exams = await this.examRepository.listExamsByPatientId(patientId);
+    const { items: exams, totalItems } =
+      await this.examRepository.listExamsByPatientId(patientId, pagination);
 
-    return Promise.all(exams.map((exam) => this.enrichExam(exam, patient)));
+    const items = await Promise.all(
+      exams.map((exam) => this.enrichExam(exam, patient)),
+    );
+
+    return { items, totalItems };
   }
 
   async listExamsByHealthUnitId(

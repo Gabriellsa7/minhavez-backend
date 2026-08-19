@@ -11,6 +11,7 @@ import {
   IAppointmentRepository,
 } from '../../../domain/appointment/repository/appointment.repository.interface';
 import { MAppointment } from '../../db/mongo/models/appointment.model';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class AppointmentRepository implements IAppointmentRepository {
   private mapToDomain(
@@ -177,13 +178,31 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async listAppointmentsByPatientId(
     patientId: string,
-  ): Promise<IAppointment[]> {
+    status?: EAppointmentStatus[],
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IAppointment[]; totalItems: number }> {
     try {
       const mongoPatientId = new Types.ObjectId(patientId);
-      const appointmentDocs = await MAppointment.find({
+      const mongoFilter: FilterQuery<IAppointmentSchema> = {
         patientId: mongoPatientId,
-      });
-      return appointmentDocs.map((doc) => this.mapToDomain(doc));
+      };
+
+      if (status && status.length > 0) {
+        mongoFilter.status = { $in: status };
+      }
+
+      const [appointmentDocs, totalItems] = await Promise.all([
+        MAppointment.find(mongoFilter)
+          .sort({ dateTime: -1 })
+          .skip(pagination?.skip ?? 0)
+          .limit(pagination?.limit ?? 0),
+        MAppointment.countDocuments(mongoFilter),
+      ]);
+
+      return {
+        items: appointmentDocs.map((doc) => this.mapToDomain(doc)),
+        totalItems,
+      };
     } catch (error) {
       throw new Error(
         `Error listing appointments by patient ID: ${(error as Error).message}`,

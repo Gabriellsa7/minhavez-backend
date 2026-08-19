@@ -12,6 +12,11 @@ import { authMiddleware } from '../middlewary/auth.middleware';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 import { AppError } from '../../../shared/errors/AppError';
+import {
+  buildPaginatedResponse,
+  parsePagination,
+} from '../../../shared/utils/pagination';
+import { EAppointmentStatus } from '../../../domain/appointment/interfaces/appointment.interface';
 
 export class AppointmentController implements IController {
   router: Router;
@@ -116,9 +121,25 @@ export class AppointmentController implements IController {
   ): Promise<void> => {
     const { id } = req.params;
     try {
-      const appointments =
-        await this.appointmentService.listAppointmentsByPatientId(id);
-      res.status(200).json(appointments);
+      const status = Array.isArray(req.query.status)
+        ? (req.query.status as EAppointmentStatus[])
+        : typeof req.query.status === 'string'
+          ? (req.query.status
+              .split(',')
+              .map((value) => value.trim())
+              .filter(Boolean) as EAppointmentStatus[])
+          : undefined;
+      const pagination = parsePagination({
+        page: req.query.page as string | undefined,
+        limit: req.query.limit as string | undefined,
+      });
+      const { items, totalItems } =
+        await this.appointmentService.listAppointmentsByPatientId(
+          id,
+          status,
+          pagination,
+        );
+      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

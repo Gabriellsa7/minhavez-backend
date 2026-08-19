@@ -6,6 +6,7 @@ import {
   IParamsCreateExam,
 } from '../../../domain/exam/repository/exam.repository.interface';
 import { MExam } from '../../db/mongo/models/exam.model';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class ExamRepository implements IExamRepository {
   private mapToDomain(examDoc: HydratedDocument<IExamSchema>): IExam {
@@ -50,12 +51,23 @@ export class ExamRepository implements IExamRepository {
     }
   }
 
-  async listExamsByPatientId(patientId: string): Promise<IExam[]> {
+  async listExamsByPatientId(
+    patientId: string,
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IExam[]; totalItems: number }> {
     try {
-      const examDocs = await MExam.find({ patientId }).sort({
-        createdAt: -1,
-      });
-      return examDocs.map((doc) => this.mapToDomain(doc));
+      const mongoFilter = { patientId };
+      const [examDocs, totalItems] = await Promise.all([
+        MExam.find(mongoFilter)
+          .sort({ createdAt: -1 })
+          .skip(pagination?.skip ?? 0)
+          .limit(pagination?.limit ?? 0),
+        MExam.countDocuments(mongoFilter),
+      ]);
+      return {
+        items: examDocs.map((doc) => this.mapToDomain(doc)),
+        totalItems,
+      };
     } catch (error) {
       throw new Error(
         `Error listing exams by patient ID: ${(error as Error).message}`,

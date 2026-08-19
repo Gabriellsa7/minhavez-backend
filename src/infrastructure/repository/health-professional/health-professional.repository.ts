@@ -11,6 +11,7 @@ import {
 } from '../../../domain/health-professional.ts/repository/health-professional.repository.interface';
 import { MHealthProfessional } from '../../db/mongo/models/health-professional.model';
 import { MAppointment } from '../../db/mongo/models/appointment.model';
+import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export class HealthProfessionalRepository
   implements IHealthProfessionalRepository
@@ -206,7 +207,8 @@ export class HealthProfessionalRepository
   async listHealthProfessionals(
     filter: Partial<IHealthProfessional>,
     search?: string,
-  ): Promise<IHealthProfessional[]> {
+    pagination?: IPaginationParams | null,
+  ): Promise<{ items: IHealthProfessional[]; totalItems: number }> {
     try {
       // Convert string IDs from filter to ObjectIds for Mongoose queries
       const mongoFilter: FilterQuery<IHealthProfessionalSchema> = {};
@@ -219,6 +221,9 @@ export class HealthProfessionalRepository
       }
       if (filter.userId) {
         mongoFilter.userId = filter.userId;
+      }
+      if (filter.specialty) {
+        mongoFilter.specialty = filter.specialty;
       }
 
       if (filter.type) {
@@ -238,10 +243,18 @@ export class HealthProfessionalRepository
         mongoFilter.$or = [{ name: searchRegex }, { specialty: searchRegex }];
       }
 
-      const healthProfessionalDocs =
-        await MHealthProfessional.find(mongoFilter);
+      const [healthProfessionalDocs, totalItems] = await Promise.all([
+        MHealthProfessional.find(mongoFilter)
+          .sort({ name: 1 })
+          .skip(pagination?.skip ?? 0)
+          .limit(pagination?.limit ?? 0),
+        MHealthProfessional.countDocuments(mongoFilter),
+      ]);
 
-      return healthProfessionalDocs.map((doc) => this.mapToDomain(doc));
+      return {
+        items: healthProfessionalDocs.map((doc) => this.mapToDomain(doc)),
+        totalItems,
+      };
     } catch (error) {
       throw new Error(
         `Error fetching health professionals: ${(error as Error).message}`,
