@@ -5,7 +5,6 @@
 - Minha-vez-app - no cardzinho que fica abaixo do search a home quando a mensagem fica muito grande os textos ficam colando um no outro permita a quebra de linha quando isso acontecer porem so quando o texto for ficar maior que o card.
 - Minha-vez-app - Verificar se a info que aparece no card de clinicas em explorar sobre as filas min de espera e pessoas na fila são mocadas se for implemente uma nova funcionalidade pra sempre mostrar isso se realmente tiver fila aberta ai vai mostra a qtd de pessoas que estão naquela fila que esta aberta no exato momento se não tiver fila aberta não mostrar no card.
 - Minha-vez-app - Na tela de explorar no card que mostrar os especialistas renderizar dentro do circulo de imagem a foto do especialista.
-- Criar script pra colar o mongoDB e gerar varias unidade de saude e profissonais vinculado a uma dessas unidade pra poder testar a paginação.
 - Configurar Papertrail no painel manager.
 
 ## Implementação Futura
@@ -61,3 +60,4 @@
 - Minha-vez-app - Implementar um novo card/button em serviço rapidos que será, minhas consultas onde ao clicar vai redirecionar para um nova tela onde vai mostrar cards de todas as consultas que o user tem agendada mostrando infos da consulta e quando ele clicar vai redirecionar pra tela da fila daquela consulta. - DONE
 - Minha-vez-app - implementar um Ver todos no mesmo view do Titulo Serviços Rapidos onde ao clicar abrira uma nova tela onde vai listar todos os serviços rapidos usando o mesmo formato dos cards da home coloca 4 por coluna e ao clicar cada um redireciona pra sua respectiva tela. - DONE
 - Minha-vez-app - Implementar listas paginadas de clinicas, exames, historicos de consulta e etc, ou seja todo e qualquer lugar que possa ter varios cards adicionar a paginação com numero padrão de paginados de 10. - DONE
+- Criar script pra colar o mongoDB e gerar varias unidade de saude e profissonais vinculado a uma dessas unidade pra poder testar a paginação. - DONE
