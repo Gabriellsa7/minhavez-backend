@@ -14,6 +14,7 @@
 ## Implementação Futura
 
 - Criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
+- Estudar e implementar sistema de pagamento pelo app pois atualmente é apenas na clinica para as privadas, UBS é gratuito.
 
 ## Done
 
