@@ -45,7 +45,7 @@ export function buildPaginatedResponse<T>(
     return {
       data: items,
       page: 1,
-      limit: totalItems,
+      limit: Math.max(totalItems, 1),
       totalItems,
       totalPages: 1,
     };

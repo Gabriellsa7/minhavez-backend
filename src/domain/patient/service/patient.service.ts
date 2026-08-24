@@ -66,7 +66,7 @@ export class PatientService implements IPatientService {
       );
 
       if (existingPatient) {
-        throw new Error('A patient with this user ID already exists');
+        throw new AppError(400, 'A patient with this user ID already exists');
       }
 
       const isElderly = calculateAge(params.birthDate) > ELDERLY_AGE_THRESHOLD;
@@ -79,6 +79,9 @@ export class PatientService implements IPatientService {
 
       return this.sanitizePatient(patient);
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       throw new Error(`Error creating user: ${(error as Error).message}`);
     }
   }

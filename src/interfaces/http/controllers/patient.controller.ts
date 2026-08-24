@@ -138,7 +138,22 @@ export class PatientController implements IController {
       });
       res.status(201).json(newPatient);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      if (error instanceof AppError) {
+        res.status(error.status).json({
+          status: error.status,
+          message: error.message,
+          timestamp: new Date().toISOString(),
+          path: req.originalUrl,
+          errors: [],
+        });
+        return;
+      }
+      res.status(500).json({
+        status: 500,
+        message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+      });
     }
   };
 

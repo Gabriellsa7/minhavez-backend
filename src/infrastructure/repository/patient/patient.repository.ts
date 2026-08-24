@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { IPatientSchema } from '../../db/mongo/schema/patient.schema';
+import { AppError } from '../../../shared/errors/AppError';
 import {
   IPatient,
   IPatientMedicalDocument,
@@ -42,6 +43,9 @@ export class PatientRepository implements IPatientRepository {
       const patientDoc = await MPatient.create(patientDate);
       return this.mapToDomain(patientDoc);
     } catch (error) {
+      if ((error as { code?: number }).code === 11000) {
+        throw new AppError(400, 'A patient with this CPF already exists');
+      }
       throw new Error(`Error creating patient: ${(error as Error).message}`);
     }
   }
