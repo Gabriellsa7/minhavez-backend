@@ -6,6 +6,7 @@ import {
 import {
   EQueueShift,
   EQueueStatus,
+  IHealthUnitQueueSummary,
   IQueue,
 } from '../interfaces/queue.interface';
 
@@ -40,4 +41,7 @@ export interface IQueueRepository {
     professionalId: string,
     filter?: IQueueHistoryFilter,
   ): Promise<IQueueHistoryEntry[]>;
+  getHealthUnitQueueSummary(
+    healthUnitId: string,
+  ): Promise<IHealthUnitQueueSummary>;
 }

@@ -42,6 +42,10 @@ export class QueueController implements IController {
       this.getQueuesByProfessionalId,
     );
     this.router.put('/queues/:id', this.updateQueueById);
+    this.router.get(
+      '/health-units/:id/queue-summary',
+      this.getHealthUnitQueueSummary,
+    );
   }
 
   getQueue = async (req: Request, res: Response): Promise<void> => {
@@ -285,6 +289,20 @@ export class QueueController implements IController {
       res.status(500).json({
         message: (error as Error).message,
       });
+    }
+  };
+
+  getHealthUnitQueueSummary = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+      const summary = await this.queueService.getHealthUnitQueueSummary(id);
+      res.status(200).json(summary);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
   };
 

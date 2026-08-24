@@ -2,6 +2,7 @@ import { HydratedDocument } from 'mongoose';
 import {
   EQueueShift,
   EQueueStatus,
+  IHealthUnitQueueSummary,
   IQueue,
 } from '../../../domain/queue/interfaces/queue.interface';
 import { IQueueSchema } from '../../db/mongo/schema/queue.schema';
@@ -414,6 +415,115 @@ export class QueueRepository implements IQueueRepository {
       return queueDocs.map((doc) => this.mapToDomain(doc));
     } catch (error) {
       throw new Error(`Error listing queues: ${(error as Error).message}`);
+    }
+  }
+
+  async getHealthUnitQueueSummary(
+    healthUnitId: string,
+  ): Promise<IHealthUnitQueueSummary> {
+    try {
+      const [result] = await MQueue.aggregate<{
+        _id: null;
+        waitingCount: number;
+        estimatedWaitMinutes: number | null;
+      }>([
+        {
+          $match: {
+            healthUnitId,
+            status: { $in: [EQueueStatus.OPEN, EQueueStatus.IN_PROGRESS] },
+          },
+        },
+
+        {
+          $lookup: {
+            from: 'queueitems',
+            localField: '_id',
+            foreignField: 'queueId',
+            as: 'queueItems',
+          },
+        },
+
+        {
+          $lookup: {
+            from: 'healthprofessionals',
+            let: { profId: '$professionalId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: [{ $toString: '$_id' }, '$$profId'] },
+                },
+              },
+              {
+                $project: {
+                  appointmentDuration: '$schedule.appointmentDuration',
+                },
+              },
+            ],
+            as: 'professional',
+          },
+        },
+
+        {
+          $unwind: {
+            path: '$professional',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        {
+          $project: {
+            waitingCount: {
+              $size: {
+                $filter: {
+                  input: '$queueItems',
+                  as: 'item',
+                  cond: { $eq: ['$$item.status', EQueueItemStatus.WAITING] },
+                },
+              },
+            },
+            appointmentDuration: '$professional.appointmentDuration',
+          },
+        },
+
+        {
+          $project: {
+            waitingCount: 1,
+            estimatedWaitMinutes: {
+              $cond: [
+                { $gt: ['$appointmentDuration', 0] },
+                { $multiply: ['$waitingCount', '$appointmentDuration'] },
+                null,
+              ],
+            },
+          },
+        },
+
+        {
+          $group: {
+            _id: null,
+            waitingCount: { $sum: '$waitingCount' },
+            estimatedWaitMinutes: { $min: '$estimatedWaitMinutes' },
+          },
+        },
+      ]);
+
+      if (!result) {
+        return {
+          hasOpenQueue: false,
+          waitingCount: 0,
+          estimatedWaitMinutes: null,
+        };
+      }
+
+      return {
+        hasOpenQueue: true,
+        waitingCount: result.waitingCount,
+        estimatedWaitMinutes: result.estimatedWaitMinutes ?? null,
+      };
+    } catch (error) {
+      throw new Error(
+        `Error retrieving health unit queue summary: ${(error as Error).message}`,
+      );
     }
   }
 

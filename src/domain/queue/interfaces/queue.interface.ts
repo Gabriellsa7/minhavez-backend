@@ -21,3 +21,9 @@ export enum EQueueShift {
   MORNING = 'MORNING',
   AFTERNOON = 'AFTERNOON',
 }
+
+export interface IHealthUnitQueueSummary {
+  hasOpenQueue: boolean;
+  waitingCount: number;
+  estimatedWaitMinutes: number | null;
+}

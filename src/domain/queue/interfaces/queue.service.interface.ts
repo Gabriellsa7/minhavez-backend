@@ -6,7 +6,7 @@ import {
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
-import { IQueue } from './queue.interface';
+import { IHealthUnitQueueSummary, IQueue } from './queue.interface';
 import { IQueueManagement } from './queue-management.interface';
 import {
   IQueueHistoryEntry,
@@ -44,6 +44,9 @@ export interface IQueueService {
     professionalId: string,
     filter?: IQueueHistoryFilter,
   ): Promise<IQueueHistoryEntry[]>;
+  getHealthUnitQueueSummary(
+    healthUnitId: string,
+  ): Promise<IHealthUnitQueueSummary>;
 }
 
 export interface IQueueWithDetails extends IQueue {

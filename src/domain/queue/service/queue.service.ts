@@ -1,4 +1,9 @@
-import { EQueueShift, EQueueStatus, IQueue } from '../interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+  IHealthUnitQueueSummary,
+  IQueue,
+} from '../interfaces/queue.interface';
 import {
   IQueueService,
   IQueueWithDetails,
@@ -387,6 +392,20 @@ export class QueueService implements IQueueService {
     } catch (error) {
       throw new Error(
         `Error retrieving queue history: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async getHealthUnitQueueSummary(
+    healthUnitId: string,
+  ): Promise<IHealthUnitQueueSummary> {
+    try {
+      return await this.queueRepository.getHealthUnitQueueSummary(
+        healthUnitId,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error retrieving health unit queue summary: ${(error as Error).message}`,
       );
     }
   }

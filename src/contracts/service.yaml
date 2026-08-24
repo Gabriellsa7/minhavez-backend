@@ -2640,6 +2640,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /health-units/{id}/queue-summary:
+    get:
+      tags:
+        - Queues
+      summary: Get a health unit's live queue summary
+      operationId: getHealthUnitQueueSummary
+      description: Retrieve whether the health unit (clinic) currently has an open queue and, if so, how many patients are waiting and the estimated wait time.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health unit
+      responses:
+        '200':
+          description: Live queue summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueSummary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   # additional paths expected to be useful in the near future
   /auth/login:
     post:
@@ -5848,6 +5876,20 @@ components:
         count:
           type: integer
           description: Number of ratings included in the average
+
+    QueueSummary:
+      type: object
+      properties:
+        hasOpenQueue:
+          type: boolean
+          description: Whether the health unit has at least one open queue right now
+        waitingCount:
+          type: integer
+          description: Total number of patients currently waiting across all open queues of the unit
+        estimatedWaitMinutes:
+          type: integer
+          nullable: true
+          description: Estimated wait time in minutes for the fastest open queue, or null when it cannot be estimated
 
     QueueWithDetails:
       type: object
