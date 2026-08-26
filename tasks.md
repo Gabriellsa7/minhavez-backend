@@ -2,7 +2,12 @@
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Configurar Papertrail no painel manager.
+
+## Sobre a version:
+
+- **patch** (`1.0.x`) — correções de bug, ajustes pequenos, sem mudar comportamento visível. É o que seus builds fazem automaticamente.
+- **minor** (`1.x.0`) — nova funcionalidade que não quebra nada existente. Você reseta o patch: rode `node scripts/bump-version.js minor`.
+- **major** (`x.0.0`) — mudança grande/breaking, redesign, ou um marco importante do produto. Reseta minor e patch: `node scripts/bump-version.js major`.
 
 ## Implementação Futura
 
@@ -61,3 +66,5 @@
 - Minha-vez-app - Na tela de explorar no card que mostrar os especialistas renderizar dentro do circulo de imagem a foto do especialista. - DONE
 - Minha-vez-app - no cardzinho que fica abaixo do search a home quando a mensagem fica muito grande os textos ficam colando um no outro permita a quebra de linha quando isso acontecer porem so quando o texto for ficar maior que o card. - DONE
 - Minha-vez-app - Verificar se a info que aparece no card de clinicas em explorar sobre as filas min de espera e pessoas na fila são mocadas se for implemente uma nova funcionalidade pra sempre mostrar isso se realmente tiver fila aberta ai vai mostra a qtd de pessoas que estão naquela fila que esta aberta no exato momento se não tiver fila aberta não mostrar no card. - DONE
+- AJustar teclado sobrepondo os inputs. - DONE
+- Configurar Papertrail no painel manager e configurar erros pra aparecer nos logs do papertrail. - DONE
