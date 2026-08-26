@@ -10,6 +10,19 @@ export function errorHandler(
   _next: NextFunction,
 ) {
   if (error instanceof AppError) {
+    const logPayload = JSON.stringify({
+      eventName: 'app.error',
+      status: error.status,
+      message: error.message,
+      path: req.originalUrl,
+    });
+
+    if (error.status >= 500) {
+      Logger.error(logPayload);
+    } else {
+      Logger.warn(logPayload);
+    }
+
     return res.status(error.status).json({
       status: error.status,
       message: error.message,
