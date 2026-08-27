@@ -1,7 +1,9 @@
 ## **Tasks**
 
 - Fazer ajustes visuais no manager medico e admin e app tbm.
+- Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
+- Ajustar notificações pois esta sendo enviadas notificações em periodo errado exemplo marquei uma consulta pra amanhã e recebi a correta sua consulta é amanhã e a errada sua consulta é hoje.
 
 ## Sobre a version:
 
