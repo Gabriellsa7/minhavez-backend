@@ -5,6 +5,8 @@
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
 - Ajustar notificações pois esta sendo enviadas notificações em periodo errado exemplo marquei uma consulta pra amanhã e recebi a correta sua consulta é amanhã e a errada sua consulta é hoje.
+- Criar um readme bonito pra cada repository, app e manager add imagens.
+- Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
 
 ## Sobre a version:
 
