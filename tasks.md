@@ -1,7 +1,8 @@
 ## **Tasks**
 
 - Cria um CI/CD no meu projeto - **PRIORIDADE**
-- Ajustar redirecionamento da pagina de notfound e criar pagina de erro.
+- AJustar redirecionamento da pagina de notFound do manager com base no user logado ele sempre retornar pra home.
+- Melhorar a pagina de notfound colocando logo do app e uma menssagenzinha, criar uma pagina de erro com o mesmo padrão colocando uma mensagenzinha não tão agressiva pra não afetar o user.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
@@ -96,3 +97,4 @@
 68. Adicionar websockt no manager pra que quando o usuario marcar uma consulta a fila na aparece sem o medico da F5 no painel, alem disso permitir que mesmo com a fila aberta se ainda tiver horario o patient pode marcar entar naquela fila até o medico fechar caso o medico não fecha ela, ela será fechada automaticament 12h a da manha e 22h a da tarde, agora a fila não deve fechar mais altomaticamente quando o medico atender o ultimo agora so fecha quando ele aberta no botão de fechar fila. - DONE
 69. Implementar logica pra permitir o medico marcar o retorno do usuario em até no maximo 20 dias depois do dia da consulta. - DONE
 70. Alterar ordem das filas que são mostradas no painel manager pq atualmente mostra a ultima marcada eu quero mostra por ordem de data exemplo 27,28,29,30 se tiver duas no mesmo dia, mostra por ordem de turno 29 manha, 29 tarde, 30, 31, 32. - DONE
+71. Ajustar redirecionamento da pagina de notfound e criar pagina de erro. - DONE
