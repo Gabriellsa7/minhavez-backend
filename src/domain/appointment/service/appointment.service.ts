@@ -32,6 +32,7 @@ import { INotificationJobScheduler } from '../../notification/interfaces/notific
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../patient/interfaces/patient.interface';
 import { AppError } from '../../../shared/errors/AppError';
+import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
 
 const CANCEL_CUTOFF_HOUR = 12;
 const CANCEL_CUTOFF_MINUTE = 0;
@@ -87,6 +88,28 @@ export class AppointmentService implements IAppointmentService {
         }
       }
       const appointmentDateTime = new Date(params.dateTime);
+
+      const existingAppointmentsForPatient =
+        await this.appointmentRepository.listAppointments({
+          patientId: params.patientId,
+        });
+
+      const hasAppointmentOnSameDay = existingAppointmentsForPatient.some(
+        (apt) => {
+          if (
+            apt.status === EAppointmentStatus.COMPLETED ||
+            apt.status === EAppointmentStatus.CANCELED
+          ) {
+            return false;
+          }
+
+          return isSameBrazilDay(new Date(apt.dateTime), appointmentDateTime);
+        },
+      );
+
+      if (hasAppointmentOnSameDay) {
+        throw new Error('Você só pode marcar uma consulta por dia');
+      }
 
       const existingAppointmentAtSameTime =
         await this.appointmentRepository.listAppointments({

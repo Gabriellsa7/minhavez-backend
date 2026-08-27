@@ -724,6 +724,157 @@ describe('AppointmentService', () => {
     });
   });
 
+  describe('createAppointment - one booking per patient per day', () => {
+    const buildDeps = (existingAppointments: IAppointment[]) => {
+      const repository = {
+        listAppointments: jest.fn().mockResolvedValue(existingAppointments),
+        createAppointment: jest.fn().mockResolvedValue({
+          _id: 'new-id',
+          status: EAppointmentStatus.SCHEDULED,
+        }),
+      } as unknown as IAppointmentRepository;
+
+      const queueRepository = {
+        listQueues: jest.fn().mockResolvedValue([]),
+        createQueue: jest.fn().mockResolvedValue({
+          _id: 'queue-1',
+          professionalId: 'professional-1',
+          healthUnitId: 'unit-1',
+          status: EQueueStatus.OPEN,
+          shift: EQueueShift.MORNING,
+          queueDate: new Date(),
+        }),
+      } as unknown as IQueueRepository;
+
+      const queueItemRepository = {
+        listQueueItems: jest.fn().mockResolvedValue([]),
+        createQueueItem: jest.fn().mockResolvedValue({
+          _id: 'queue-item-1',
+          queueId: 'queue-1',
+          patientId: 'patient-1',
+          position: 1,
+          priority: EQueueItemPriority.MEDIUM,
+          status: EQueueItemStatus.WAITING,
+        }),
+      } as unknown as IQueueItemRepository;
+
+      const professionalRepository = {
+        getHealthProfessionalById: jest.fn().mockResolvedValue({
+          _id: 'professional-1',
+          schedule: { appointmentDuration: 30 },
+        }),
+      } as unknown as IHealthProfessionalRepository;
+
+      return new AppointmentService({
+        appointmentRepository: repository,
+        queueRepository,
+        queueItemRepository,
+        professionalRepository,
+        healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
+      });
+    };
+
+    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
+    const params: IParamsCreateAppointment = {
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date('2026-07-06T13:00:00.000Z'),
+    };
+
+    it('rejects a second booking for the same patient on the same day', async () => {
+      const service = buildDeps([
+        {
+          _id: 'existing-id',
+          patientId: 'patient-1',
+          professionalId: 'professional-2',
+          healthUnitId: 'unit-1',
+          queueItemId: null,
+          dateTime: new Date('2026-07-06T21:00:00.000Z'),
+          status: EAppointmentStatus.SCHEDULED,
+          isReturn: false,
+          returnScheduled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'Você só pode marcar uma consulta por dia',
+      );
+    });
+
+    it('rejects a same-day booking even close to the Brazil day boundary', async () => {
+      // 2026-07-07T02:30:00Z is 2026-07-06T23:30 in Brazil (UTC-3) — same
+      // Brazil day as params.dateTime, despite falling on a different UTC day.
+      const service = buildDeps([
+        {
+          _id: 'existing-id',
+          patientId: 'patient-1',
+          professionalId: 'professional-2',
+          healthUnitId: 'unit-1',
+          queueItemId: null,
+          dateTime: new Date('2026-07-07T02:30:00.000Z'),
+          status: EAppointmentStatus.SCHEDULED,
+          isReturn: false,
+          returnScheduled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      await expect(service.createAppointment(params)).rejects.toThrow(
+        'Você só pode marcar uma consulta por dia',
+      );
+    });
+
+    it('allows booking when the same-day appointment was canceled', async () => {
+      const service = buildDeps([
+        {
+          _id: 'existing-id',
+          patientId: 'patient-1',
+          professionalId: 'professional-2',
+          healthUnitId: 'unit-1',
+          queueItemId: null,
+          dateTime: new Date('2026-07-06T21:00:00.000Z'),
+          status: EAppointmentStatus.CANCELED,
+          isReturn: false,
+          returnScheduled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      await expect(service.createAppointment(params)).resolves.toMatchObject({
+        _id: 'new-id',
+        status: EAppointmentStatus.SCHEDULED,
+      });
+    });
+
+    it('allows booking when the patient has an appointment on a different day', async () => {
+      const service = buildDeps([
+        {
+          _id: 'existing-id',
+          patientId: 'patient-1',
+          professionalId: 'professional-2',
+          healthUnitId: 'unit-1',
+          queueItemId: null,
+          dateTime: new Date('2026-07-07T13:00:00.000Z'),
+          status: EAppointmentStatus.SCHEDULED,
+          isReturn: false,
+          returnScheduled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      await expect(service.createAppointment(params)).resolves.toMatchObject({
+        _id: 'new-id',
+        status: EAppointmentStatus.SCHEDULED,
+      });
+    });
+  });
+
   describe('cancelAppointment', () => {
     const scheduledAppointment: IAppointment = {
       _id: 'appointment-1',

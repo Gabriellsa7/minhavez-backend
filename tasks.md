@@ -5,10 +5,14 @@
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
 - Ajustar notificações pois esta sendo enviadas notificações em periodo errado exemplo marquei uma consulta pra amanhã e recebi a correta sua consulta é amanhã e a errada sua consulta é hoje.
--
-- Na nova seção de novas consultas e exames quando tiver 1 dias antes do exame/consulta por um cardzinho(o padrão inicial é não aparecer nenhum cardzinho até cumpir uma dessas 2 regras 1 dia antes e 1 hora antes) dentro do card na parte de cima em amarelo dizendo sua consulta/exame é amanhã e quando tiver faltando 1h no dia da consulta/exame esse cardzinho fica vermelho com uma mensagem tipo, sua consulta é: ai entra uma contagem regressiva até a hora da consulta ou exame ai depois que passar o horario do exame/consulta ela tendo sido finalizada ou não o card principal some junto com as infos e fica so o card das proxima consultas/exame.
--
+- Ajustar notificação pra so receber a notificação de posição na fila conforme a fila estiver aberta e o medico for chamando no manager ou seja usara websocket.
 - Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
+-
+- Ajustar regra no backend pra impedir que o mesmo user marque mais de uma consulta no mesmo dia.
+-
+- Ajustar logica no front pra que quando o medico atenda ou feche a fila de vez sem atender ninguem suma automaticamente da tela do user nos dois lugares que aparece na home.
+-
+- Implementar uma nova logica pra quando o medico fechar fila sem atender ninguem apareca um modal pra ele digitar o motivo e pro user apareca um modal mostrando o que o medico digitou todas essas infos tem que ser instataneas com wesocket
 
 ## Sobre a version:
 
@@ -80,3 +84,4 @@
 - Implementar logica pra mostrar imagem da clinica no card do queueItems. - DONE
 - Implementar novo componente pra mostrar condicionlmente(sempre que houver consulta/exam mracado) onde vai mostrar as consultas e os exames que o usuario tem marcado. - DONE
 - Criar um readme bonito pra cada repository, app e manager add imagens. - DONE
+- Na nova seção de novas consultas e exames quando tiver 1 dias antes do exame/consulta por um cardzinho(o padrão inicial é não aparecer nenhum cardzinho até cumpir uma dessas 2 regras 1 dia antes e 1 hora antes) dentro do card na parte de cima em amarelo dizendo sua consulta/exame é amanhã e quando tiver faltando 1h no dia da consulta/exame esse cardzinho fica vermelho com uma mensagem tipo, sua consulta é: ai entra uma contagem regressiva até a hora da consulta ou exame ai depois que passar o horario do exame/consulta ela tendo sido finalizada ou não o card principal some junto com as infos e fica so o card das proxima consultas/exame. - DONE
