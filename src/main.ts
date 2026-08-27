@@ -32,6 +32,9 @@ import { PushTokenController } from './interfaces/http/controllers/push-token.co
 import { NotificationWorker } from './infrastructure/queue/bullmq/workers/notification.worker';
 import { InfrastructureController } from './interfaces/http/controllers/infrastructure.controller';
 import { NotificationSocketGateway } from './infrastructure/socket/notification.socket';
+import { QueueAutoCloseWorker } from './infrastructure/queue/bullmq/workers/queue-auto-close.worker';
+import { QueueAutoCloseScheduler } from './infrastructure/queue/bullmq/queue-auto-close.scheduler';
+import { QueueServiceFactory } from './infrastructure/config/factories/queue/queue.service.factory';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -65,6 +68,12 @@ async function start() {
 
   const notificationWorker = new NotificationWorker();
   notificationWorker.start();
+
+  const queueAutoCloseWorker = new QueueAutoCloseWorker(
+    QueueServiceFactory.create(),
+  );
+  queueAutoCloseWorker.start();
+  await new QueueAutoCloseScheduler().registerRepeatableJobs();
 }
 
 start();

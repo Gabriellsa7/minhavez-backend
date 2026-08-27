@@ -455,6 +455,26 @@ export class QueueService implements IQueueService {
     return pendingItems.map((item) => item._id);
   }
 
+  /** Force-closes every still-OPEN queue of a shift that the professional
+   * never closed manually — used by the scheduled 12:00/22:00 auto-close
+   * job. Reuses closeQueue so pending patients get the same cascade
+   * (QUEUE_CLOSED status, notification, queue.closed broadcast) as a manual
+   * force-close. Queues never opened today are born CLOSED, so filtering by
+   * OPEN alone is enough to scope this to queues actually in progress. */
+  async autoCloseQueuesForShift(shift: EQueueShift): Promise<void> {
+    const openQueues = await this.queueRepository.listQueues({
+      shift,
+      status: EQueueStatus.OPEN,
+    });
+
+    for (const queue of openQueues) {
+      await this.closeQueue(
+        queue._id,
+        'Fila encerrada automaticamente pelo horário de expediente.',
+      );
+    }
+  }
+
   async getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]> {
     try {
       return await this.queueRepository.getQueuesByProfessionalId(

@@ -185,7 +185,7 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
       appointmentRepository,
     });
 
-    return { service, appointmentRepository };
+    return { service, appointmentRepository, queueRepository };
   }
 
   function buildAppointment(overrides: Partial<IAppointment>): IAppointment {
@@ -241,5 +241,13 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
     await expect(
       service.finishQueueItem('qi-1'),
     ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+  });
+
+  it('does not close the queue when finishing the last waiting patient — only a manual or scheduled close should', async () => {
+    const { service, queueRepository } = buildService(undefined);
+
+    await service.finishQueueItem('qi-1');
+
+    expect(queueRepository.updateQueueById).not.toHaveBeenCalled();
   });
 });

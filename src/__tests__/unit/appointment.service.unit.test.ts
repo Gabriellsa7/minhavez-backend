@@ -23,6 +23,7 @@ import { IPatientRepository } from '../../domain/patient/repository/patient.repo
 import { EPatientPriority } from '../../domain/patient/interfaces/patient.interface';
 import { IHealthUnitRepository } from '../../domain/health-unit/repository/health-unit.repository.interface';
 import { IHealthUnit, WeekDay } from '../../domain/health-unit/interfaces/health-unit.interface';
+import { INotificationSocketGateway } from '../../domain/notification/interfaces/notification-socket.interface';
 
 /** Open every day, all day, so existing tests (which don't exercise
  * operating-hours validation) keep passing regardless of the appointment
@@ -146,6 +147,85 @@ describe('AppointmentService', () => {
     expect(createAppointmentMock).toHaveBeenCalledWith({
       ...params,
       queueItemId: 'queue-item-1',
+    });
+  });
+
+  it('broadcasts queue-item.created so the professional panel picks up the new booking without a refresh', async () => {
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-id',
+        patientId: 'patient-2',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        queueItemId: 'queue-item-1',
+        dateTime: new Date('2026-07-06T13:00:00.000Z'),
+        status: EAppointmentStatus.SCHEDULED,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date('2026-07-06T00:00:00.000Z'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    } as unknown as IQueueRepository;
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn().mockResolvedValue([]),
+      createQueueItem: jest.fn().mockResolvedValue({
+        _id: 'queue-item-1',
+        queueId: 'queue-1',
+        patientId: 'patient-2',
+        code: 'ABC123',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.WAITING,
+      }),
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const broadcastNotification = jest.fn();
+    const notificationSocketGateway = {
+      broadcastNotification,
+    } as unknown as INotificationSocketGateway;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
+      notificationSocketGateway,
+    });
+
+    await service.createAppointment({
+      patientId: 'patient-2',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date('2026-07-06T13:00:00.000Z'),
+    });
+
+    expect(broadcastNotification).toHaveBeenCalledWith({
+      type: 'queue-item.created',
+      queueId: 'queue-1',
+      queueItemId: 'queue-item-1',
+      professionalId: 'professional-1',
     });
   });
 

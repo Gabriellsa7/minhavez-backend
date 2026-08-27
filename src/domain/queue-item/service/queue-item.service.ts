@@ -9,7 +9,6 @@ import {
 } from '../repository/queue-item.repository.interface';
 import { IQueueItemService } from '../interfaces/queue-item.service.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
-import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
@@ -229,6 +228,10 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
+  /** Attending the last waiting patient no longer closes the queue — it
+   * stays OPEN so a professional who doesn't press "Fechar fila" keeps
+   * receiving walk-in bookings until the scheduled auto-close or a manual
+   * close (see QueueService.autoCloseQueuesForShift / closeQueue). */
   private async advanceQueue(queueId: string): Promise<void> {
     try {
       const next = await pickNextWaitingQueueItem(
@@ -242,15 +245,7 @@ export class QueueItemService implements IQueueItemService {
 
           calledAt: new Date(),
         });
-
-        return;
       }
-
-      await this.queueRepository.updateQueueById(queueId, {
-        status: EQueueStatus.CLOSED,
-
-        closedAt: new Date(),
-      });
     } catch (error) {
       throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }

@@ -5,7 +5,7 @@ import {
   IQueueItem,
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
-import { EQueueStatus, IQueue } from '../../domain/queue/interfaces/queue.interface';
+import { EQueueShift, EQueueStatus, IQueue } from '../../domain/queue/interfaces/queue.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
 import { IAppointmentRepository } from '../../domain/appointment/repository/appointment.repository.interface';
 import {
@@ -361,6 +361,103 @@ describe('QueueService.closeQueue', () => {
         type: ENotificationType.QUEUE_CLOSED,
         data: expect.objectContaining({ healthUnitId: 'unit-1' }),
       }),
+    );
+  });
+});
+
+describe('QueueService.autoCloseQueuesForShift', () => {
+  it('closes every OPEN queue for the given shift, leaving other shifts and already-closed queues untouched', async () => {
+    const morningOpenQueue = buildQueue({
+      _id: 'queue-morning-open',
+      shift: 'MORNING' as IQueue['shift'],
+      status: EQueueStatus.OPEN,
+    });
+    const morningClosedQueue = buildQueue({
+      _id: 'queue-morning-closed',
+      shift: 'MORNING' as IQueue['shift'],
+      status: EQueueStatus.CLOSED,
+    });
+    const afternoonOpenQueue = buildQueue({
+      _id: 'queue-afternoon-open',
+      shift: 'AFTERNOON' as IQueue['shift'],
+      status: EQueueStatus.OPEN,
+    });
+
+    const queues: Record<string, IQueue> = {
+      [morningOpenQueue._id]: morningOpenQueue,
+      [morningClosedQueue._id]: morningClosedQueue,
+      [afternoonOpenQueue._id]: afternoonOpenQueue,
+    };
+
+    const listQueues = jest.fn(async (filter: Partial<IQueue>) =>
+      Object.values(queues)
+        .filter(
+          (queue) =>
+            (!filter.shift || queue.shift === filter.shift) &&
+            (!filter.status || queue.status === filter.status),
+        )
+        .map((queue) => ({ ...queue })),
+    );
+
+    const updateQueueById = jest.fn(
+      async (id: string, params: Partial<IQueue>) => {
+        Object.assign(queues[id], params);
+        return { ...queues[id] };
+      },
+    );
+
+    const queueRepository = {
+      listQueues,
+      getQueueById: jest.fn(async (id: string) => ({ ...queues[id] })),
+      updateQueueById,
+    } as unknown as IQueueRepository;
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn(async () => []),
+      updateQueueItemById: jest.fn(),
+    } as unknown as IQueueItemRepository;
+
+    const appointmentRepository = {
+      listAppointments: jest.fn(async () => []),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+
+    const broadcastNotification = jest.fn();
+
+    const service = new QueueService({
+      queueRepository,
+      queueItemRepository,
+      healthUnitRepository: {} as never,
+      healthProfessionalRepository: {} as never,
+      appointmentRepository,
+      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+    });
+
+    await service.autoCloseQueuesForShift(EQueueShift.MORNING);
+
+    expect(listQueues).toHaveBeenCalledWith({
+      shift: EQueueShift.MORNING,
+      status: EQueueStatus.OPEN,
+    });
+
+    expect(updateQueueById).toHaveBeenCalledWith(
+      'queue-morning-open',
+      expect.objectContaining({ status: EQueueStatus.CLOSED }),
+    );
+    expect(updateQueueById).not.toHaveBeenCalledWith(
+      'queue-afternoon-open',
+      expect.anything(),
+    );
+
+    expect(broadcastNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'queue.closed',
+        queueId: 'queue-morning-open',
+        reason: 'Fila encerrada automaticamente pelo horário de expediente.',
+      }),
+    );
+    expect(broadcastNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ queueId: 'queue-afternoon-open' }),
     );
   });
 });

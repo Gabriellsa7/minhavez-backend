@@ -238,6 +238,15 @@ export class AppointmentService implements IAppointmentService {
         await this.queueNotificationService?.handleQueuePositionChange(
           queueItem,
         );
+
+        // Lets the professional's panel pick up the new patient without a
+        // manual refresh — it has no other way to learn about a booking.
+        this.notificationSocketGateway?.broadcastNotification({
+          type: 'queue-item.created',
+          queueId: queue._id,
+          queueItemId: queueItem._id,
+          professionalId: params.professionalId,
+        });
       }
 
       const appointment = await this.appointmentRepository.createAppointment({

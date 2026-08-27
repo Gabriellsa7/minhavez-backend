@@ -6,7 +6,7 @@ import {
 import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
-import { IHealthUnitQueueSummary, IQueue } from './queue.interface';
+import { EQueueShift, IHealthUnitQueueSummary, IQueue } from './queue.interface';
 import { IQueueManagement } from './queue-management.interface';
 import {
   IQueueHistoryEntry,
@@ -38,6 +38,7 @@ export interface IQueueService {
   deleteQueueById(_id: string): Promise<IQueue | null>;
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string, reason?: string): Promise<IQueue>;
+  autoCloseQueuesForShift(shift: EQueueShift): Promise<void>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
   getQueueHistoryByProfessionalId(
