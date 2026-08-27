@@ -26,9 +26,9 @@ O **minhavez-backend** é a API que sustenta o ecossistema Minha Vez, um sistema
 
 | Repositório | Papel |
 |---|---|
-| ⚙️ **minhavez-backend** (este repo) | API central — filas, agendamentos, notificações e autenticação |
-| 📱 [minha-vez-app](../minha-vez-app) | App mobile usado pelos pacientes |
-| 🖥️ [minha-vez-manager](../minha-vez-manager) | Painel web usado pelas unidades de saúde |
+| ⚙️ **minhavez-backend** | API central — filas, agendamentos, notificações e autenticação |
+| 📱 [minha-vez-app](https://github.com/Gabriellsa7/minha-vez-app) | App mobile usado pelos pacientes |
+| 🖥️ [minha-vez-manager](https://github.com/Gabriellsa7/minha-vez-manager) | Painel web usado pelas unidades de saúde |
 
 Construído em **Clean Architecture**, separando regras de negócio (domain) de detalhes de infraestrutura (banco, filas, e-mail, storage), o que facilita testes e manutenção a longo prazo.
 
