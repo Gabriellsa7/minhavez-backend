@@ -8,8 +8,10 @@ import {
 import { IQueueItem } from '../../queue-item/interfaces/queue-item.interface';
 import { INotificationService } from '../interfaces/notification.service.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
+import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { notificationQueueConfig } from '../../../infrastructure/config/notification.constants';
 import { BullMqProvider } from '../../../infrastructure/queue/bullmq/bullmq.provider';
+import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
 
 export interface IParamsQueueNotificationService {
   notificationService: Pick<INotificationService, 'createNotification'>;
@@ -45,11 +47,13 @@ export class QueueNotificationService {
       }
 
       // Position notifications only make sense once the patient's queue day
-      // has arrived — a queue item can exist days ahead of the appointment,
-      // so a threshold crossed early must not notify before that day.
-      const isQueueForToday = await this.isQueueDateToday(queueItem.queueId);
-      if (!isQueueForToday) {
-        Logger.info('Skipped queue position notification: not the queue day', {
+      // has arrived and while the queue is actually open — a queue item can
+      // exist days ahead of the appointment, and a call/recalculate cascade
+      // can still be finishing up right as the professional closes the
+      // queue, so both must hold or the patient gets a stale/premature ping.
+      const isQueueOpenToday = await this.isQueueOpenToday(queueItem.queueId);
+      if (!isQueueOpenToday) {
+        Logger.info('Skipped queue position notification: queue not open today', {
           patientId: queueItem.patientId,
           queueItemId: queueItem._id,
           queueId: queueItem.queueId,
@@ -121,20 +125,18 @@ export class QueueNotificationService {
     }
   }
 
-  private async isQueueDateToday(queueId: string): Promise<boolean> {
+  private async isQueueOpenToday(queueId: string): Promise<boolean> {
     const queue = await this.queueRepository.getQueueById(queueId);
     if (!queue) {
       return false;
     }
 
-    const queueDate = new Date(queue.queueDate);
-    const today = new Date();
+    const isToday = isSameBrazilDay(new Date(queue.queueDate), new Date());
+    const isOpen =
+      queue.status === EQueueStatus.OPEN ||
+      queue.status === EQueueStatus.IN_PROGRESS;
 
-    return (
-      queueDate.getFullYear() === today.getFullYear() &&
-      queueDate.getMonth() === today.getMonth() &&
-      queueDate.getDate() === today.getDate()
-    );
+    return isToday && isOpen;
   }
 
   private getNotificationType(position: number): ENotificationType {

@@ -75,4 +75,44 @@ describe('AppointmentReminderService', () => {
       }),
     );
   });
+
+  it('still schedules "amanhã" (not "hoje") for a tomorrow booking made late at night Brazil time', async () => {
+    // 23:00 in Brazil (UTC-3) on 2026-08-27 is 02:00 UTC on 2026-08-28 — the
+    // exact window where process-local Date getters, if evaluated under
+    // UTC, would read "today" as one calendar day ahead of the real Brazil
+    // day and misclassify the "amanhã" reminder as already past.
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-28T02:00:00.000Z'));
+
+    const createNotification = jest
+      .fn()
+      .mockResolvedValue({ _id: 'notification-1' });
+    const service = new AppointmentReminderService({
+      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+    });
+
+    // Booked for tomorrow in Brazil time: 2026-08-28 (Brazil calendar day),
+    // i.e. any instant from 03:00 UTC on the 28th onward.
+    const appointment = createAppointment(new Date('2026-08-28T14:00:00.000Z'));
+
+    await service.createReminders(appointment);
+
+    // Both the "amanhã" (fires now) and "hoje" (queued for tomorrow morning)
+    // reminders must be created — under the bug, "amanhã" was dropped as
+    // already "past" and "hoje" fired immediately instead of being queued.
+    expect(createNotification).toHaveBeenCalledTimes(2);
+    const calls = createNotification.mock.calls.map((call) => call[0]);
+    const amanha = calls.find((call) => call.message.includes('amanhã'));
+    const hoje = calls.find((call) => call.message.includes('hoje'));
+    expect(amanha).toBeDefined();
+    expect(hoje).toBeDefined();
+
+    // "amanhã" is delivered right away; "hoje" must be queued for the next
+    // Brazil calendar day, not fired immediately alongside it.
+    expect(amanha!.scheduledAt.getTime()).toBeLessThanOrEqual(Date.now());
+    expect(hoje!.scheduledAt.getTime()).toBeGreaterThan(Date.now());
+    // 9am Brazil time on 2026-08-28 is 12:00:00.000Z.
+    expect(hoje!.scheduledAt.toISOString()).toBe('2026-08-28T12:00:00.000Z');
+
+    jest.useRealTimers();
+  });
 });

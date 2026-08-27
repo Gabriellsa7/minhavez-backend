@@ -20,13 +20,13 @@ function createFakeRedisClient() {
   } as unknown as IORedis;
 }
 
-function createFakeQueueRepository(queueDate: Date) {
+function createFakeQueueRepository(queueDate: Date, status: EQueueStatus = EQueueStatus.OPEN) {
   return {
     getQueueById: jest.fn().mockResolvedValue({
       _id: 'queue-1',
       professionalId: 'professional-1',
       healthUnitId: 'health-unit-1',
-      status: EQueueStatus.OPEN,
+      status,
       shift: EQueueShift.MORNING,
       queueDate,
     } as IQueue),
@@ -80,6 +80,29 @@ describe('QueueNotificationService', () => {
     const service = new QueueNotificationService({
       notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
       queueRepository: createFakeQueueRepository(tomorrow),
+      redisClient: createFakeRedisClient(),
+    });
+
+    const result = await service.handleQueuePositionChange({
+      _id: 'queue-item-1',
+      patientId: 'patient-1',
+      queueId: 'queue-1',
+      position: 5,
+      status: EQueueItemStatus.WAITING,
+    } as IQueueItem);
+
+    expect(result).toBeNull();
+    expect(createNotification).not.toHaveBeenCalled();
+  });
+
+  it('does not send a position notification once the queue has been closed', async () => {
+    const createNotification = jest
+      .fn()
+      .mockResolvedValue({ _id: 'notification-1' });
+
+    const service = new QueueNotificationService({
+      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+      queueRepository: createFakeQueueRepository(new Date(), EQueueStatus.CLOSED),
       redisClient: createFakeRedisClient(),
     });
 

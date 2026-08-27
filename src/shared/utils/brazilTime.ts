@@ -19,3 +19,33 @@ export function isSameBrazilDay(a: Date, b: Date): boolean {
     brazilA.getUTCDate() === brazilB.getUTCDate()
   );
 }
+
+/** Midnight (00:00 Brazil time) of the given instant's Brazil calendar day,
+ * represented as the equivalent UTC instant. Two dates on the same Brazil
+ * calendar day always produce the same `getTime()` here, so this doubles as
+ * a TZ-independent day bucket for ordering/equality comparisons — and, since
+ * it's a real instant, days can be shifted with plain millisecond math
+ * instead of local Date component setters. */
+export function toBrazilDayStart(date: Date): Date {
+  const shifted = toBrazilDate(date);
+  return new Date(
+    Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate()) +
+      BRAZIL_UTC_OFFSET_HOURS * 60 * 60 * 1000,
+  );
+}
+
+/** Formats an instant as its Brazil wall-clock date/time (dd/mm/yyyy HH:mm).
+ * Built on the fixed offset rather than `toLocaleString`/`Intl` with an
+ * explicit time zone, since that still depends on the ICU/tzdata being
+ * available in the runtime — the same dependency this module exists to
+ * avoid. */
+export function formatBrazilDateTime(date: Date): string {
+  const shifted = toBrazilDate(date);
+  const day = String(shifted.getUTCDate()).padStart(2, '0');
+  const month = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+  const year = shifted.getUTCFullYear();
+  const hours = String(shifted.getUTCHours()).padStart(2, '0');
+  const minutes = String(shifted.getUTCMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
