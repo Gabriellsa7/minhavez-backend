@@ -72,3 +72,6 @@
 - AJustar teclado sobrepondo os inputs. - DONE
 - Configurar Papertrail no painel manager e configurar erros pra aparecer nos logs do papertrail. - DONE
 - Colocar uma ação component de Sua proxima consulta/exame na home ao clicar nele ele deve direcionar para a tela de infos daquele exame ou consulta. - DONE
+- Implementar logic pra mostrar sempre o proximo exame/consulta no cardzinho de lembrete - DONE
+- Implementar logica pra mostrar imagem da clinica no card do queueItems. - DONE
+- Implementar novo componente pra mostrar condicionlmente(sempre que houver consulta/exam mracado) onde vai mostrar as consultas e os exames que o usuario tem marcado. - DONE
