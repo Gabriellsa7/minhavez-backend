@@ -5,6 +5,7 @@ import { HealthUnitRepository } from '../../../repository/health-unit/health-uni
 import { HealthProfessionalRepository } from '../../../repository/health-professional/health-professional.repository';
 import { AppointmentRepository } from '../../../repository/appointment/appointment.repository';
 import { NotificationSocketGateway } from '../../../socket/notification.socket';
+import { NotificationServiceFactory } from '../notification/notification.service.factory';
 
 export class QueueServiceFactory {
   static create() {
@@ -21,6 +22,7 @@ export class QueueServiceFactory {
       healthProfessionalRepository: healthProfessionalRepo,
       appointmentRepository: appointmentRepo,
       notificationSocketGateway: NotificationSocketGateway.getInstance(),
+      notificationService: NotificationServiceFactory.create(),
     });
   }
 }

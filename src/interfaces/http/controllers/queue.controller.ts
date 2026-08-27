@@ -257,13 +257,14 @@ export class QueueController implements IController {
   };
 
   closeQueue = async (
-    req: Request<{ id: string }>,
+    req: Request<{ id: string }, unknown, { reason?: string }>,
     res: Response,
   ): Promise<void> => {
     const { id } = req.params;
+    const { reason } = req.body ?? {};
 
     try {
-      const queue = await this.queueService.closeQueue(id);
+      const queue = await this.queueService.closeQueue(id, reason);
 
       res.status(200).json(queue);
     } catch (error) {

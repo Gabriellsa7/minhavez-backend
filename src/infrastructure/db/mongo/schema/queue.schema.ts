@@ -24,6 +24,7 @@ export const queueSchema = new mongoose.Schema(
     },
     openedAt: { type: Date, required: false },
     closedAt: { type: Date, required: false },
+    closeReason: { type: String, required: false },
   },
   { _id: true, timestamps: true },
 );
@@ -36,6 +37,7 @@ export interface IQueueSchema {
   queueDate: Date;
   openedAt?: Date | null;
   closedAt?: Date | null;
+  closeReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -30,6 +30,10 @@ import { pickNextWaitingQueueItem } from '../../queue-item/utils/pick-next-queue
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
+import { INotificationService } from '../../notification/interfaces/notification.service.interface';
+import { ENotificationType } from '../../notification/interfaces/notification.interface';
+
+const QUEUE_CLOSED_DEFAULT_MESSAGE = 'O profissional encerrou a fila.';
 
 const AFTERNOON_SHIFT_START_HOUR = 12;
 const AFTERNOON_SHIFT_START_MINUTE = 30;
@@ -42,6 +46,7 @@ export class QueueService implements IQueueService {
   private healthProfessionalRepository: IHealthProfessionalRepository;
   private appointmentRepository: IAppointmentRepository;
   private notificationSocketGateway?: INotificationSocketGateway;
+  private notificationService?: INotificationService;
 
   constructor(params: {
     queueRepository: IQueueRepository;
@@ -50,6 +55,7 @@ export class QueueService implements IQueueService {
     healthProfessionalRepository: IHealthProfessionalRepository;
     appointmentRepository: IAppointmentRepository;
     notificationSocketGateway?: INotificationSocketGateway;
+    notificationService?: INotificationService;
   }) {
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
@@ -57,6 +63,7 @@ export class QueueService implements IQueueService {
     this.healthProfessionalRepository = params.healthProfessionalRepository;
     this.appointmentRepository = params.appointmentRepository;
     this.notificationSocketGateway = params.notificationSocketGateway;
+    this.notificationService = params.notificationService;
   }
 
   private async getEstimatedWaitMinutes(
@@ -343,7 +350,7 @@ export class QueueService implements IQueueService {
     }
   }
 
-  async closeQueue(queueId: string): Promise<IQueue> {
+  async closeQueue(queueId: string, reason?: string): Promise<IQueue> {
     try {
       const queue = await this.queueRepository.getQueueById(queueId);
 
@@ -358,19 +365,24 @@ export class QueueService implements IQueueService {
       const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
         status: EQueueStatus.CLOSED,
         closedAt: new Date(),
+        closeReason: reason ?? null,
       });
 
       if (!updatedQueue) {
         throw new Error('Queue not found');
       }
 
-      const closedQueueItemIds = await this.closeUnattendedQueueItems(queueId);
+      const closedQueueItemIds = await this.closeUnattendedQueueItems(
+        queueId,
+        reason,
+      );
 
       this.notificationSocketGateway?.broadcastNotification({
         type: 'queue.closed',
         queueId,
         closedQueueItemIds,
         closedAt: updatedQueue.closedAt?.toISOString(),
+        reason: reason ?? null,
       });
 
       return updatedQueue;
@@ -382,8 +394,13 @@ export class QueueService implements IQueueService {
   /** Patients still WAITING or IN_SERVICE when the professional force-closes
    * the queue were never attended today. Their queue item and appointment
    * must reflect that the queue is done with them, otherwise they'd keep
-   * showing up as active on the patient's home screen forever. */
-  private async closeUnattendedQueueItems(queueId: string): Promise<string[]> {
+   * showing up as active on the patient's home screen forever. Each of them
+   * also gets a persisted notification with the professional's reason, so
+   * they see it in real time (socket) or the next time they log in. */
+  private async closeUnattendedQueueItems(
+    queueId: string,
+    reason?: string,
+  ): Promise<string[]> {
     const queueItems = await this.queueItemRepository.listQueueItems({
       queueId,
     });
@@ -413,6 +430,16 @@ export class QueueService implements IQueueService {
           },
         );
       }
+
+      await this.notificationService?.createNotification({
+        patientId: item.patientId,
+        type: ENotificationType.QUEUE_CLOSED,
+        title: 'Fila encerrada',
+        message: reason?.trim() || QUEUE_CLOSED_DEFAULT_MESSAGE,
+        queueItemId: item._id,
+        appointmentId: appointment?._id,
+        data: { queueId, closeReason: reason ?? null },
+      });
     }
 
     return pendingItems.map((item) => item._id);

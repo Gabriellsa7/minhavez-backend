@@ -7,6 +7,7 @@ export interface IQueue {
   queueDate: Date;
   openedAt?: Date | null;
   closedAt?: Date | null;
+  closeReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

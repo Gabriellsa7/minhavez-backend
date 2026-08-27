@@ -2911,7 +2911,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+              enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED, QUEUE_CLOSED]
           description: Comma-separated list of appointment statuses to filter by (e.g. "COMPLETED,CANCELED")
         - name: page
           in: query
@@ -5396,6 +5396,10 @@ components:
           format: date-time
           nullable: true
           description: The date and time the queue entry was closed (null if still open)
+        closeReason:
+          type: string
+          nullable: true
+          description: Reason given by the professional when force-closing the queue with pending patients
         createdAt:
           type: string
           format: date-time
@@ -5467,7 +5471,7 @@ components:
           description: The Missed Calls
         status:
           type: string
-          enum: [WAITING, IN_SERVICE, FINISHED, ABSENT]
+          enum: [WAITING, IN_SERVICE, FINISHED, ABSENT, QUEUE_CLOSED]
           description: The status of the queue item
         checkInTime:
           type: string
@@ -5535,7 +5539,7 @@ components:
           description: The priority level of the patient
         status:
           type: string
-          enum: [WAITING, IN_SERVICE, FINISHED, ABSENT]
+          enum: [WAITING, IN_SERVICE, FINISHED, ABSENT, QUEUE_CLOSED]
           description: The status of the queue item
         checkInTime:
           type: string
@@ -5577,6 +5581,7 @@ components:
             - QUEUE_NEXT
             - QUEUE_CALLED
             - EXAM_READY
+            - QUEUE_CLOSED
         message:
           type: string
           description: The content of the notification
@@ -5640,6 +5645,7 @@ components:
             - QUEUE_NEXT
             - QUEUE_CALLED
             - EXAM_READY
+            - QUEUE_CLOSED
         message:
           type: string
           description: The content of the notification
@@ -5711,7 +5717,7 @@ components:
           description: The date and time of the appointment
         status:
           type: string
-          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED, QUEUE_CLOSED]
           description: The status of the appointment
         notes:
           type: string
@@ -5782,7 +5788,7 @@ components:
           description: The date and time of the appointment
         status:
           type: string
-          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED]
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED, QUEUE_CLOSED]
           description: The status of the appointment
         notes:
           type: string

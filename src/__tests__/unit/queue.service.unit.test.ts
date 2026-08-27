@@ -13,6 +13,8 @@ import {
   IAppointment,
 } from '../../domain/appointment/interfaces/appointment.interface';
 import { INotificationSocketGateway } from '../../domain/notification/interfaces/notification-socket.interface';
+import { INotificationService } from '../../domain/notification/interfaces/notification.service.interface';
+import { ENotificationType } from '../../domain/notification/interfaces/notification.interface';
 
 function buildQueue(overrides: Partial<IQueue> = {}): IQueue {
   return {
@@ -122,6 +124,11 @@ describe('QueueService.closeQueue', () => {
       broadcastNotification,
     } as unknown as INotificationSocketGateway;
 
+    const createNotification = jest.fn(async () => ({}) as never);
+    const notificationService = {
+      createNotification,
+    } as unknown as INotificationService;
+
     const service = new QueueService({
       queueRepository,
       queueItemRepository,
@@ -129,9 +136,10 @@ describe('QueueService.closeQueue', () => {
       healthProfessionalRepository: {} as never,
       appointmentRepository,
       notificationSocketGateway,
+      notificationService,
     });
 
-    await service.closeQueue('queue-1');
+    await service.closeQueue('queue-1', 'Emergência médica');
 
     expect(updateQueueItemById).toHaveBeenCalledWith(
       'qi-1',
@@ -160,7 +168,73 @@ describe('QueueService.closeQueue', () => {
         type: 'queue.closed',
         queueId: 'queue-1',
         closedQueueItemIds: expect.arrayContaining(['qi-1', 'qi-2']),
+        reason: 'Emergência médica',
       }),
+    );
+
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.QUEUE_CLOSED,
+        message: 'Emergência médica',
+        queueItemId: 'qi-1',
+      }),
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-2',
+        type: ENotificationType.QUEUE_CLOSED,
+        message: 'Emergência médica',
+        queueItemId: 'qi-2',
+      }),
+    );
+    expect(createNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ patientId: 'patient-3' }),
+    );
+  });
+
+  it('falls back to a default message when no reason is provided', async () => {
+    const queueItems = [
+      buildQueueItem({ _id: 'qi-1', status: EQueueItemStatus.WAITING }),
+    ];
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn(async () => queueItems.map((item) => ({ ...item }))),
+      updateQueueItemById: jest.fn(async () => queueItems[0]),
+    } as unknown as IQueueItemRepository;
+
+    const appointmentRepository = {
+      listAppointments: jest.fn(async () => []),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+
+    const queue = buildQueue();
+    const queueRepository = {
+      getQueueById: jest.fn(async () => ({ ...queue })),
+      updateQueueById: jest.fn(async (_id: string, params: Partial<IQueue>) => {
+        Object.assign(queue, params);
+        return { ...queue };
+      }),
+    } as unknown as IQueueRepository;
+
+    const createNotification = jest.fn(async () => ({}) as never);
+    const notificationService = {
+      createNotification,
+    } as unknown as INotificationService;
+
+    const service = new QueueService({
+      queueRepository,
+      queueItemRepository,
+      healthUnitRepository: {} as never,
+      healthProfessionalRepository: {} as never,
+      appointmentRepository,
+      notificationService,
+    });
+
+    await service.closeQueue('queue-1');
+
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'O profissional encerrou a fila.' }),
     );
   });
 

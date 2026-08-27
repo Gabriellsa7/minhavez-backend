@@ -37,7 +37,7 @@ export interface IQueueService {
   ): Promise<IQueue | null>;
   deleteQueueById(_id: string): Promise<IQueue | null>;
   openQueue(queueId: string): Promise<IQueue>;
-  closeQueue(queueId: string): Promise<IQueue>;
+  closeQueue(queueId: string, reason?: string): Promise<IQueue>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
   getQueueHistoryByProfessionalId(
