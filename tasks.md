@@ -1,5 +1,6 @@
 ## **Tasks**
 
+- Cria um CI/CD no meu projeto - **PRIORIDADE**
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
