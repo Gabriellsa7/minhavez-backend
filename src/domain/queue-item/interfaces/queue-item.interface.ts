@@ -27,4 +27,6 @@ export enum EQueueItemStatus {
   IN_SERVICE = 'IN_SERVICE',
   FINISHED = 'FINISHED',
   ABSENT = 'ABSENT',
+  /** Queue was closed by the professional before this item was ever called. */
+  QUEUE_CLOSED = 'QUEUE_CLOSED',
 }

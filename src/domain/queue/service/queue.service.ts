@@ -27,6 +27,9 @@ import {
 } from '../interfaces/queue-history.interface';
 import { AppError } from '../../../shared/errors/AppError';
 import { pickNextWaitingQueueItem } from '../../queue-item/utils/pick-next-queue-item';
+import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
+import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
+import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 
 const AFTERNOON_SHIFT_START_HOUR = 12;
 const AFTERNOON_SHIFT_START_MINUTE = 30;
@@ -37,17 +40,23 @@ export class QueueService implements IQueueService {
   private queueItemRepository: IQueueItemRepository;
   private healthUnitRepository: IHealthUnitRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private appointmentRepository: IAppointmentRepository;
+  private notificationSocketGateway?: INotificationSocketGateway;
 
   constructor(params: {
     queueRepository: IQueueRepository;
     queueItemRepository: IQueueItemRepository;
     healthUnitRepository: IHealthUnitRepository;
     healthProfessionalRepository: IHealthProfessionalRepository;
+    appointmentRepository: IAppointmentRepository;
+    notificationSocketGateway?: INotificationSocketGateway;
   }) {
     this.queueRepository = params.queueRepository;
     this.queueItemRepository = params.queueItemRepository;
     this.healthUnitRepository = params.healthUnitRepository;
     this.healthProfessionalRepository = params.healthProfessionalRepository;
+    this.appointmentRepository = params.appointmentRepository;
+    this.notificationSocketGateway = params.notificationSocketGateway;
   }
 
   private async getEstimatedWaitMinutes(
@@ -355,10 +364,58 @@ export class QueueService implements IQueueService {
         throw new Error('Queue not found');
       }
 
+      const closedQueueItemIds = await this.closeUnattendedQueueItems(queueId);
+
+      this.notificationSocketGateway?.broadcastNotification({
+        type: 'queue.closed',
+        queueId,
+        closedQueueItemIds,
+        closedAt: updatedQueue.closedAt?.toISOString(),
+      });
+
       return updatedQueue;
     } catch (error) {
       throw new Error(`Error closing queue: ${(error as Error).message}`);
     }
+  }
+
+  /** Patients still WAITING or IN_SERVICE when the professional force-closes
+   * the queue were never attended today. Their queue item and appointment
+   * must reflect that the queue is done with them, otherwise they'd keep
+   * showing up as active on the patient's home screen forever. */
+  private async closeUnattendedQueueItems(queueId: string): Promise<string[]> {
+    const queueItems = await this.queueItemRepository.listQueueItems({
+      queueId,
+    });
+
+    const pendingItems = queueItems.filter(
+      (item) =>
+        item.status === EQueueItemStatus.WAITING ||
+        item.status === EQueueItemStatus.IN_SERVICE,
+    );
+
+    for (const item of pendingItems) {
+      await this.queueItemRepository.updateQueueItemById(item._id, {
+        status: EQueueItemStatus.QUEUE_CLOSED,
+        finishedAt: new Date(),
+      });
+
+      const [appointment] = await this.appointmentRepository.listAppointments({
+        queueItemId: item._id,
+      });
+
+      if (appointment) {
+        await this.appointmentRepository.updateAppointmentById(
+          appointment._id,
+          {
+            status: EAppointmentStatus.QUEUE_CLOSED,
+            finishedAt: new Date(),
+          },
+        );
+      }
+    }
+
+    return pendingItems.map((item) => item._id);
   }
 
   async getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]> {

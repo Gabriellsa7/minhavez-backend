@@ -22,4 +22,6 @@ export enum EAppointmentStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELED = 'CANCELED',
+  /** Queue was closed by the professional before this appointment was attended. */
+  QUEUE_CLOSED = 'QUEUE_CLOSED',
 }
