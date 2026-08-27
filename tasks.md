@@ -14,10 +14,13 @@
 - **minor** (`1.x.0`) — nova funcionalidade que não quebra nada existente. Você reseta o patch: rode `node scripts/bump-version.js minor`.
 - **major** (`x.0.0`) — mudança grande/breaking, redesign, ou um marco importante do produto. Reseta minor e patch: `node scripts/bump-version.js major`.
 
-## Implementação Futura
+## Implementação Futura Dentro do Escopo do TCC
 
 - Criar um painel pra uma nova role que será para as pessoas que ficam na recepção da clinica ou UBS de saúde eles são responsaveis por marcar a consulta/exame das pessoas que não fizeram pelo app e foram lá pra marcar ai elas vão fazer essa marcação da consulta/exam e eles vão entrar na mesma fila da galera que marcou pelo app usando a ordem atual que temos, esse novo painel terá a tela de marcar consulta, marcar exame e perfil. Essa marcação vai acontecer atraves do CPF do user eles vão digitar pra buscar o usuario, caso existe um user elas marcam se não existir ai elas terão que cadastrar o usuario, tera uma nova opção assim como a de marcar ela vai abrir um modal porem esse modal vai ser pra cadastrar o user com email, senha e etc o que o app pede pra marcar a consulta/exam, após isso esse user estará apto a usar o app e lá na clinica eles vão passar as credencias do user pra ele pode logar no app.
 - Criar um novo Sistema esse será separado que em um novo repo, pois será um sistema de mostrar a atualização da fila que está ocorrendo no app, ele mostrar o codigo chamado, terá audio falando o codigo do usuario, mostrará o que esta sendo chamado, os que foram chamados com infos como codigo, hora que foi chamado, sala a qual deve se dirigir e vou pensar se tem mais algo, ele terá regras como o codigo será repetido pela voz 3 vezes cada codigo, além disso tem que ter um delay caso outro codigo seja chamado pra que a voz não fale 2 ao mesmo tempo e fique embolado ai a voz falara o codigo e a sala que ele tem que ir. Esse sistema é pra que as pessoas que estejam presencial ou seja as que marcaram na recepção ou os que marcaram pelo app e ja estão lá tbm eles possam ver e saber pra ondem se dirigir e o momento em que foram chamados. Estudar como implementar isso.
+
+## Implementação Fora do Escopo do TCC
+
 - Criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
 - Estudar e implementar sistema de pagamento pelo app pois atualmente é apenas na clinica, OBS: Essa funcionalidade será apenas para as unidades de saúde privadas, UBS continua gratuito.
 
