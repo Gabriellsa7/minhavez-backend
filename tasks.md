@@ -70,3 +70,4 @@
 - Minha-vez-app - Verificar se a info que aparece no card de clinicas em explorar sobre as filas min de espera e pessoas na fila são mocadas se for implemente uma nova funcionalidade pra sempre mostrar isso se realmente tiver fila aberta ai vai mostra a qtd de pessoas que estão naquela fila que esta aberta no exato momento se não tiver fila aberta não mostrar no card. - DONE
 - AJustar teclado sobrepondo os inputs. - DONE
 - Configurar Papertrail no painel manager e configurar erros pra aparecer nos logs do papertrail. - DONE
+- Colocar uma ação component de Sua proxima consulta/exame na home ao clicar nele ele deve direcionar para a tela de infos daquele exame ou consulta. - DONE
