@@ -397,8 +397,17 @@ export class QueueRepository implements IQueueRepository {
 
   async getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]> {
     try {
-      const queueDocs = await MQueue.find({ professionalId }).sort({
-        queueDate: -1,
+      const queueDocs = await MQueue.find({ professionalId });
+
+      const shiftOrder: Record<EQueueShift, number> = {
+        [EQueueShift.MORNING]: 0,
+        [EQueueShift.AFTERNOON]: 1,
+      };
+
+      queueDocs.sort((a, b) => {
+        const dateDiff = a.queueDate.getTime() - b.queueDate.getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return shiftOrder[a.shift] - shiftOrder[b.shift];
       });
 
       return queueDocs.map((doc) => this.mapToDomain(doc));
