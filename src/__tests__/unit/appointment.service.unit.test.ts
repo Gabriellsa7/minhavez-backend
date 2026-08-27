@@ -597,6 +597,145 @@ describe('AppointmentService', () => {
     );
   });
 
+  it('rejects a return scheduled more than 20 days after the origin consultation', async () => {
+    const originAppointment: IAppointment = {
+      _id: 'origin-appointment-id',
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      queueItemId: 'origin-queue-item-id',
+      dateTime: new Date('2026-07-06T15:00:00.000Z'),
+      status: EAppointmentStatus.IN_PROGRESS,
+      isReturn: false,
+      returnScheduled: false,
+      createdAt: new Date('2026-06-01T10:00:00.000Z'),
+      updatedAt: new Date('2026-06-01T10:00:00.000Z'),
+    };
+
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([originAppointment]),
+      createAppointment: jest.fn(),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository: {} as IQueueRepository,
+      queueItemRepository: {} as IQueueItemRepository,
+      professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
+    });
+
+    // 21 days after the origin consultation's Brazil calendar day (00:00 BRT
+    // on the day after the 20-day window closes) — just past the cutoff.
+    await expect(
+      service.createAppointment({
+        patientId: 'patient-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        dateTime: new Date('2026-07-27T03:00:00.000Z'),
+        isReturn: true,
+        originQueueItemId: 'origin-queue-item-id',
+      }),
+    ).rejects.toThrow('O retorno deve ser marcado em até 20 dias após a consulta.');
+
+    expect(repository.createAppointment).not.toHaveBeenCalled();
+  });
+
+  it('allows a return scheduled exactly at the 20-day limit after the origin consultation', async () => {
+    const originAppointment: IAppointment = {
+      _id: 'origin-appointment-id',
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      queueItemId: 'origin-queue-item-id',
+      dateTime: new Date('2026-07-06T15:00:00.000Z'),
+      status: EAppointmentStatus.IN_PROGRESS,
+      isReturn: false,
+      returnScheduled: false,
+      createdAt: new Date('2026-06-01T10:00:00.000Z'),
+      updatedAt: new Date('2026-06-01T10:00:00.000Z'),
+    };
+
+    const repository = {
+      listAppointments: jest.fn().mockResolvedValue([originAppointment]),
+      createAppointment: jest.fn().mockResolvedValue({
+        _id: 'new-return-id',
+        patientId: 'patient-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        queueItemId: 'new-queue-item-id',
+        dateTime: new Date('2026-07-26T20:00:00.000Z'),
+        status: EAppointmentStatus.SCHEDULED,
+        isReturn: true,
+        returnScheduled: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      updateAppointmentById: jest.fn().mockResolvedValue(originAppointment),
+    } as unknown as IAppointmentRepository;
+
+    const queueRepository = {
+      listQueues: jest.fn().mockResolvedValue([]),
+      createQueue: jest.fn().mockResolvedValue({
+        _id: 'queue-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.OPEN,
+        shift: EQueueShift.AFTERNOON,
+        queueDate: new Date('2026-07-26T00:00:00.000Z'),
+      }),
+    } as unknown as IQueueRepository;
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn().mockResolvedValue([]),
+      createQueueItem: jest.fn().mockResolvedValue({
+        _id: 'new-queue-item-id',
+        queueId: 'queue-1',
+        patientId: 'patient-1',
+        code: 'RET003',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.WAITING,
+      }),
+    } as unknown as IQueueItemRepository;
+
+    const professionalRepository = {
+      getHealthProfessionalById: jest.fn().mockResolvedValue({
+        _id: 'professional-1',
+        schedule: { appointmentDuration: 30 },
+      }),
+    } as unknown as IHealthProfessionalRepository;
+
+    const service = new AppointmentService({
+      appointmentRepository: repository,
+      queueRepository,
+      queueItemRepository,
+      professionalRepository,
+      healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
+    });
+
+    // 17:00 BRT on the 20th day after the origin consultation — still within
+    // the window.
+    await expect(
+      service.createAppointment({
+        patientId: 'patient-1',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        dateTime: new Date('2026-07-26T20:00:00.000Z'),
+        isReturn: true,
+        originQueueItemId: 'origin-queue-item-id',
+      }),
+    ).resolves.toMatchObject({ _id: 'new-return-id' });
+  });
+
   it('does not fail the return creation when marking the origin appointment fails', async () => {
     const repository = {
       // The professionalId lookup (booking-conflict check) must keep working;

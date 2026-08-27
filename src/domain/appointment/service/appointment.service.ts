@@ -32,10 +32,11 @@ import { INotificationJobScheduler } from '../../notification/interfaces/notific
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../patient/interfaces/patient.interface';
 import { AppError } from '../../../shared/errors/AppError';
-import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
+import { isSameBrazilDay, toBrazilDayStart } from '../../../shared/utils/brazilTime';
 
 const CANCEL_CUTOFF_HOUR = 12;
 const CANCEL_CUTOFF_MINUTE = 0;
+const RETURN_MAX_DAYS = 20;
 
 export class AppointmentService implements IAppointmentService {
   private appointmentRepository: IAppointmentRepository;
@@ -88,6 +89,38 @@ export class AppointmentService implements IAppointmentService {
         }
       }
       const appointmentDateTime = new Date(params.dateTime);
+
+      let originAppointment: IAppointment | undefined;
+
+      if (params.originQueueItemId) {
+        try {
+          const originAppointments = await this.appointmentRepository.listAppointments({
+            queueItemId: params.originQueueItemId,
+          });
+          originAppointment = originAppointments[0];
+        } catch (error) {
+          // Best-effort: same as markOriginAppointmentReturnScheduled below —
+          // an inability to look up the origin appointment shouldn't block
+          // the return from being booked, it just skips the max-days check.
+          console.error('Error fetching origin appointment:', error);
+        }
+
+        if (originAppointment) {
+          const originDayStart = toBrazilDayStart(
+            new Date(originAppointment.dateTime),
+          );
+          const returnCutoff = new Date(
+            originDayStart.getTime() +
+              (RETURN_MAX_DAYS + 1) * 24 * 60 * 60 * 1000,
+          );
+
+          if (appointmentDateTime.getTime() >= returnCutoff.getTime()) {
+            throw new Error(
+              `O retorno deve ser marcado em até ${RETURN_MAX_DAYS} dias após a consulta.`,
+            );
+          }
+        }
+      }
 
       const existingAppointmentsForPatient =
         await this.appointmentRepository.listAppointments({
@@ -258,10 +291,8 @@ export class AppointmentService implements IAppointmentService {
         await this.appointmentReminderService.createReminders(appointment);
       }
 
-      if (params.originQueueItemId) {
-        await this.markOriginAppointmentReturnScheduled(
-          params.originQueueItemId,
-        );
+      if (originAppointment) {
+        await this.markOriginAppointmentReturnScheduled(originAppointment);
       }
 
       return appointment;
@@ -281,16 +312,9 @@ export class AppointmentService implements IAppointmentService {
    * failure here should only mean the "Concluir" guard stays active, not
    * that the whole booking fails and gets rolled back. */
   private async markOriginAppointmentReturnScheduled(
-    originQueueItemId: string,
+    originAppointment: IAppointment,
   ): Promise<void> {
     try {
-      const originAppointments = await this.appointmentRepository.listAppointments({
-        queueItemId: originQueueItemId,
-      });
-
-      const originAppointment = originAppointments[0];
-      if (!originAppointment) return;
-
       await this.appointmentRepository.updateAppointmentById(
         originAppointment._id,
         { returnScheduled: true },
