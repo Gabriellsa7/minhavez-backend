@@ -178,6 +178,7 @@ describe('QueueService.closeQueue', () => {
         type: ENotificationType.QUEUE_CLOSED,
         message: 'Emergência médica',
         queueItemId: 'qi-1',
+        data: expect.objectContaining({ healthUnitId: 'unit-1' }),
       }),
     );
     expect(createNotification).toHaveBeenCalledWith(
@@ -186,6 +187,7 @@ describe('QueueService.closeQueue', () => {
         type: ENotificationType.QUEUE_CLOSED,
         message: 'Emergência médica',
         queueItemId: 'qi-2',
+        data: expect.objectContaining({ healthUnitId: 'unit-1' }),
       }),
     );
     expect(createNotification).not.toHaveBeenCalledWith(
@@ -238,8 +240,8 @@ describe('QueueService.closeQueue', () => {
     );
   });
 
-  it('is a no-op when the queue is already closed', async () => {
-    const queue = buildQueue({ status: EQueueStatus.CLOSED });
+  it('is a no-op when the queue already went through a full open→close cycle', async () => {
+    const queue = buildQueue({ status: EQueueStatus.CLOSED, openedAt: new Date() });
     const queueRepository = {
       getQueueById: jest.fn(async () => ({ ...queue })),
       updateQueueById: jest.fn(),
@@ -270,5 +272,95 @@ describe('QueueService.closeQueue', () => {
 
     expect(queueItemRepository.listQueueItems).not.toHaveBeenCalled();
     expect(broadcastNotification).not.toHaveBeenCalled();
+  });
+
+  it('cancels a pending queue that was never opened (e.g. a future appointment day) and cascades to its patients', async () => {
+    // Booking a future appointment creates the queue already CLOSED (see
+    // AppointmentService.createAppointment), with WAITING queue items for
+    // whoever booked ahead of time. Canceling it in advance must still
+    // cascade — unlike a queue that already completed its open→close cycle.
+    const queueItems = [
+      buildQueueItem({ _id: 'qi-1', status: EQueueItemStatus.WAITING }),
+    ];
+    const appointments: Record<string, IAppointment> = {
+      'qi-1': buildAppointment({ _id: 'appt-1', queueItemId: 'qi-1' }),
+    };
+
+    const updateQueueItemById = jest.fn(
+      async (id: string, params: Partial<IQueueItem>) => {
+        const item = queueItems.find((candidate) => candidate._id === id);
+        if (!item) return null;
+        Object.assign(item, params);
+        return { ...item };
+      },
+    );
+
+    const queueItemRepository = {
+      listQueueItems: jest.fn(async () => queueItems.map((item) => ({ ...item }))),
+      updateQueueItemById,
+    } as unknown as IQueueItemRepository;
+
+    const updateAppointmentById = jest.fn(
+      async (id: string, params: Partial<IAppointment>) => {
+        const appointment = Object.values(appointments).find(
+          (candidate) => candidate._id === id,
+        );
+        if (!appointment) return null;
+        Object.assign(appointment, params);
+        return { ...appointment };
+      },
+    );
+
+    const appointmentRepository = {
+      listAppointments: jest.fn(async (filter: Partial<IAppointment>) =>
+        filter.queueItemId && appointments[filter.queueItemId]
+          ? [appointments[filter.queueItemId]]
+          : [],
+      ),
+      updateAppointmentById,
+    } as unknown as IAppointmentRepository;
+
+    const queue = buildQueue({ status: EQueueStatus.CLOSED, openedAt: undefined });
+    const queueRepository = {
+      getQueueById: jest.fn(async () => ({ ...queue })),
+      updateQueueById: jest.fn(async (_id: string, params: Partial<IQueue>) => {
+        Object.assign(queue, params);
+        return { ...queue };
+      }),
+    } as unknown as IQueueRepository;
+
+    const broadcastNotification = jest.fn();
+    const createNotification = jest.fn(async () => ({}) as never);
+
+    const service = new QueueService({
+      queueRepository,
+      queueItemRepository,
+      healthUnitRepository: {} as never,
+      healthProfessionalRepository: {} as never,
+      appointmentRepository,
+      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+      notificationService: { createNotification } as unknown as INotificationService,
+    });
+
+    await service.closeQueue('queue-1', 'Médico indisponível nesse dia');
+
+    expect(updateQueueItemById).toHaveBeenCalledWith(
+      'qi-1',
+      expect.objectContaining({ status: EQueueItemStatus.QUEUE_CLOSED }),
+    );
+    expect(updateAppointmentById).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({ status: EAppointmentStatus.QUEUE_CLOSED }),
+    );
+    expect(broadcastNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'queue.closed', queueId: 'queue-1' }),
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.QUEUE_CLOSED,
+        data: expect.objectContaining({ healthUnitId: 'unit-1' }),
+      }),
+    );
   });
 });

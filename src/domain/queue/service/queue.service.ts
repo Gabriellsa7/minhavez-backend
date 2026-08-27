@@ -358,7 +358,15 @@ export class QueueService implements IQueueService {
         throw new Error('Queue not found');
       }
 
-      if (queue.status === EQueueStatus.CLOSED) {
+      // A queue that already went through a full open→close cycle is done —
+      // closing it again is a no-op. But a queue that was never opened (e.g.
+      // one created ahead of time for a future appointment, born CLOSED) must
+      // still be cancelable, otherwise there's no way to cancel a future day
+      // in advance and cascade that to the patients booked on it.
+      const alreadyClosedAfterOpening =
+        queue.status === EQueueStatus.CLOSED && Boolean(queue.openedAt);
+
+      if (alreadyClosedAfterOpening) {
         return queue;
       }
 
@@ -374,6 +382,7 @@ export class QueueService implements IQueueService {
 
       const closedQueueItemIds = await this.closeUnattendedQueueItems(
         queueId,
+        queue.healthUnitId,
         reason,
       );
 
@@ -399,6 +408,7 @@ export class QueueService implements IQueueService {
    * they see it in real time (socket) or the next time they log in. */
   private async closeUnattendedQueueItems(
     queueId: string,
+    healthUnitId: string,
     reason?: string,
   ): Promise<string[]> {
     const queueItems = await this.queueItemRepository.listQueueItems({
@@ -438,7 +448,7 @@ export class QueueService implements IQueueService {
         message: reason?.trim() || QUEUE_CLOSED_DEFAULT_MESSAGE,
         queueItemId: item._id,
         appointmentId: appointment?._id,
-        data: { queueId, closeReason: reason ?? null },
+        data: { queueId, closeReason: reason ?? null, healthUnitId },
       });
     }
 

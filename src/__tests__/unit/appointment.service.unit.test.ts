@@ -851,6 +851,29 @@ describe('AppointmentService', () => {
       });
     });
 
+    it('allows booking with another professional when the same-day appointment had its queue closed', async () => {
+      const service = buildDeps([
+        {
+          _id: 'existing-id',
+          patientId: 'patient-1',
+          professionalId: 'professional-2',
+          healthUnitId: 'unit-1',
+          queueItemId: 'queue-item-old',
+          dateTime: new Date('2026-07-06T21:00:00.000Z'),
+          status: EAppointmentStatus.QUEUE_CLOSED,
+          isReturn: false,
+          returnScheduled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      await expect(service.createAppointment(params)).resolves.toMatchObject({
+        _id: 'new-id',
+        status: EAppointmentStatus.SCHEDULED,
+      });
+    });
+
     it('allows booking when the patient has an appointment on a different day', async () => {
       const service = buildDeps([
         {
@@ -872,6 +895,102 @@ describe('AppointmentService', () => {
         _id: 'new-id',
         status: EAppointmentStatus.SCHEDULED,
       });
+    });
+  });
+
+  describe('createAppointment - rebooking after the professional canceled that day', () => {
+    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
+    const params: IParamsCreateAppointment = {
+      patientId: 'patient-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      dateTime: new Date('2026-07-06T13:00:00.000Z'),
+    };
+
+    it('creates a fresh queue and queue item instead of reusing the canceled ones for that day/shift', async () => {
+      // The professional already canceled their queue for this day (closedAt
+      // set), leaving behind a stale QUEUE_CLOSED item for this patient. A
+      // rebooking with the same professional on the same day must not be
+      // silently attached to that dead queue/item.
+      const appointmentRepository = {
+        listAppointments: jest.fn().mockResolvedValue([]),
+        createAppointment: jest.fn().mockResolvedValue({
+          _id: 'new-id',
+          status: EAppointmentStatus.SCHEDULED,
+        }),
+      } as unknown as IAppointmentRepository;
+
+      const canceledQueue = {
+        _id: 'queue-old',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.CLOSED,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date('2026-07-06T13:00:00.000Z'),
+        closedAt: new Date('2026-07-06T12:00:00.000Z'),
+      };
+
+      const createQueue = jest.fn().mockResolvedValue({
+        _id: 'queue-new',
+        professionalId: 'professional-1',
+        healthUnitId: 'unit-1',
+        status: EQueueStatus.CLOSED,
+        shift: EQueueShift.MORNING,
+        queueDate: new Date('2026-07-06T13:00:00.000Z'),
+      });
+
+      const queueRepository = {
+        listQueues: jest.fn().mockResolvedValue([canceledQueue]),
+        createQueue,
+      } as unknown as IQueueRepository;
+
+      const staleQueueItem = {
+        _id: 'queue-item-old',
+        queueId: 'queue-old',
+        patientId: 'patient-1',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.QUEUE_CLOSED,
+      };
+
+      const createQueueItem = jest.fn().mockResolvedValue({
+        _id: 'queue-item-new',
+        queueId: 'queue-new',
+        patientId: 'patient-1',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.WAITING,
+      });
+
+      const queueItemRepository = {
+        listQueueItems: jest.fn().mockResolvedValue([staleQueueItem]),
+        createQueueItem,
+      } as unknown as IQueueItemRepository;
+
+      const professionalRepository = {
+        getHealthProfessionalById: jest.fn().mockResolvedValue({
+          _id: 'professional-1',
+          schedule: { appointmentDuration: 30 },
+        }),
+      } as unknown as IHealthProfessionalRepository;
+
+      const service = new AppointmentService({
+        appointmentRepository,
+        queueRepository,
+        queueItemRepository,
+        professionalRepository,
+        healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
+      });
+
+      await service.createAppointment(params);
+
+      expect(createQueue).toHaveBeenCalled();
+      expect(createQueueItem).toHaveBeenCalledWith(
+        expect.objectContaining({ queueId: 'queue-new', status: EQueueItemStatus.WAITING }),
+      );
+      expect(appointmentRepository.createAppointment).toHaveBeenCalledWith(
+        expect.objectContaining({ queueItemId: 'queue-item-new' }),
+      );
     });
   });
 

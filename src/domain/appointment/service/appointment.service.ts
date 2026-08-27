@@ -98,7 +98,8 @@ export class AppointmentService implements IAppointmentService {
         (apt) => {
           if (
             apt.status === EAppointmentStatus.COMPLETED ||
-            apt.status === EAppointmentStatus.CANCELED
+            apt.status === EAppointmentStatus.CANCELED ||
+            apt.status === EAppointmentStatus.QUEUE_CLOSED
           ) {
             return false;
           }
@@ -175,6 +176,11 @@ export class AppointmentService implements IAppointmentService {
 
       const existingQueue = queues.find(
         (queue) =>
+          // A queue with closedAt set is done for good — either it ran its
+          // course or the professional canceled it ahead of time. Reusing it
+          // here would silently attach the new booking to a dead queue/queue
+          // item, so treat it as if it didn't exist and create a fresh one.
+          !queue.closedAt &&
           queue.queueDate.getFullYear() === appointmentDateTime.getFullYear() &&
           queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
           queue.queueDate.getDate() === appointmentDateTime.getDate() &&
@@ -201,7 +207,8 @@ export class AppointmentService implements IAppointmentService {
       const existingQueueItem = queueItems.find(
         (queueItem) =>
           queueItem.patientId === params.patientId &&
-          queueItem.status !== EQueueItemStatus.FINISHED,
+          queueItem.status !== EQueueItemStatus.FINISHED &&
+          queueItem.status !== EQueueItemStatus.QUEUE_CLOSED,
       );
 
       let queueItem = existingQueueItem;
