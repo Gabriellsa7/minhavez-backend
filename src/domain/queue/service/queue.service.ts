@@ -180,6 +180,7 @@ export class QueueService implements IQueueService {
           return {
             ...queue,
             healthUnitName: healthUnit?.name || 'Unknown',
+            healthUnitImage: healthUnit?.img,
             queueSize: queueItemsInQueue.length,
             patientCode: patientItem?.code,
             estimatedWaitMinutes,

@@ -51,6 +51,7 @@ export interface IQueueService {
 
 export interface IQueueWithDetails extends IQueue {
   healthUnitName: string;
+  healthUnitImage?: string;
   queueSize: number;
   patientCode?: string;
   estimatedWaitMinutes?: number | null;
