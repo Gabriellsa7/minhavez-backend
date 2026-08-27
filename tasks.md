@@ -7,10 +7,6 @@
 - Criar alertas de erro no papertrail pra vir pro meu email.
 - Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
 - Verificar se o parpertrail ta configurado no ambiente de PROD.
--
-- Implementar logica pra permitir o medico marcar o retorno do usuario em até no maximo 20 dias depois do dia da consulta.
--
-- Alterar ordem das filas que são mostradas no painel manager pq atualmente mostra a ultima marcada eu quero mostra por ordem de data exemplo 27,28,29,30 se tiver duas no mesmo dia, mostra por ordem de turno 29 manha, 29 tarde, 30, 31, 32.
 
 ## Sobre a version:
 
@@ -91,7 +87,9 @@
 62. Ajustar notificação pra so receber a notificação de posição na fila conforme a fila estiver aberta e o medico for chamando no manager ou seja usara websocket. - DONE
 63. Implementar uma nova logica pra quando o medico fechar fila sem atender ninguem apareca um modal pra ele digitar o motivo e pro user apareca um modal mostrando o que o medico digitou todas essas infos tem que ser instataneas com wesocket ai assim que ele clicar confirmar ai a fila é fechada some automaticamente da tela do user que tiver com ela aberta e aparece um modal com o motivo e opção pra ele clicar em fechar se o user não tiver no app sim que ele entrar e logar o modal vai aparecer na tela dele tbm mostrando a mensagem e a opção de fechar. - DONE
 64. Ajustar logica de mostrar filas na home(seção de filas ativas) pois esta mostrando varias fila algumas repetidas, outras que ja foram fechadas e futuras sendo que é so pra mostrar filas futuras e que estão acontecendo no momento após o user ser atendido ela tem que sumir, além disso nas infos do card da fila na home ta sempre aparecendo as infos de uma fila só normalmente da que foi marcada primeiro ajuste isso, pq cada fila tem sua informação propria.
-65. Caso o usuario não adicione suas infos de tipo sanguineo e etc, adicionar um lembrete na home pra que ele lembre de preeencher essa infos dizendo que é importante.
-66. Caso a fila seja fechada por cancelamento do medico, anterior ao dia da consulta permitir o user marcar consulta com outro medico naquele dia que ele ia fazer e foi cancelado.
-67. Na seção de consultas/exam marcadas se ele tiver mais de uma mostrar todas que ele tem pq no comportamento atual so mostra a mais proxima isso ai é papel da seção de Sua proxima consulta/exam essa seção de Consulta e exames marcadps é pra mostrar todas que ele marcou.
-68. Adicionar websockt no manager pra que quando o usuario marcar uma consulta a fila na aparece sem o medico da F5 no painel, alem disso permitir que mesmo com a fila aberta se ainda tiver horario o patient pode marcar entar naquela fila até o medico fechar caso o medico não fecha ela, ela será fechada automaticament 12h a da manha e 22h a da tarde, agora a fila não deve fechar mais altomaticamente quando o medico atender o ultimo agora so fecha quando ele aberta no botão de fechar fila.
+65. Caso o usuario não adicione suas infos de tipo sanguineo e etc, adicionar um lembrete na home pra que ele lembre de preeencher essa infos dizendo que é importante. - DONE
+66. Caso a fila seja fechada por cancelamento do medico, anterior ao dia da consulta permitir o user marcar consulta com outro medico naquele dia que ele ia fazer e foi cancelado. - DONE
+67. Na seção de consultas/exam marcadas se ele tiver mais de uma mostrar todas que ele tem pq no comportamento atual so mostra a mais proxima isso ai é papel da seção de Sua proxima consulta/exam essa seção de Consulta e exames marcadps é pra mostrar todas que ele marcou. - DONE
+68. Adicionar websockt no manager pra que quando o usuario marcar uma consulta a fila na aparece sem o medico da F5 no painel, alem disso permitir que mesmo com a fila aberta se ainda tiver horario o patient pode marcar entar naquela fila até o medico fechar caso o medico não fecha ela, ela será fechada automaticament 12h a da manha e 22h a da tarde, agora a fila não deve fechar mais altomaticamente quando o medico atender o ultimo agora so fecha quando ele aberta no botão de fechar fila. - DONE
+69. Implementar logica pra permitir o medico marcar o retorno do usuario em até no maximo 20 dias depois do dia da consulta. - DONE
+70. Alterar ordem das filas que são mostradas no painel manager pq atualmente mostra a ultima marcada eu quero mostra por ordem de data exemplo 27,28,29,30 se tiver duas no mesmo dia, mostra por ordem de turno 29 manha, 29 tarde, 30, 31, 32. - DONE
