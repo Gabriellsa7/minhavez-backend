@@ -8,6 +8,13 @@
 - Verificar se o parpertrail ta configurado no ambiente de PROD.
 - Refatorar o painel dos recepcionistas.
 - Próximo passo natural, se quiser: trocar os placeholders `{/* IMG: ... */}` por capturas de tela reais quando for publicar. no Tutorial.
+- Para trocar um comentário por uma imagem real, o padrão do Docusaurus é algo como:
+
+```Markdown
+![Tela de busca de unidades](/img/app/buscar-unidade.png)
+```
+
+- colocando os arquivos em `static/img/...` (assim ficam disponíveis em `/img/...` no build).
 
 ## Sobre a version:
 
