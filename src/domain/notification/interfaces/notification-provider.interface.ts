@@ -6,7 +6,7 @@ export interface IPushTicket {
   message?: string;
 }
 
-export interface IPushReceipt extends IPushTicket {}
+export type IPushReceipt = IPushTicket;
 
 export interface INotificationProvider {
   send(payload: {
