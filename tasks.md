@@ -4,7 +4,6 @@
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
-- Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
 - Verificar se o parpertrail ta configurado no ambiente de PROD.
 - Refatorar o painel dos recepcionistas.
 - Próximo passo natural, se quiser: trocar os placeholders `{/* IMG: ... */}` por capturas de tela reais quando for publicar. no Tutorial.
@@ -107,3 +106,4 @@
 72. AJustar redirecionamento da pagina de notFound do manager com base no user logado ele sempre retornar pra home. - DONE
 73. Melhorar a pagina de notfound colocando logo do app e uma menssagenzinha, criar uma pagina de erro com o mesmo padrão colocando uma mensagenzinha não tão agressiva pra não afetar o user. - DONE
 74. Criar um painel pra uma nova role que será para as pessoas que ficam na recepção da clinica ou UBS de saúde eles são responsaveis por marcar a consulta/exame das pessoas que não fizeram pelo app e foram lá pra marcar ai elas vão fazer essa marcação da consulta/exam e eles vão entrar na mesma fila da galera que marcou pelo app usando a ordem atual que temos, esse novo painel terá a tela de marcar consulta, marcar exame e perfil. Essa marcação vai acontecer atraves do CPF do user eles vão digitar pra buscar o usuario, caso existe um user elas marcam se não existir ai elas terão que cadastrar o usuario, tera uma nova opção assim como a de marcar ela vai abrir um modal porem esse modal vai ser pra cadastrar o user com email, senha e etc o que o app pede pra marcar a consulta/exam, após isso esse user estará apto a usar o app e lá na clinica eles vão passar as credencias do user pra ele pode logar no app. - DONE
+75. Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm. - DONE
