@@ -1,13 +1,12 @@
 ## **Tasks**
 
 - Cria um CI/CD no meu projeto - **PRIORIDADE**
-- AJustar redirecionamento da pagina de notFound do manager com base no user logado ele sempre retornar pra home.
-- Melhorar a pagina de notfound colocando logo do app e uma menssagenzinha, criar uma pagina de erro com o mesmo padrão colocando uma mensagenzinha não tão agressiva pra não afetar o user.
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
 - Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
 - Verificar se o parpertrail ta configurado no ambiente de PROD.
+- Refatorar o painel dos recepcionistas.
 
 ## Sobre a version:
 
@@ -17,7 +16,6 @@
 
 ## Implementação Futura Dentro do Escopo do TCC
 
-- Criar um painel pra uma nova role que será para as pessoas que ficam na recepção da clinica ou UBS de saúde eles são responsaveis por marcar a consulta/exame das pessoas que não fizeram pelo app e foram lá pra marcar ai elas vão fazer essa marcação da consulta/exam e eles vão entrar na mesma fila da galera que marcou pelo app usando a ordem atual que temos, esse novo painel terá a tela de marcar consulta, marcar exame e perfil. Essa marcação vai acontecer atraves do CPF do user eles vão digitar pra buscar o usuario, caso existe um user elas marcam se não existir ai elas terão que cadastrar o usuario, tera uma nova opção assim como a de marcar ela vai abrir um modal porem esse modal vai ser pra cadastrar o user com email, senha e etc o que o app pede pra marcar a consulta/exam, após isso esse user estará apto a usar o app e lá na clinica eles vão passar as credencias do user pra ele pode logar no app.
 - Criar um novo Sistema esse será separado que em um novo repo, pois será um sistema de mostrar a atualização da fila que está ocorrendo no app, ele mostrar o codigo chamado, terá audio falando o codigo do usuario, mostrará o que esta sendo chamado, os que foram chamados com infos como codigo, hora que foi chamado, sala a qual deve se dirigir e vou pensar se tem mais algo, ele terá regras como o codigo será repetido pela voz 3 vezes cada codigo, além disso tem que ter um delay caso outro codigo seja chamado pra que a voz não fale 2 ao mesmo tempo e fique embolado ai a voz falara o codigo e a sala que ele tem que ir. Esse sistema é pra que as pessoas que estejam presencial ou seja as que marcaram na recepção ou os que marcaram pelo app e ja estão lá tbm eles possam ver e saber pra ondem se dirigir e o momento em que foram chamados. Estudar como implementar isso.
 
 ## Implementação Fora do Escopo do TCC
@@ -98,3 +96,6 @@
 69. Implementar logica pra permitir o medico marcar o retorno do usuario em até no maximo 20 dias depois do dia da consulta. - DONE
 70. Alterar ordem das filas que são mostradas no painel manager pq atualmente mostra a ultima marcada eu quero mostra por ordem de data exemplo 27,28,29,30 se tiver duas no mesmo dia, mostra por ordem de turno 29 manha, 29 tarde, 30, 31, 32. - DONE
 71. Ajustar redirecionamento da pagina de notfound e criar pagina de erro. - DONE
+72. AJustar redirecionamento da pagina de notFound do manager com base no user logado ele sempre retornar pra home. - DONE
+73. Melhorar a pagina de notfound colocando logo do app e uma menssagenzinha, criar uma pagina de erro com o mesmo padrão colocando uma mensagenzinha não tão agressiva pra não afetar o user. - DONE
+74. Criar um painel pra uma nova role que será para as pessoas que ficam na recepção da clinica ou UBS de saúde eles são responsaveis por marcar a consulta/exame das pessoas que não fizeram pelo app e foram lá pra marcar ai elas vão fazer essa marcação da consulta/exam e eles vão entrar na mesma fila da galera que marcou pelo app usando a ordem atual que temos, esse novo painel terá a tela de marcar consulta, marcar exame e perfil. Essa marcação vai acontecer atraves do CPF do user eles vão digitar pra buscar o usuario, caso existe um user elas marcam se não existir ai elas terão que cadastrar o usuario, tera uma nova opção assim como a de marcar ela vai abrir um modal porem esse modal vai ser pra cadastrar o user com email, senha e etc o que o app pede pra marcar a consulta/exam, após isso esse user estará apto a usar o app e lá na clinica eles vão passar as credencias do user pra ele pode logar no app. - DONE
