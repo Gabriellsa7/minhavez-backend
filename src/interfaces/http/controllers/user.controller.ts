@@ -28,12 +28,20 @@ export class UserController implements IController {
     this.router.delete('/users/:id', authMiddleware, this.deleteUser);
   }
 
+  private notFound(res: Response, message: string): void {
+    res.status(404).json({ status: 404, message });
+  }
+
+  private serverError(res: Response, error: unknown): void {
+    res.status(500).json({ status: 500, message: (error as Error).message });
+  }
+
   getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
       const users = await this.userService.listUsers();
       res.status(200).json(users);
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      this.serverError(res, error);
     }
   };
 
@@ -45,12 +53,12 @@ export class UserController implements IController {
     try {
       const user = await this.userService.getUserById(id);
       if (!user) {
-        res.status(404).json({ message: 'User not found' });
+        this.notFound(res, 'User not found');
         return;
       }
       res.status(200).json(user);
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      this.serverError(res, error);
     }
   };
 
@@ -64,7 +72,13 @@ export class UserController implements IController {
       });
       res.status(201).json(newUser);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      res.status(400).json({
+        status: 400,
+        message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+        errors: [],
+      });
     }
   };
 
@@ -77,12 +91,18 @@ export class UserController implements IController {
     try {
       const updatedUser = await this.userService.updateUserById(id, updateData);
       if (!updatedUser) {
-        res.status(404).json({ message: 'User not found' });
+        this.notFound(res, 'User not found');
         return;
       }
       res.status(200).json(updatedUser);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      res.status(400).json({
+        status: 400,
+        message: (error as Error).message,
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+        errors: [],
+      });
     }
   };
 
@@ -101,7 +121,7 @@ export class UserController implements IController {
       });
 
       if (!updatedUser) {
-        res.status(404).json({ message: 'User not found' });
+        this.notFound(res, 'User not found');
         return;
       }
 
@@ -119,12 +139,12 @@ export class UserController implements IController {
     try {
       const deletedUser = await this.userService.deleteUserById(id);
       if (!deletedUser) {
-        res.status(404).json({ message: 'User not found' });
+        this.notFound(res, 'User not found');
         return;
       }
       res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      this.serverError(res, error);
     }
   };
 

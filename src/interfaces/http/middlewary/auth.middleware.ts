@@ -130,6 +130,60 @@ export const authorizeAdminOrExamProfessional = (
   next();
 };
 
+export const authorizeAdminOrExamProfessionalOrReceptionist = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  const isAdmin =
+    req.user.principalType === EPrincipalType.USER &&
+    req.user.role === EUserRole.ADMIN;
+
+  const isExamProfessional =
+    req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
+    req.user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL;
+
+  const isReceptionist =
+    req.user.principalType === EPrincipalType.RECEPTIONIST;
+
+  if (!isAdmin && !isExamProfessional && !isReceptionist) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
+export const authorizeUserOrReceptionist = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  const isUser =
+    req.user.principalType === EPrincipalType.USER &&
+    req.user.role === EUserRole.USER;
+
+  const isReceptionist =
+    req.user.principalType === EPrincipalType.RECEPTIONIST;
+
+  if (!isUser && !isReceptionist) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
 export const authorizePrincipalTypes =
   (...principalTypes: EPrincipalType[]) =>
   (req: Request, res: Response, next: NextFunction) => {

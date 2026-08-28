@@ -32,7 +32,7 @@ describe('PatientService.createPatient', () => {
 
     const patient = await service.createPatient({
       userId: 'user-1',
-      cpf: '111.111.111-11',
+      cpf: '529.982.247-25',
       birthDate: '1960-01-01',
       phone: '11999999999',
       priority: EPatientPriority.CHRONIC_CONDITION,
@@ -50,7 +50,7 @@ describe('PatientService.createPatient', () => {
 
     const patient = await service.createPatient({
       userId: 'user-1',
-      cpf: '111.111.111-11',
+      cpf: '529.982.247-25',
       birthDate: '2000-01-01',
       phone: '11999999999',
       priority: EPatientPriority.CHRONIC_CONDITION,
@@ -67,7 +67,7 @@ describe('PatientService.createPatient', () => {
     await expect(
       service.createPatient({
         userId: 'user-1',
-        cpf: '111.111.111-11',
+        cpf: '529.982.247-25',
         birthDate: '2000-01-01',
         phone: '11999999999',
         priority: EPatientPriority.NORMAL,

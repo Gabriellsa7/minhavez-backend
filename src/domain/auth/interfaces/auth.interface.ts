@@ -14,6 +14,7 @@ export interface IAuthToken {
 export enum EPrincipalType {
   USER = 'USER',
   HEALTH_PROFESSIONAL = 'HEALTH_PROFESSIONAL',
+  RECEPTIONIST = 'RECEPTIONIST',
 }
 
 export interface IAuthPrincipal {

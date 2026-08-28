@@ -15,6 +15,7 @@ import {
 import { IAuthService } from '../interfaces/auth.service.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IReceptionistRepository } from '../../receptionist/repository/receptionist.repository.interface';
 import { IPasswordResetRepository } from '../repository/password-reset.repository.interface';
 import { IEmailProvider } from '../interfaces/email-provider.interface';
 import { EUserRole } from '../../user/interfaces/user.interface';
@@ -29,17 +30,20 @@ const MAX_VERIFY_ATTEMPTS = 5;
 export class AuthService implements IAuthService {
   private userRepository: IUserRepository;
   private healthProfessionalRepository: IHealthProfessionalRepository;
+  private receptionistRepository: IReceptionistRepository;
   private passwordResetRepository: IPasswordResetRepository;
   private emailProvider: IEmailProvider;
 
   constructor(
     userRepository: IUserRepository,
     healthProfessionalRepository: IHealthProfessionalRepository,
+    receptionistRepository: IReceptionistRepository,
     passwordResetRepository: IPasswordResetRepository,
     emailProvider: IEmailProvider,
   ) {
     this.userRepository = userRepository;
     this.healthProfessionalRepository = healthProfessionalRepository;
+    this.receptionistRepository = receptionistRepository;
     this.passwordResetRepository = passwordResetRepository;
     this.emailProvider = emailProvider;
   }
@@ -153,6 +157,48 @@ export class AuthService implements IAuthService {
       };
     }
 
+    const receptionist =
+      await this.receptionistRepository.findReceptionistByEmailWithPassword(
+        email,
+      );
+
+    if (receptionist) {
+      const validPassword = await bcrypt.compare(
+        password,
+        receptionist.password,
+      );
+
+      if (!validPassword) {
+        throw new Error('Invalid credentials');
+      }
+
+      const payload: IAuthPayload = {
+        sub: receptionist._id.toString(),
+        email: receptionist.email,
+        name: receptionist.name,
+        principalType: EPrincipalType.RECEPTIONIST,
+        healthUnitId: receptionist.healthUnitId,
+      };
+
+      const { accessToken, refreshToken, expiresIn } =
+        this.generateTokens(payload);
+
+      return {
+        accessToken,
+        refreshToken,
+        expiresIn,
+
+        principalType: EPrincipalType.RECEPTIONIST,
+
+        principal: {
+          id: receptionist._id.toString(),
+          name: receptionist.name,
+          email: receptionist.email,
+          healthUnitId: receptionist.healthUnitId,
+        },
+      };
+    }
+
     throw new Error('Invalid credentials');
   }
 
@@ -195,6 +241,25 @@ export class AuthService implements IAuthService {
 
           healthProfessionalType: professional.type,
           healthUnitId: professional.healthUnitId,
+        };
+      } else if (decoded.principalType === EPrincipalType.RECEPTIONIST) {
+        const receptionist =
+          await this.receptionistRepository.getReceptionistById(decoded.sub);
+
+        if (!receptionist) {
+          throw new Error('Receptionist not found');
+        }
+
+        principal = receptionist;
+
+        payload = {
+          sub: receptionist._id.toString(),
+          name: receptionist.name,
+          email: receptionist.email,
+
+          principalType: EPrincipalType.RECEPTIONIST,
+
+          healthUnitId: receptionist.healthUnitId,
         };
       } else {
         const user = await this.userRepository.findById(decoded.sub);

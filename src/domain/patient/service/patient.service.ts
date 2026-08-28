@@ -17,6 +17,7 @@ import {
   IPatientRepository,
 } from '../repository/patient.repository.interface';
 import { calculateAge } from '../../../shared/utils/calculateAge';
+import { isValidCpf } from '../../../shared/utils/isValidCpf';
 import { AppError } from '../../../shared/errors/AppError';
 import {
   generateSignedPatientDocumentUrl,
@@ -61,6 +62,10 @@ export class PatientService implements IPatientService {
 
   async createPatient(params: IParamsCreatePatient): Promise<IPatient> {
     try {
+      if (!isValidCpf(params.cpf)) {
+        throw new AppError(400, 'Invalid CPF');
+      }
+
       const existingPatient = await this.patientRepository.getPatientByUserId(
         params.userId,
       );

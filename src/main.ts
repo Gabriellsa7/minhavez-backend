@@ -25,6 +25,7 @@ import { ExamControllerFactory } from './infrastructure/config/factories/exam/ex
 import { ExamOfferingControllerFactory } from './infrastructure/config/factories/exam-offering/exam-offering.controller.factory';
 import { ExamAvailabilityControllerFactory } from './infrastructure/config/factories/exam-availability/exam-availability.controller.factory';
 import { ExamBookingControllerFactory } from './infrastructure/config/factories/exam-booking/exam-booking.controller.factory';
+import { ReceptionistControllerFactory } from './infrastructure/config/factories/receptionist/receptionist.controller.factory';
 import { AuthControllerFactory } from './infrastructure/config/factories/auth/auth.controller.factory';
 import { PushTokenServiceFactory } from './infrastructure/config/factories/notification/push-token.service.factory';
 import { corsMiddleware } from './interfaces/http/middlewary/cors';
@@ -53,6 +54,7 @@ const app = new Server({
     ExamOfferingControllerFactory.create(),
     ExamAvailabilityControllerFactory.create(),
     ExamBookingControllerFactory.create(),
+    ReceptionistControllerFactory.create(),
     AuthControllerFactory.create(),
     new PushTokenController(PushTokenServiceFactory.create()),
     new InfrastructureController(),

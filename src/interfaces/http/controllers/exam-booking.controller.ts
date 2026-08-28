@@ -9,6 +9,7 @@ import {
   authMiddleware,
   authorize,
   authorizeAdminOrHealthProfessional,
+  authorizeUserOrReceptionist,
 } from '../middlewary/auth.middleware';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
@@ -38,7 +39,7 @@ export class ExamBookingController implements IController {
     this.router.post(
       '/exam-bookings',
       authMiddleware,
-      authorize(EUserRole.USER),
+      authorizeUserOrReceptionist,
       this.createBooking,
     );
     this.router.get(
@@ -86,6 +87,7 @@ export class ExamBookingController implements IController {
     const user = req.user!;
     const isHealthProfessional =
       user.principalType === EPrincipalType.HEALTH_PROFESSIONAL;
+    const isReceptionist = user.principalType === EPrincipalType.RECEPTIONIST;
 
     return {
       sub: user.sub,
@@ -95,7 +97,9 @@ export class ExamBookingController implements IController {
       isExamProfessional:
         isHealthProfessional &&
         user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL,
-      healthUnitId: isHealthProfessional ? user.healthUnitId : undefined,
+      isReceptionist,
+      healthUnitId:
+        isHealthProfessional || isReceptionist ? user.healthUnitId : undefined,
     };
   }
 
@@ -141,6 +145,7 @@ export class ExamBookingController implements IController {
           examOfferingId: req.body.examOfferingId,
           scheduledAt: new Date(req.body.scheduledAt),
           notes: req.body.notes,
+          patientId: req.body.patientId,
         },
         this.toRequester(req),
       );

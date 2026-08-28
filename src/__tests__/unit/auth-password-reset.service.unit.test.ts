@@ -1,6 +1,7 @@
 import { AuthService } from '../../domain/auth/service/auth.service';
 import { IUserRepository } from '../../domain/user/repository/user.repository.interface';
 import { IHealthProfessionalRepository } from '../../domain/health-professional.ts/repository/health-professional.repository.interface';
+import { IReceptionistRepository } from '../../domain/receptionist/repository/receptionist.repository.interface';
 import { IPasswordResetRepository } from '../../domain/auth/repository/password-reset.repository.interface';
 import { IEmailProvider } from '../../domain/auth/interfaces/email-provider.interface';
 import { AppError } from '../../shared/errors/AppError';
@@ -20,6 +21,7 @@ describe('AuthService - password reset', () => {
     } as unknown as IUserRepository;
 
     const healthProfessionalRepository = {} as IHealthProfessionalRepository;
+    const receptionistRepository = {} as IReceptionistRepository;
 
     const passwordResetRepository = {
       isInCooldown: jest.fn().mockResolvedValue(false),
@@ -43,6 +45,7 @@ describe('AuthService - password reset', () => {
     const service = new AuthService(
       userRepository,
       healthProfessionalRepository,
+      receptionistRepository,
       passwordResetRepository,
       emailProvider,
     );

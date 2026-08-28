@@ -1,5 +1,6 @@
 import { AuthService } from '../../../../domain/auth/service/auth.service';
 import { HealthProfessionalRepository } from '../../../repository/health-professional/health-professional.repository';
+import { ReceptionistRepository } from '../../../repository/receptionist/receptionist.repository';
 import { UserRepository } from '../../../repository/user/user.repository';
 import { PasswordResetRepository } from '../../../repository/auth/password-reset.repository';
 import { NodemailerEmailProvider } from '../../../external/nodemailer/nodemailer-email.provider';
@@ -9,6 +10,7 @@ export class AuthServiceFactory {
   static create() {
     const userRepository = new UserRepository();
     const healthProfessionalRepository = new HealthProfessionalRepository();
+    const receptionistRepository = new ReceptionistRepository();
     const passwordResetRepository = new PasswordResetRepository(
       BullMqProvider.getConnection(),
     );
@@ -16,6 +18,7 @@ export class AuthServiceFactory {
     return new AuthService(
       userRepository,
       healthProfessionalRepository,
+      receptionistRepository,
       passwordResetRepository,
       emailProvider,
     );

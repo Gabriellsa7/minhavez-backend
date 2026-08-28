@@ -13,6 +13,8 @@ tags:
     description: Patient management operations
   - name: HealthProfessionals
     description: Health professional management operations
+  - name: Receptionists
+    description: Front-desk account management, used to book appointments and exams on behalf of walk-in patients
   - name: Queues
     description: Queue management operations
   - name: QueueItems
@@ -3571,6 +3573,234 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /receptionists:
+    post:
+      tags:
+        - Receptionists
+      summary: Create a new receptionist
+      operationId: createReceptionist
+      description: Registers a front-desk account for a health unit, used to book appointments and exams on behalf of walk-in patients.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReceptionist'
+      responses:
+        '201':
+          description: Receptionist created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receptionist'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /receptionists/health-unit/{healthUnitId}:
+    get:
+      tags:
+        - Receptionists
+      summary: List receptionists for a health unit
+      operationId: getReceptionistsByHealthUnitId
+      description: Retrieve all receptionist accounts registered for a health unit.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: healthUnitId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The health unit ID
+      responses:
+        '200':
+          description: A list of receptionists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Receptionist'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /receptionists/{id}:
+    get:
+      tags:
+        - Receptionists
+      summary: Get a receptionist by ID
+      operationId: getReceptionistById
+      description: Retrieve a receptionist account by its unique ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the receptionist
+      responses:
+        '200':
+          description: Receptionist found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receptionist'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Receptionist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Receptionists
+      summary: Update a receptionist
+      operationId: updateReceptionist
+      description: Update the information of an existing receptionist by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the receptionist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReceptionist'
+      responses:
+        '200':
+          description: Receptionist updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receptionist'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Receptionist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Receptionists
+      summary: Delete a receptionist
+      operationId: deleteReceptionist
+      description: Delete an existing receptionist by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the receptionist
+      responses:
+        '200':
+          description: Receptionist deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Receptionist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /health-units/{id}/exam-offerings:
     post:
       tags:
@@ -5364,6 +5594,68 @@ components:
           description: The room number or identifier where the health professional operates
         schedule:
           $ref: '#/components/schemas/HealthProfessionalSchedule'
+    Receptionist:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the receptionist
+        healthUnitId:
+          type: string
+          description: The health unit identifier the receptionist works at
+        name:
+          type: string
+          description: The name of the receptionist
+        email:
+          type: string
+          description: The email address of the receptionist
+        active:
+          type: boolean
+          description: Whether the receptionist account is active
+        avatar:
+          type: string
+          nullable: true
+          description: The profile image URL of the receptionist
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the receptionist was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the receptionist was last updated
+    CreateReceptionist:
+      type: object
+      required:
+        - healthUnitId
+        - name
+        - email
+        - password
+      properties:
+        healthUnitId:
+          type: string
+          description: The health unit identifier the receptionist works at
+        name:
+          type: string
+          description: The name of the receptionist
+        email:
+          type: string
+          description: The email address of the receptionist
+        password:
+          type: string
+          description: The password of the receptionist
+    UpdateReceptionist:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the receptionist
+        email:
+          type: string
+          description: The email address of the receptionist
+        active:
+          type: boolean
+          description: Whether the receptionist account is active
     Queue:
       type: object
       properties:
@@ -6454,6 +6746,9 @@ components:
           format: date-time
         notes:
           type: string
+        patientId:
+          type: string
+          description: Only used when a receptionist books on behalf of a patient found by CPF at the front desk; patients booking for themselves are resolved from their own account.
     RescheduleExamBooking:
       type: object
       required:

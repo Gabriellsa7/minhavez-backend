@@ -188,12 +188,36 @@ export class ExamBookingService implements IExamBookingService {
       throw new AppError(403, 'Only patients can book exams');
     }
 
-    const patient = await this.patientRepository.getPatientByUserId(
-      requester.sub,
-    );
+    let patient;
 
-    if (!patient) {
-      throw new AppError(400, 'Patient profile is required to book an exam');
+    if (requester.isReceptionist) {
+      if (!params.patientId) {
+        throw new AppError(400, 'patientId is required');
+      }
+
+      if (
+        requester.healthUnitId &&
+        params.healthUnitId !== requester.healthUnitId
+      ) {
+        throw new AppError(
+          403,
+          'You can only book exams for your own health unit',
+        );
+      }
+
+      patient = await this.patientRepository.getPatientById(params.patientId);
+
+      if (!patient) {
+        throw new AppError(404, 'Patient not found');
+      }
+    } else {
+      patient = await this.patientRepository.getPatientByUserId(
+        requester.sub,
+      );
+
+      if (!patient) {
+        throw new AppError(400, 'Patient profile is required to book an exam');
+      }
     }
 
     const offering = await this.examOfferingRepository.getExamOfferingById(

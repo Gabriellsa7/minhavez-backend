@@ -3,7 +3,7 @@ import { PatientService } from '../../../domain/patient/service/patient.service'
 import { IController } from './IController';
 import {
   authMiddleware,
-  authorizeAdminOrExamProfessional,
+  authorizeAdminOrExamProfessionalOrReceptionist,
 } from '../middlewary/auth.middleware';
 import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
 import { AppError } from '../../../shared/errors/AppError';
@@ -25,7 +25,7 @@ export class PatientController implements IController {
     this.router.get(
       '/patients/cpf/:cpf',
       authMiddleware,
-      authorizeAdminOrExamProfessional,
+      authorizeAdminOrExamProfessionalOrReceptionist,
       this.getPatientByCpf,
     );
     this.router.post('/patients', this.createPatient);
