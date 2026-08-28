@@ -7,6 +7,7 @@
 - Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm.
 - Verificar se o parpertrail ta configurado no ambiente de PROD.
 - Refatorar o painel dos recepcionistas.
+- Próximo passo natural, se quiser: trocar os placeholders `{/* IMG: ... */}` por capturas de tela reais quando for publicar. no Tutorial.
 
 ## Sobre a version:
 
