@@ -12,6 +12,17 @@ import {
   IAppointment,
 } from '../../domain/appointment/interfaces/appointment.interface';
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
+import { IPrescriptionRepository } from '../../domain/prescription/repository/prescription.repository.interface';
+
+function createFakePrescriptionRepository(hasPrescription = true) {
+  return {
+    create: jest.fn(),
+    findById: jest.fn(),
+    findByPatientId: jest.fn(),
+    findByProfessionalId: jest.fn(),
+    existsForQueueItemId: jest.fn().mockResolvedValue(hasPrescription),
+  } as unknown as IPrescriptionRepository;
+}
 
 function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
   const items = initialItems.map((item) => ({ ...item }));
@@ -128,6 +139,7 @@ describe('QueueItemService position notifications', () => {
       queueItemRepository,
       queueRepository,
       appointmentRepository,
+      prescriptionRepository: createFakePrescriptionRepository(),
       queueNotificationService,
     });
 
@@ -165,7 +177,10 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
     };
   }
 
-  function buildService(appointment: IAppointment | undefined) {
+  function buildService(
+    appointment: IAppointment | undefined,
+    hasPrescription = true,
+  ) {
     const queueItemRepository = createFakeQueueItemRepository([
       buildQueueItem(),
     ]);
@@ -178,14 +193,16 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
         .mockResolvedValue(appointment ? [appointment] : []),
       updateAppointmentById: jest.fn(),
     } as unknown as IAppointmentRepository;
+    const prescriptionRepository = createFakePrescriptionRepository(hasPrescription);
 
     const service = new QueueItemService({
       queueItemRepository,
       queueRepository,
       appointmentRepository,
+      prescriptionRepository,
     });
 
-    return { service, appointmentRepository, queueRepository };
+    return { service, appointmentRepository, queueRepository, prescriptionRepository };
   }
 
   function buildAppointment(overrides: Partial<IAppointment>): IAppointment {
@@ -249,5 +266,63 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
     await service.finishQueueItem('qi-1');
 
     expect(queueRepository.updateQueueById).not.toHaveBeenCalled();
+  });
+});
+
+describe('QueueItemService finishQueueItem prescription guard', () => {
+  function buildQueueItem(): IQueueItem {
+    return {
+      _id: 'qi-1',
+      queueId: 'queue-1',
+      patientId: 'patient-1',
+      code: 'A1',
+      position: 1,
+      priority: EQueueItemPriority.MEDIUM,
+      status: EQueueItemStatus.IN_SERVICE,
+      missedCalls: 0,
+    };
+  }
+
+  function buildService(hasPrescription: boolean) {
+    const queueItemRepository = createFakeQueueItemRepository([
+      buildQueueItem(),
+    ]);
+    const queueRepository = {
+      updateQueueById: jest.fn(),
+    } as unknown as IQueueRepository;
+    const appointmentRepository = {
+      listAppointments: jest.fn().mockResolvedValue([]),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+    const prescriptionRepository = createFakePrescriptionRepository(hasPrescription);
+
+    const service = new QueueItemService({
+      queueItemRepository,
+      queueRepository,
+      appointmentRepository,
+      prescriptionRepository,
+    });
+
+    return { service, prescriptionRepository };
+  }
+
+  it('blocks finishing when no prescription was registered for this attendance', async () => {
+    const { service } = buildService(false);
+
+    await expect(service.finishQueueItem('qi-1')).rejects.toThrow(
+      'Registre uma receita antes de concluir o atendimento.',
+    );
+  });
+
+  it('allows finishing once a prescription has been registered for this attendance', async () => {
+    const { service, prescriptionRepository } = buildService(true);
+
+    await expect(
+      service.finishQueueItem('qi-1'),
+    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+
+    expect(prescriptionRepository.existsForQueueItemId).toHaveBeenCalledWith(
+      'qi-1',
+    );
   });
 });

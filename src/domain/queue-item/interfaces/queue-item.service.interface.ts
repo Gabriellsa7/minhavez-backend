@@ -3,10 +3,12 @@ import {
   IParamsUpdateQueueItem,
   IQueueItemRepository,
 } from '../repository/queue-item.repository.interface';
+import { IPrescriptionRepository } from '../../prescription/repository/prescription.repository.interface';
 import { IQueueItem } from './queue-item.interface';
 
 export interface IParamsQueueItemService {
   queueItemRepository: IQueueItemRepository;
+  prescriptionRepository: IPrescriptionRepository;
 }
 
 export interface IQueueItemService {
