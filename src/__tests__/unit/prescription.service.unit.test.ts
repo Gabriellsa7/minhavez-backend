@@ -19,6 +19,28 @@ function buildService(overrides?: {
   offering?: IExamOffering | null;
   prescriptions?: IPrescription[];
 }) {
+  const healthProfessionalRepository = {
+    createHealthProfessional: jest.fn(),
+    updateHealthProfessionalById: jest.fn(),
+    deleteHealthProfessionalById: jest.fn(),
+    getHealthProfessionalById: jest.fn(async () => ({
+      _id: 'prof-1',
+      name: 'Dr. John Doe',
+    })),
+    getHealthProfessionalByEmail: jest.fn(),
+    listHealthProfessionals: jest.fn(),
+  };
+
+  const healthUnitRepository = {
+    createHealthUnit: jest.fn(),
+    updateHealthUnitById: jest.fn(),
+    deleteHealthUnitById: jest.fn(),
+    getHealthUnitById: jest.fn(async () => ({
+      _id: 'unit-1',
+      name: 'Clínica Central',
+    })),
+    listHealthUnits: jest.fn(),
+  };
   const created: IPrescription[] = [];
 
   const prescriptionRepository = {
@@ -91,9 +113,11 @@ function buildService(overrides?: {
     examOfferingRepository: examOfferingRepository as never,
     patientRepository: patientRepository as never,
     userRepository: userRepository as never,
+    healthProfessionalRepository: healthProfessionalRepository as never,
+    healthUnitRepository: healthUnitRepository as never,
   });
 
-  return { service, prescriptionRepository, created };
+  return { service, prescriptionRepository, patientRepository, created };
 }
 
 describe('PrescriptionService.createPrescription', () => {
@@ -116,6 +140,8 @@ describe('PrescriptionService.createPrescription', () => {
     expect(prescription.professionalId).toBe('prof-1');
     expect(prescription.healthUnitId).toBe('unit-1');
     expect(prescription.patientName).toBe('Jane Doe');
+    expect(prescription.professionalName).toBe('Dr. John Doe');
+    expect(prescription.healthUnitName).toBe('Clínica Central');
   });
 
   it('creates a prescription with multiple exams', async () => {
@@ -226,5 +252,68 @@ describe('PrescriptionService.listPrescriptionsByProfessionalId', () => {
         healthUnitId: 'unit-1',
       }),
     ).rejects.toMatchObject({ status: 403 });
+  });
+});
+
+describe('PrescriptionService.listPrescriptionsByPatientId', () => {
+  const existingPrescription: IPrescription = {
+    _id: 'prescription-1',
+    patientId: 'patient-1',
+    professionalId: 'prof-1',
+    healthUnitId: 'unit-1',
+    exams: [
+      {
+        examOfferingId: 'offering-1',
+        examOfferingName: 'Hemograma',
+      },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  it('lets the owning patient (app user) list their own prescriptions', async () => {
+    const { service } = buildService({ prescriptions: [existingPrescription] });
+
+    const prescriptions = await service.listPrescriptionsByPatientId(
+      'patient-1',
+      { sub: 'user-1', isAdmin: false },
+    );
+
+    expect(prescriptions).toHaveLength(1);
+    expect(prescriptions[0].professionalName).toBe('Dr. John Doe');
+    expect(prescriptions[0].healthUnitName).toBe('Clínica Central');
+  });
+
+  it('rejects a different app user trying to list someone else\'s prescriptions', async () => {
+    const { service } = buildService({ prescriptions: [existingPrescription] });
+
+    await expect(
+      service.listPrescriptionsByPatientId('patient-1', {
+        sub: 'someone-else',
+        isAdmin: false,
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('lets a general health professional list any patient\'s prescriptions', async () => {
+    const { service } = buildService({ prescriptions: [existingPrescription] });
+
+    const prescriptions = await service.listPrescriptionsByPatientId(
+      'patient-1',
+      { sub: 'prof-1', isAdmin: false, isGeneralHealthProfessional: true },
+    );
+
+    expect(prescriptions).toHaveLength(1);
+  });
+
+  it('lets an admin list any patient\'s prescriptions', async () => {
+    const { service } = buildService({ prescriptions: [existingPrescription] });
+
+    const prescriptions = await service.listPrescriptionsByPatientId(
+      'patient-1',
+      { sub: 'admin-1', isAdmin: true },
+    );
+
+    expect(prescriptions).toHaveLength(1);
   });
 });

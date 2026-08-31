@@ -1,5 +1,7 @@
 import { AppError } from '../../../shared/errors/AppError';
 import { IExamOfferingRepository } from '../../exam-offering/repository/exam-offering.repository.interface';
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import {
@@ -20,20 +22,28 @@ export class PrescriptionService implements IPrescriptionService {
   private examOfferingRepository: IExamOfferingRepository;
   private patientRepository: IPatientRepository;
   private userRepository: IUserRepository;
+  private healthProfessionalRepository: IHealthProfessionalRepository;
+  private healthUnitRepository: IHealthUnitRepository;
 
   constructor(params: IParamsPrescriptionService) {
     this.prescriptionRepository = params.prescriptionRepository;
     this.examOfferingRepository = params.examOfferingRepository;
     this.patientRepository = params.patientRepository;
     this.userRepository = params.userRepository;
+    this.healthProfessionalRepository = params.healthProfessionalRepository;
+    this.healthUnitRepository = params.healthUnitRepository;
   }
 
   private async enrich(
     prescription: IPrescription,
   ): Promise<IPrescriptionWithContext> {
-    const patient = await this.patientRepository.getPatientById(
-      prescription.patientId,
-    );
+    const [patient, professional, healthUnit] = await Promise.all([
+      this.patientRepository.getPatientById(prescription.patientId),
+      this.healthProfessionalRepository.getHealthProfessionalById(
+        prescription.professionalId,
+      ),
+      this.healthUnitRepository.getHealthUnitById(prescription.healthUnitId),
+    ]);
     const user = patient
       ? await this.userRepository.findById(patient.userId)
       : null;
@@ -41,6 +51,8 @@ export class PrescriptionService implements IPrescriptionService {
     return {
       ...prescription,
       patientName: user?.name ?? '',
+      professionalName: professional?.name ?? '',
+      healthUnitName: healthUnit?.name ?? '',
     };
   }
 
@@ -128,7 +140,16 @@ export class PrescriptionService implements IPrescriptionService {
 
   async listPrescriptionsByPatientId(
     patientId: string,
+    requester: IPrescriptionRequester,
   ): Promise<IPrescriptionWithContext[]> {
+    if (!requester.isAdmin && !requester.isGeneralHealthProfessional) {
+      const patient = await this.patientRepository.getPatientById(patientId);
+
+      if (!patient || patient.userId !== requester.sub) {
+        throw new AppError(403, 'Forbidden');
+      }
+    }
+
     const prescriptions =
       await this.prescriptionRepository.findByPatientId(patientId);
 

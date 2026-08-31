@@ -18,4 +18,6 @@ export interface IPrescription {
 
 export interface IPrescriptionWithContext extends IPrescription {
   patientName: string;
+  professionalName: string;
+  healthUnitName: string;
 }

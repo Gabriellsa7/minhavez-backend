@@ -1,4 +1,6 @@
 import { IExamOfferingRepository } from '../../exam-offering/repository/exam-offering.repository.interface';
+import { IHealthProfessionalRepository } from '../../health-professional.ts/repository/health-professional.repository.interface';
+import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IPrescriptionRepository } from '../repository/prescription.repository.interface';
@@ -9,11 +11,14 @@ export interface IParamsPrescriptionService {
   examOfferingRepository: IExamOfferingRepository;
   patientRepository: IPatientRepository;
   userRepository: IUserRepository;
+  healthProfessionalRepository: IHealthProfessionalRepository;
+  healthUnitRepository: IHealthUnitRepository;
 }
 
 export interface IPrescriptionRequester {
   sub: string;
   isAdmin: boolean;
+  isGeneralHealthProfessional?: boolean;
   healthUnitId?: string;
 }
 
@@ -41,6 +46,7 @@ export interface IPrescriptionService {
   getPrescriptionById(id: string): Promise<IPrescriptionWithContext>;
   listPrescriptionsByPatientId(
     patientId: string,
+    requester: IPrescriptionRequester,
   ): Promise<IPrescriptionWithContext[]>;
   listPrescriptionsByProfessionalId(
     professionalId: string,

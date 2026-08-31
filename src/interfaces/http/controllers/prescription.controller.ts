@@ -1,12 +1,16 @@
 import { Request, Response, Router, NextFunction } from 'express';
 import { IController } from './IController';
-import { IPrescriptionService } from '../../../domain/prescription/interfaces/prescription.service.interface';
+import {
+  IPrescriptionRequester,
+  IPrescriptionService,
+} from '../../../domain/prescription/interfaces/prescription.service.interface';
 import {
   authMiddleware,
   authorizeAdminOrGeneralHealthProfessional,
 } from '../middlewary/auth.middleware';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import { EHealthProfessionalType } from '../../../domain/health-professional.ts/interfaces/health-professional.interface';
 
 export class PrescriptionController implements IController {
   router: Router;
@@ -34,7 +38,6 @@ export class PrescriptionController implements IController {
     this.router.get(
       '/patients/:patientId/prescriptions',
       authMiddleware,
-      authorizeAdminOrGeneralHealthProfessional,
       this.listPrescriptionsByPatientId,
     );
     this.router.get(
@@ -43,6 +46,22 @@ export class PrescriptionController implements IController {
       authorizeAdminOrGeneralHealthProfessional,
       this.listPrescriptionsByProfessionalId,
     );
+  }
+
+  private toRequester(req: Request): IPrescriptionRequester {
+    const user = req.user!;
+    const isAdmin =
+      user.principalType === EPrincipalType.USER && user.role === EUserRole.ADMIN;
+    const isGeneralHealthProfessional =
+      user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
+      user.healthProfessionalType === EHealthProfessionalType.GENERAL;
+
+    return {
+      sub: user.sub,
+      isAdmin,
+      isGeneralHealthProfessional,
+      healthUnitId: user.healthUnitId,
+    };
   }
 
   createPrescription = async (
@@ -93,6 +112,7 @@ export class PrescriptionController implements IController {
       const prescriptions =
         await this.prescriptionService.listPrescriptionsByPatientId(
           req.params.patientId,
+          this.toRequester(req),
         );
       res.status(200).json(prescriptions);
     } catch (error) {
