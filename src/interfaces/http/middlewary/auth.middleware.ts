@@ -130,6 +130,32 @@ export const authorizeAdminOrExamProfessional = (
   next();
 };
 
+export const authorizeAdminOrGeneralHealthProfessional = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  const isAdmin =
+    req.user.principalType === EPrincipalType.USER &&
+    req.user.role === EUserRole.ADMIN;
+
+  const isGeneralHealthProfessional =
+    req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
+    req.user.healthProfessionalType === EHealthProfessionalType.GENERAL;
+
+  if (!isAdmin && !isGeneralHealthProfessional) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
 export const authorizeAdminOrExamProfessionalOrReceptionist = (
   req: Request,
   res: Response,

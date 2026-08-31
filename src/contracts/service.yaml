@@ -4709,6 +4709,179 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /prescriptions:
+    post:
+      tags:
+        - Prescription
+      summary: Create a prescription with one or more exams
+      operationId: createPrescription
+      description: Creates a prescription for a patient, with medications (free text) and one or more exam types. The patient books the actual exam appointment(s) later in their own app; this endpoint does not schedule a date/time.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePrescription'
+      responses:
+        '201':
+          description: Prescription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prescription'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /prescriptions/{id}:
+    get:
+      tags:
+        - Prescription
+      summary: Get a prescription by id
+      operationId: getPrescriptionById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Prescription found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prescription'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Prescription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patients/{patientId}/prescriptions:
+    get:
+      tags:
+        - Prescription
+      summary: List a patient's prescriptions
+      operationId: listPrescriptionsByPatientId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of prescriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prescription'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health-professionals/{id}/prescriptions:
+    get:
+      tags:
+        - Prescription
+      summary: List prescriptions created by a health professional
+      operationId: listPrescriptionsByProfessionalId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of prescriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prescription'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -6764,6 +6937,69 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/ExamBookingStatus'
+    PrescriptionExam:
+      type: object
+      properties:
+        examOfferingId:
+          type: string
+        examOfferingName:
+          type: string
+    Prescription:
+      type: object
+      properties:
+        _id:
+          type: string
+        patientId:
+          type: string
+        patientName:
+          type: string
+        professionalId:
+          type: string
+        healthUnitId:
+          type: string
+        queueItemId:
+          type: string
+          nullable: true
+        medications:
+          type: string
+        observations:
+          type: string
+        exams:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrescriptionExam'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePrescriptionExam:
+      type: object
+      required:
+        - examOfferingId
+      properties:
+        examOfferingId:
+          type: string
+    CreatePrescription:
+      type: object
+      required:
+        - patientId
+        - exams
+      properties:
+        patientId:
+          type: string
+        queueItemId:
+          type: string
+        medications:
+          type: string
+        observations:
+          type: string
+        exams:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CreatePrescriptionExam'
 
   securitySchemes:
     bearerAuth:
