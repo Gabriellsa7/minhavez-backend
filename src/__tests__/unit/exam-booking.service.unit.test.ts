@@ -55,6 +55,7 @@ function buildService(overrides?: {
   isDateBlackedOut?: jest.Mock;
   rules?: IExamAvailabilityRule[];
   offering?: IExamOffering;
+  existingBookings?: IExamBooking[];
 }) {
   const scheduledAt = futureSlot(7, 9, 0);
   const weekday = WEEKDAYS_BY_JS_INDEX[scheduledAt.getUTCDay()];
@@ -103,7 +104,9 @@ function buildService(overrides?: {
         _params: Partial<IExamBooking>,
       ): Promise<IExamBooking | null> => null,
     ),
-    listExamBookingsByPatientId: jest.fn(async () => []),
+    listExamBookingsByPatientId: jest.fn(
+      async () => overrides?.existingBookings ?? [],
+    ),
     listExamBookingsByHealthUnitId: jest.fn(async () => []),
   };
 
@@ -292,6 +295,107 @@ describe('ExamBookingService.createBooking', () => {
         { sub: 'admin-1', isAdmin: true, isExamProfessional: false },
       ),
     ).rejects.toMatchObject({ status: 403 });
+  });
+});
+
+describe("ExamBookingService.createBooking minimum gap between the patient's bookings", () => {
+  const requester = { sub: 'user-1', isAdmin: false, isExamProfessional: false };
+
+  function buildOtherBooking(overrides: Partial<IExamBooking>): IExamBooking {
+    return {
+      _id: 'other-booking',
+      patientId: PATIENT._id,
+      healthUnitId: 'unit-1',
+      examOfferingId: OFFERING._id,
+      scheduledAt: futureSlot(7, 9, 0),
+      durationMinutes: OFFERING.durationMinutes,
+      status: EExamBookingStatus.SCHEDULED,
+      slotKey: 'unit-1_other',
+      createdByUserId: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    };
+  }
+
+  it('rejects a new booking less than 2h from another active booking of the same patient', async () => {
+    const baseScheduledAt = futureSlot(7, 9, 0);
+    const { service, scheduledAt } = buildService({
+      existingBookings: [
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() + 60 * 60 * 1000),
+        }),
+      ],
+    });
+
+    await expect(
+      service.createBooking(
+        { healthUnitId: 'unit-1', examOfferingId: 'offering-1', scheduledAt },
+        requester,
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('accepts a new booking exactly 2h from another active booking of the same patient', async () => {
+    const baseScheduledAt = futureSlot(7, 9, 0);
+    const { service, scheduledAt } = buildService({
+      existingBookings: [
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() + 2 * 60 * 60 * 1000),
+        }),
+      ],
+    });
+
+    const booking = await service.createBooking(
+      { healthUnitId: 'unit-1', examOfferingId: 'offering-1', scheduledAt },
+      requester,
+    );
+
+    expect(booking.status).toBe(EExamBookingStatus.SCHEDULED);
+  });
+
+  it('ignores canceled/no-show bookings when checking the gap', async () => {
+    const baseScheduledAt = futureSlot(7, 9, 0);
+    const { service, scheduledAt } = buildService({
+      existingBookings: [
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() + 30 * 60 * 1000),
+          status: EExamBookingStatus.CANCELED,
+        }),
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() - 30 * 60 * 1000),
+          status: EExamBookingStatus.NO_SHOW,
+        }),
+      ],
+    });
+
+    const booking = await service.createBooking(
+      { healthUnitId: 'unit-1', examOfferingId: 'offering-1', scheduledAt },
+      requester,
+    );
+
+    expect(booking.status).toBe(EExamBookingStatus.SCHEDULED);
+  });
+
+  it('allows multiple bookings on the same day as long as each is at least 2h apart', async () => {
+    const baseScheduledAt = futureSlot(7, 9, 0);
+    const { service, scheduledAt } = buildService({
+      existingBookings: [
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() - 2 * 60 * 60 * 1000),
+        }),
+        buildOtherBooking({
+          scheduledAt: new Date(baseScheduledAt.getTime() + 2 * 60 * 60 * 1000),
+        }),
+      ],
+    });
+
+    const booking = await service.createBooking(
+      { healthUnitId: 'unit-1', examOfferingId: 'offering-1', scheduledAt },
+      requester,
+    );
+
+    expect(booking.status).toBe(EExamBookingStatus.SCHEDULED);
   });
 });
 

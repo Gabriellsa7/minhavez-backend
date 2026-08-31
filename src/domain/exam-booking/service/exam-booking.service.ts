@@ -28,6 +28,8 @@ import {
 } from '../utils/exam-slot';
 import { IPaginationParams } from '../../../shared/utils/pagination';
 
+const MIN_GAP_BETWEEN_BOOKINGS_MS = 2 * 60 * 60 * 1000;
+
 export class ExamBookingService implements IExamBookingService {
   private examBookingRepository: IExamBookingRepository;
   private examOfferingRepository: IExamOfferingRepository;
@@ -135,6 +137,40 @@ export class ExamBookingService implements IExamBookingService {
     return rule;
   }
 
+  /** The patient can book more than one exam for the same day, but each
+   * booking's selected clock time must be at least 2h apart from any other
+   * still-active booking of theirs — regardless of clinic/professional, and
+   * regardless of the order the bookings were created in. */
+  private async assertMinimumGapFromOtherBookings(
+    patientId: string,
+    scheduledAt: Date,
+  ): Promise<void> {
+    const existingBookings =
+      await this.examBookingRepository.listExamBookingsByPatientId(
+        patientId,
+      );
+
+    const hasConflict = existingBookings.some((booking) => {
+      const isActive =
+        booking.status === EExamBookingStatus.SCHEDULED ||
+        booking.status === EExamBookingStatus.CONFIRMED;
+
+      if (!isActive) return false;
+
+      return (
+        Math.abs(booking.scheduledAt.getTime() - scheduledAt.getTime()) <
+        MIN_GAP_BETWEEN_BOOKINGS_MS
+      );
+    });
+
+    if (hasConflict) {
+      throw new AppError(
+        400,
+        'Você já tem um exame marcado a menos de 2 horas deste horário. Escolha outro horário.',
+      );
+    }
+  }
+
   private async enrich(
     booking: IExamBooking,
   ): Promise<IExamBookingWithContext> {
@@ -231,6 +267,11 @@ export class ExamBookingService implements IExamBookingService {
     if (!offering.isActive) {
       throw new AppError(400, 'This exam is not currently available');
     }
+
+    await this.assertMinimumGapFromOtherBookings(
+      patient._id,
+      params.scheduledAt,
+    );
 
     const rule = await this.assertBookableSlot(
       params.healthUnitId,
