@@ -1,6 +1,9 @@
 import { AppError } from '../../../shared/errors/AppError';
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
-import { IExamOffering } from '../interfaces/exam-offering.interface';
+import {
+  IExamOffering,
+  IExamOfferingWithHealthUnit,
+} from '../interfaces/exam-offering.interface';
 import {
   IExamOfferingService,
   IParamsCreateExamOffering,
@@ -160,5 +163,39 @@ export class ExamOfferingService implements IExamOfferingService {
       healthUnitId,
       canSeeInactive,
     );
+  }
+
+  async listClinicsOfferingExam(
+    examName: string,
+  ): Promise<IExamOfferingWithHealthUnit[]> {
+    if (!examName?.trim()) {
+      throw new AppError(400, 'name is required');
+    }
+
+    const offerings = await this.examOfferingRepository.listActiveExamOfferingsByName(
+      examName.trim(),
+    );
+
+    const healthUnits = await Promise.all(
+      offerings.map((offering) =>
+        this.healthUnitRepository.getHealthUnitById(offering.healthUnitId),
+      ),
+    );
+
+    const enriched: IExamOfferingWithHealthUnit[] = [];
+
+    offerings.forEach((offering, index) => {
+      const healthUnit = healthUnits[index];
+      if (!healthUnit) return;
+
+      enriched.push({
+        ...offering,
+        healthUnitName: healthUnit.name,
+        healthUnitAddress: healthUnit.address,
+        healthUnitImg: healthUnit.img,
+      });
+    });
+
+    return enriched;
   }
 }

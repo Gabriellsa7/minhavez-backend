@@ -1,6 +1,6 @@
 import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.repository.interface';
 import { IExamOfferingRepository } from '../repository/exam-offering.repository.interface';
-import { IExamOffering } from './exam-offering.interface';
+import { IExamOffering, IExamOfferingWithHealthUnit } from './exam-offering.interface';
 
 export interface IParamsExamOfferingService {
   examOfferingRepository: IExamOfferingRepository;
@@ -57,4 +57,7 @@ export interface IExamOfferingService {
     requestingUserId: string | undefined,
     includeInactive: boolean,
   ): Promise<IExamOffering[]>;
+  listClinicsOfferingExam(
+    examName: string,
+  ): Promise<IExamOfferingWithHealthUnit[]>;
 }

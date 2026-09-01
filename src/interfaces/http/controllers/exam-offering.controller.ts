@@ -28,6 +28,11 @@ export class ExamOfferingController implements IController {
       this.listExamOfferings,
     );
     this.router.get(
+      '/exam-offerings/search',
+      authMiddleware,
+      this.searchExamOfferingsByName,
+    );
+    this.router.get(
       '/exam-offerings/:id',
       authMiddleware,
       this.getExamOfferingById,
@@ -88,6 +93,20 @@ export class ExamOfferingController implements IController {
         req.params.id,
       );
       res.status(200).json(offering);
+    } catch (error) {
+      this.handleError(res, error);
+    }
+  };
+
+  searchExamOfferingsByName = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const name = typeof req.query.name === 'string' ? req.query.name : '';
+      const offerings =
+        await this.examOfferingService.listClinicsOfferingExam(name);
+      res.status(200).json(offerings);
     } catch (error) {
       this.handleError(res, error);
     }

@@ -90,4 +90,17 @@ export class ExamOfferingRepository implements IExamOfferingRepository {
       );
     }
   }
+
+  async listActiveExamOfferingsByName(name: string): Promise<IExamOffering[]> {
+    try {
+      const docs = await MExamOffering.find({ name, isActive: true })
+        .collation({ locale: 'pt', strength: 2 })
+        .sort({ name: 1 });
+      return docs.map((doc) => this.mapToDomain(doc));
+    } catch (error) {
+      throw new Error(
+        `Error searching exam offerings by name: ${(error as Error).message}`,
+      );
+    }
+  }
 }

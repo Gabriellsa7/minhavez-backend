@@ -28,4 +28,5 @@ export interface IExamOfferingRepository {
     healthUnitId: string,
     includeInactive: boolean,
   ): Promise<IExamOffering[]>;
+  listActiveExamOfferingsByName(name: string): Promise<IExamOffering[]>;
 }
