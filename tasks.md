@@ -1,6 +1,5 @@
 ## **Tasks**
 
-- Cria um CI/CD no meu projeto - **PRIORIDADE**
 - Fazer ajustes visuais no manager medico e admin e app tbm.
 - Refatorar o APP - Started
 - Criar alertas de erro no papertrail pra vir pro meu email.
@@ -111,3 +110,4 @@
 77. Nova tela no app onde vai mostrar a receita que o medico passou pra ele ou seja em serviços rapido tera um novo card, minhas receitas, nele vai ta as receitas que os medicos passaram pra o usuario, ai nessa tela vai ter um card com data de quando o medico cadastrou a receita normalmente no dia da consulta, nome do medico e nome da unidade de saude, ao clicar nesse card vai ter todas as infos da receita ou seja tudo que o medico cadastrou nos inputs do manager lá. e tbm nesse card teŕa um butão pra ele ja ir direto marcar o exame quando ele clicar ja abre na tela de marcar exame com o exame que o medico passou ja selecionado e ele so vai escolh a hora que ele quer marcar o exame - DONE
 78. Atualmente no app em minhas receitas quando o user clica em marcar exame ele seleciona direto o daquela clinica, porem eu quero que caso exista em outras clinicas ele liste as clinicas e permitem o user escolher em qual clinica ele quer agendar exemplo se so tiver em uma ai so mostra ela se tiver em 5 ai mostra as 5 e etc ele não precisa necessariamente marcar so naquela clinica do medico que atendeu ele pois as vezes essa clinica pode não oferecer exames so consulta. - DONE
 79. Quando ele agendar um exame ou consulta redirecione le ja pra infos da consulta e exame e se ele clicar no butão de volta que tem nessas pagina quando ele for redirecionada, ai redirecione ele pra home. - DONE
+80. Cria um CI/CD no meu projeto - DONE
