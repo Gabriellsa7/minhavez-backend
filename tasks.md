@@ -12,14 +12,6 @@
 - Set up Papertrail error alerts to be emailed to me.
 - Check whether Papertrail is configured in the PROD environment.
 
-> **Note (docs):** when publishing the Tutorial, swap the `{/* IMG: ... */}` placeholders for real screenshots. In Docusaurus that's done like this:
->
-> ```md
-> ![Search health units screen](/img/app/buscar-unidade.png)
-> ```
->
-> Image files go under `static/img/...` (available at `/img/...` in the build).
-
 ---
 
 ## 🔢 Versioning (semver)
@@ -213,7 +205,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (130)
+## ✅ Completed (131)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -378,3 +370,4 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 128. Set up CI/CD for the project.
 129. Add a Dockerfile.dev to the backend, app and manager to spin up the local dev environment via containers.
 130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
+131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
