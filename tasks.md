@@ -1,113 +1,380 @@
-## **Tasks**
+# Minha Vez — Tasks
 
-- Fazer ajustes visuais no manager medico e admin e app tbm.
-- Refatorar o APP - Started
-- Criar alertas de erro no papertrail pra vir pro meu email.
-- Verificar se o parpertrail ta configurado no ambiente de PROD.
-- Refatorar o painel dos recepcionistas.
-- Próximo passo natural, se quiser: trocar os placeholders `{/* IMG: ... */}` por capturas de tela reais quando for publicar. no Tutorial.
-- Para trocar um comentário por uma imagem real, o padrão do Docusaurus é algo como:
+> Task board for the Minha Vez ecosystem: patient app, manager (doctor/admin/front-desk/exams), backend and documentation.
 
-```Markdown
-![Tela de busca de unidades](/img/app/buscar-unidade.png)
-```
+---
 
-- colocando os arquivos em `static/img/...` (assim ficam disponíveis em `/img/...` no build).
+## 📋 Backlog
 
-## Sobre a version:
+- Polish the manager UI (doctor and admin) and the app too.
+- Refactor the APP, especially the React Query request handling — *in progress*.
+- Refactor the receptionist panel.
+- Set up Papertrail error alerts to be emailed to me.
+- Check whether Papertrail is configured in the PROD environment.
 
-- **patch** (`1.0.x`) — correções de bug, ajustes pequenos, sem mudar comportamento visível. É o que seus builds fazem automaticamente.
-- **minor** (`1.x.0`) — nova funcionalidade que não quebra nada existente. Você reseta o patch: rode `node scripts/bump-version.js minor`.
-- **major** (`x.0.0`) — mudança grande/breaking, redesign, ou um marco importante do produto. Reseta minor e patch: `node scripts/bump-version.js major`.
+> **Note (docs):** when publishing the Tutorial, swap the `{/* IMG: ... */}` placeholders for real screenshots. In Docusaurus that's done like this:
+>
+> ```md
+> ![Search health units screen](/img/app/buscar-unidade.png)
+> ```
+>
+> Image files go under `static/img/...` (available at `/img/...` in the build).
 
-## Implementação Futura Dentro do Escopo do TCC
+---
 
-- Criar um novo Sistema esse será separado que em um novo repo, pois será um sistema de mostrar a atualização da fila que está ocorrendo no app, ele mostrar o codigo chamado, terá audio falando o codigo do usuario, mostrará o que esta sendo chamado, os que foram chamados com infos como codigo, hora que foi chamado, sala a qual deve se dirigir e vou pensar se tem mais algo, ele terá regras como o codigo será repetido pela voz 3 vezes cada codigo, além disso tem que ter um delay caso outro codigo seja chamado pra que a voz não fale 2 ao mesmo tempo e fique embolado ai a voz falara o codigo e a sala que ele tem que ir. Esse sistema é pra que as pessoas que estejam presencial ou seja as que marcaram na recepção ou os que marcaram pelo app e ja estão lá tbm eles possam ver e saber pra ondem se dirigir e o momento em que foram chamados. Estudar como implementar isso.
+## 🔢 Versioning (semver)
 
-## Implementação Fora do Escopo do TCC
+| Type | Format | When to use | Command |
+| --- | --- | --- | --- |
+| **patch** | `1.0.x` | Bug fixes, small tweaks, no visible behavior change. This is what the builds do automatically. | — |
+| **minor** | `1.x.0` | New feature that doesn't break anything existing. | `node scripts/bump-version.js minor` |
+| **major** | `x.0.0` | Big/breaking change, redesign, or an important product milestone. | `node scripts/bump-version.js major` |
 
-- Criar sistema de gamificação, existem varios exemplos, pensar no melhor caso para o meu app, app de exemplo: Quero Delivery, Duolingo.
-- Estudar e implementar sistema de pagamento pelo app pois atualmente é apenas na clinica, OBS: Essa funcionalidade será apenas para as unidades de saúde privadas, UBS continua gratuito.
+---
 
-## Done
+## 🗺️ Roadmap — Call Panel and Queue Update System
 
-1. Add queue code partner, ex: AP001 -> Atendimento prioritario, AN001 -> Atendimento normal, maybe the numbers can be reseted in the end of the day and used again in the oder day. DONE
-2. Adiconar sistema de avaliação de medico e clinica e mostrar um carzinho com a quantidade de estrilinhas que ele tem de 1 a 5. DONE
-3. Define a util to add an icon based on the health unit service type. DONE
-4. Think how can I get the waiting time in back and front. DONE
-5. Add logic to show user password when he is writing using an eye icon to show when user click. DONE
-6. Add logic in backend and frontend to allow the user make a image upload for you profile. - DONE
-7. Show user image profile -> header.tsx and profile-content.tsx. - DONE
-8. Add button to edit and upload user profile image no app - profile-content.tsx. - DONE
-9. Whenever the doctor opens the dashboard, they will see all of their queues, but all of them will be closed by default. The doctor should only be able to open **one queue at a time** , according to the queue's scheduled date. DONE
-10. Create a notification system for **minha-vez-app** . - DONE
-11. Add a **Loading Skeleton** to the app to display while `isLoading` is `true` using the `react-native-skeleton-placeholder` dependency — **minha-vez-app** . DONE
-12. Refactor the app, especially the **React Query** request handling — **minha-vez-app** .
-13. Solve webSockt and notification error. - DONE
-14. Melhorar sistema de fila pra poder mesclar em uma fila entre pessoa normal, prioritaria, normal,prioritaria e etc. DONE
-15. Alterar cores dos places holder dos inputs pra deixar masi escura pra visibilidade. - DONE
-16. Adicionar mensagens de erros visuais pra erros que são causados pelo preenchimente de forma errada pelo user ex: data errada, CPF invalido e etc. - DONE
-17. Alterar input de sala pra ser so o numero exemplo 10, 40 e etc ao inves de texto e numero, limitar a numeração ate 9999. - DONE
-18. Adicionar opção do paciente cancelar consulta com regra de que so pode cancelar ate meio dia do dia anterior, pode ser colocada na tela que abre quando ele clica pra ver as infos da fila o butão em vermelho na parte de baixo, assim que ele clicar abra um modal perguntando se ele deseja cancelar mesmo com o butão de confirmar e um x na parte de cima pra fechar o modal caso ele não queira cancelar, se for necessario implementar algo no back implemente. - DONE
-19. Implementar sistema de marcar exame como concluido, será um novo painel no manager porem agora pra um usuario que tem sua classificação EXAMPROFESSIONAL, esse vai acessar essa nova aba ver a lista de pessoas que tem pra fazer exame, quando a pessoa chegar na clinica o EXAMPROFESSIONAL marca iniciar ai vai ficar com status iniciado até acabar o exame e conforme for concluindo ela vai marcando como concluida e o status ira pra finalizado, terá a tela de historico pra mostrar o exames e tela de perfil, após exame ficar com
-20. Status finalizado some da tela do usuario, esse sistema não será com fila cada um terá seu horario marcado so ir e fazer o exame. - DONE
-21. Implementar no painel manager do EXAMPROFESSIONAL tera uma funcionalidade pra que quando o exame do user tiver pronto ele vai clicar em butão que vai abrir um modal onde ela vai por o PDF do exame do user e o CPF dele, assim que ela clicar em confirma será enviado para o email do/dos ADMIN para que eles possam mandar para o medico e pro USer como é feito atualmente, ou seja será uma nova tela pra isso. - DONE
-22. Criar tela do ver todos em serviços oferecidos - DONE
-23. Toda mensagem de erro e textos que tiver em ingles por em portugues - DONE
-24. Implement Dark theme based on user SO - DONE
-25. Configurar papertrail. - DONE
-26. Implementar uma forma de permitir o user sobreescrever o Theme do SO exemplo: O SO dele ta em modo claro mas ele quer o app em modo escura ai ele aperta em um botão la em profile e muda o thema pra escuro. - DONE
-27. Alterar a mostragem da data de nascimento para DD/MM/AAAA pois é o padrão do Brasil. - DONE
-28. Add logic to ensure that appointments can only be scheduled during the health units' operating hours, not just based on the doctors' availability. - DONE
-29. Melhorar o sistema de cadastrar alguem com prioridade de atendimento, atualmente todo usuario quando cadastrado fica como normal, preciso que adicione ele em prioritario assim que se cadastrar e sua idade for maior que 60, colocar nova opção da hora do cadastro com dados baseados no meu enum do back no contrato pra ele selecionar se ele tem alguma coisa ou não usando um dropdown com os dados do enum pra que ele possa entrar em prioridade. - DONE
-30. No sistema de prioridade no dropdown por doenças cronicas ou algo assim ao selecionar esse opção aparecer uma mensagemzinha abaixo dela em amarelo dizendo pra levar comprovante no dia ou anexar em perfil o comprovante olgo nesse estilo de texto coloque o mais recomendado. - DONE
-31. Criar nova tela em profile pra ele anexar PDF ou imagem do comprovante de exame de alguma doença que ele tenha, nessa tela ele tbm vai por informações como tipo sanguineo e etc não é obrigatorio pois nem todos sabem tipo sanguineo e etc ai lembre de modificar a mensagem em amarelo no modal de cadastro de paciente pra que agora tenha a info dele fazer o upload . - DONE
-32. Implementar a opção do paciente editar sua prioridade em profile, pois atualmente ele não pode editar e pode acontecer de em algum momento da vida ele ter algum problema e entar em prioridade. - DONE
-33. Implementar uma nova tela que ira ficar todas as configs de Profile tipo um mais configurações ou configurações ja que atualmente tem varios buttons de navegação em profile, deixando em perfil so a imagem e nome, informções pessoas, informações de saude novo card que tem o design no figma e ver notificações e sair da conta. - DONE
-34. Implementar algo que separe a unidade publica da privada na hora que o Admin for cadastrar ele irá definir isso. Pois no fluxo atual não há nada que separe isso, o que pode dificultar para a futura implementação do gamification. - DONE
-35. AJustar a font do não informado em tipo sanguinio diminuir o texto. - DONE
-36. Impementar sistema de versão para que sempre que um build for realizado ele subir uma versão tipo 1.1.1 e etc seguindo o padrão de mercado atualmente o app ja esta no quarto build que eu me lembre, ai coloca a versçao e uma mensagenzinha sendo feito por gabriel santana santos como copyrigth assim como na imagem acima de exemplo a versão seŕa mostrada na parte de baixo de profile apos o ultimo componente. - DONE
-37. `Implementar na raiz do projeto do front, vars.scss e por todas as cores la de forma separadas usando o padrão: $primary e etc.` - DONE
-38. Implementar uma nova funcionalidade pra quando o user clicar na sua imagem de perfil que está no header e tbm no header da home ele redirecionar pra profile. - DONE
-39. Implementar funcionalidade pra quando o user clicar em sua imagem em profile ele ampliar a imagem assim como no whatsapp pra que ele consiga ver sua imagem. - DONE
-40. Minha-vez-manager - implementar tema ecuro, ligth e padrão do navegador. - DONE
-41. Minha-vez-manager - implementar mensagens de erros mais semanticas e visuais para o manager para facilitar os user a visualizar seus erros. - DONE
-42. Minha-vez-manager - implementar modal que ira abrir ao clicar em um exame na tela de Exames disponiveis para que seja possivel visualizar as infos do exame. - DONE
-43. Minha-vez-app - implementar nova tela para que ao clicar pra visualizar um exame agendado em meu exames ele mostrar tbm o Preparo para fazer aquele exame pois atualmente so mostra informações baiscas como valor, data, localização. - DONE
-44. Minha-vez-app - Implementar um novo card/button em serviço rapidos que será, minhas consultas onde ao clicar vai redirecionar para um nova tela onde vai mostrar cards de todas as consultas que o user tem agendada mostrando infos da consulta e quando ele clicar vai redirecionar pra tela da fila daquela consulta. - DONE
-45. Minha-vez-app - implementar um Ver todos no mesmo view do Titulo Serviços Rapidos onde ao clicar abrira uma nova tela onde vai listar todos os serviços rapidos usando o mesmo formato dos cards da home coloca 4 por coluna e ao clicar cada um redireciona pra sua respectiva tela. - DONE
-46. Minha-vez-app - Implementar listas paginadas de clinicas, exames, historicos de consulta e etc, ou seja todo e qualquer lugar que possa ter varios cards adicionar a paginação com numero padrão de paginados de 10. - DONE
-47. Criar script pra colar o mongoDB e gerar varias unidade de saude e profissonais vinculado a uma dessas unidade pra poder testar a paginação. - DONE
-48. Minha-vez-app - Na tela de explorar no card que mostrar os especialistas renderizar dentro do circulo de imagem a foto do especialista. - DONE
-49. Minha-vez-app - no cardzinho que fica abaixo do search a home quando a mensagem fica muito grande os textos ficam colando um no outro permita a quebra de linha quando isso acontecer porem so quando o texto for ficar maior que o card. - DONE
-50. Minha-vez-app - Verificar se a info que aparece no card de clinicas em explorar sobre as filas min de espera e pessoas na fila são mocadas se for implemente uma nova funcionalidade pra sempre mostrar isso se realmente tiver fila aberta ai vai mostra a qtd de pessoas que estão naquela fila que esta aberta no exato momento se não tiver fila aberta não mostrar no card. - DONE
-51. AJustar teclado sobrepondo os inputs. - DONE
-52. Configurar Papertrail no painel manager e configurar erros pra aparecer nos logs do papertrail. - DONE
-53. Colocar uma ação component de Sua proxima consulta/exame na home ao clicar nele ele deve direcionar para a tela de infos daquele exame ou consulta. - DONE
-54. Implementar logic pra mostrar sempre o proximo exame/consulta no cardzinho de lembrete - DONE
-55. Implementar logica pra mostrar imagem da clinica no card do queueItems. - DONE
-56. Implementar novo componente pra mostrar condicionlmente(sempre que houver consulta/exam mracado) onde vai mostrar as consultas e os exames que o usuario tem marcado. - DONE
-57. Criar um readme bonito pra cada repository, app e manager add imagens. - DONE
-58. Na nova seção de novas consultas e exames quando tiver 1 dias antes do exame/consulta por um cardzinho(o padrão inicial é não aparecer nenhum cardzinho até cumpir uma dessas 2 regras 1 dia antes e 1 hora antes) dentro do card na parte de cima em amarelo dizendo sua consulta/exame é amanhã e quando tiver faltando 1h no dia da consulta/exame esse cardzinho fica vermelho com uma mensagem tipo, sua consulta é: ai entra uma contagem regressiva até a hora da consulta ou exame ai depois que passar o horario do exame/consulta ela tendo sido finalizada ou não o card principal some junto com as infos e fica so o card das proxima consultas/exame. - DONE
-59. Ajustar regra no backend pra impedir que o mesmo user marque mais de uma consulta no mesmo dia. - DONE
-60. Ajustar logica no front(minha-vez-manager) pra que quando o medico atenda ou feche a fila de vez sem atender ninguem suma automaticamente da tela do user nos dois lugares que aparece na home. - DONE
-61. Ajustar notificações pois esta sendo enviadas notificações em periodo errado exemplo marquei uma consulta pra amanhã e recebi a correta sua consulta é amanhã e a errada sua consulta é hoje. - DONE
-62. Ajustar notificação pra so receber a notificação de posição na fila conforme a fila estiver aberta e o medico for chamando no manager ou seja usara websocket. - DONE
-63. Implementar uma nova logica pra quando o medico fechar fila sem atender ninguem apareca um modal pra ele digitar o motivo e pro user apareca um modal mostrando o que o medico digitou todas essas infos tem que ser instataneas com wesocket ai assim que ele clicar confirmar ai a fila é fechada some automaticamente da tela do user que tiver com ela aberta e aparece um modal com o motivo e opção pra ele clicar em fechar se o user não tiver no app sim que ele entrar e logar o modal vai aparecer na tela dele tbm mostrando a mensagem e a opção de fechar. - DONE
-64. Ajustar logica de mostrar filas na home(seção de filas ativas) pois esta mostrando varias fila algumas repetidas, outras que ja foram fechadas e futuras sendo que é so pra mostrar filas futuras e que estão acontecendo no momento após o user ser atendido ela tem que sumir, além disso nas infos do card da fila na home ta sempre aparecendo as infos de uma fila só normalmente da que foi marcada primeiro ajuste isso, pq cada fila tem sua informação propria.
-65. Caso o usuario não adicione suas infos de tipo sanguineo e etc, adicionar um lembrete na home pra que ele lembre de preeencher essa infos dizendo que é importante. - DONE
-66. Caso a fila seja fechada por cancelamento do medico, anterior ao dia da consulta permitir o user marcar consulta com outro medico naquele dia que ele ia fazer e foi cancelado. - DONE
-67. Na seção de consultas/exam marcadas se ele tiver mais de uma mostrar todas que ele tem pq no comportamento atual so mostra a mais proxima isso ai é papel da seção de Sua proxima consulta/exam essa seção de Consulta e exames marcadps é pra mostrar todas que ele marcou. - DONE
-68. Adicionar websockt no manager pra que quando o usuario marcar uma consulta a fila na aparece sem o medico da F5 no painel, alem disso permitir que mesmo com a fila aberta se ainda tiver horario o patient pode marcar entar naquela fila até o medico fechar caso o medico não fecha ela, ela será fechada automaticament 12h a da manha e 22h a da tarde, agora a fila não deve fechar mais altomaticamente quando o medico atender o ultimo agora so fecha quando ele aberta no botão de fechar fila. - DONE
-69. Implementar logica pra permitir o medico marcar o retorno do usuario em até no maximo 20 dias depois do dia da consulta. - DONE
-70. Alterar ordem das filas que são mostradas no painel manager pq atualmente mostra a ultima marcada eu quero mostra por ordem de data exemplo 27,28,29,30 se tiver duas no mesmo dia, mostra por ordem de turno 29 manha, 29 tarde, 30, 31, 32. - DONE
-71. Ajustar redirecionamento da pagina de notfound e criar pagina de erro. - DONE
-72. AJustar redirecionamento da pagina de notFound do manager com base no user logado ele sempre retornar pra home. - DONE
-73. Melhorar a pagina de notfound colocando logo do app e uma menssagenzinha, criar uma pagina de erro com o mesmo padrão colocando uma mensagenzinha não tão agressiva pra não afetar o user. - DONE
-74. Criar um painel pra uma nova role que será para as pessoas que ficam na recepção da clinica ou UBS de saúde eles são responsaveis por marcar a consulta/exame das pessoas que não fizeram pelo app e foram lá pra marcar ai elas vão fazer essa marcação da consulta/exam e eles vão entrar na mesma fila da galera que marcou pelo app usando a ordem atual que temos, esse novo painel terá a tela de marcar consulta, marcar exame e perfil. Essa marcação vai acontecer atraves do CPF do user eles vão digitar pra buscar o usuario, caso existe um user elas marcam se não existir ai elas terão que cadastrar o usuario, tera uma nova opção assim como a de marcar ela vai abrir um modal porem esse modal vai ser pra cadastrar o user com email, senha e etc o que o app pede pra marcar a consulta/exam, após isso esse user estará apto a usar o app e lá na clinica eles vão passar as credencias do user pra ele pode logar no app. - DONE
-75. Cria um manual de uso pro app e manager, tipo um tutorial pode ser tbm. - DONE
-76. Colocar no sistema a receita da pessoa que o médico tá atendendo onde ele vai passar exames e etc. - DONE
-77. Nova tela no app onde vai mostrar a receita que o medico passou pra ele ou seja em serviços rapido tera um novo card, minhas receitas, nele vai ta as receitas que os medicos passaram pra o usuario, ai nessa tela vai ter um card com data de quando o medico cadastrou a receita normalmente no dia da consulta, nome do medico e nome da unidade de saude, ao clicar nesse card vai ter todas as infos da receita ou seja tudo que o medico cadastrou nos inputs do manager lá. e tbm nesse card teŕa um butão pra ele ja ir direto marcar o exame quando ele clicar ja abre na tela de marcar exame com o exame que o medico passou ja selecionado e ele so vai escolh a hora que ele quer marcar o exame - DONE
-78. Atualmente no app em minhas receitas quando o user clica em marcar exame ele seleciona direto o daquela clinica, porem eu quero que caso exista em outras clinicas ele liste as clinicas e permitem o user escolher em qual clinica ele quer agendar exemplo se so tiver em uma ai so mostra ela se tiver em 5 ai mostra as 5 e etc ele não precisa necessariamente marcar so naquela clinica do medico que atendeu ele pois as vezes essa clinica pode não oferecer exames so consulta. - DONE
-79. Quando ele agendar um exame ou consulta redirecione le ja pra infos da consulta e exame e se ele clicar no butão de volta que tem nessas pagina quando ele for redirecionada, ai redirecione ele pra home. - DONE
-80. Cria um CI/CD no meu projeto - DONE
+*Within the TCC scope.*
+
+### Goal
+
+Build a new, independent system, developed in a **new repository**, responsible for displaying real-time updates of the service queue and calls made in the application.
+
+The system will work as a **call panel**, letting people physically present at the location easily see when they're called and know which room to go to.
+
+This panel must serve both users who booked or joined the queue in person through the front desk, and users who went through the app and are already waiting on site.
+
+### Main features
+
+The system must display information about calls happening in real time.
+
+#### Current call
+
+The panel must visually highlight the attendance currently being called, containing information such as:
+
+- User code/ticket called;
+- Room the user should go to;
+- Time of the call;
+- Other relevant information that may be defined later.
+
+Example:
+
+> **Code: A123**
+> Go to **Room 05**
+
+### Call history
+
+Besides the current call, the system must keep a list of the most recent codes called.
+
+Each history item should show, initially:
+
+- Code called;
+- Time it was called;
+- Destination room.
+
+This history lets users who didn't see or hear the call at the time easily check whether their code has already been called.
+
+### Audio system
+
+The panel must have a voice-call system.
+
+Whenever a new code is called, the system must play an audio message stating:
+
+- The user's code;
+- The room they should go to.
+
+Call example:
+
+> "Attention. Code A123, please go to Room 05."
+
+#### Audio rules
+
+The system must follow some important rules:
+
+1. Each code called must be announced **3 times**;
+2. Calls must happen sequentially;
+3. If a new code is called while another announcement is still playing, the audios **must not play simultaneously**;
+4. The system must have an audio playback queue;
+5. A new announcement must wait for the previous one to finish before starting;
+6. There may be a small configurable delay between repeats and between different calls;
+7. Call order must be preserved so announcements don't play out of sequence.
+
+Example:
+
+- Code A123 called;
+- System adds the announcement to the audio queue;
+- Voice announces the code and the room;
+- Message repeats 3 times;
+- Once fully finished, the next code in the queue can be announced.
+
+### Real-time update
+
+The system must receive call updates in real time.
+
+When a new call happens in the main system:
+
+1. The new code must appear immediately on the panel;
+2. The call must be highlighted as the current call;
+3. The record must be added to the history;
+4. The voice announcement must be added to the audio queue;
+5. If other announcements are in progress, it must wait its turn.
+
+It will be necessary to study the best strategy for real-time communication between the main system and the new panel.
+
+Possible approaches to evaluate:
+
+- WebSockets;
+- Server-Sent Events (SSE);
+- Event/messaging system;
+- Polling as a less recommended alternative.
+
+### Architecture
+
+The project must be developed as a separate system, in a **new repository**, staying independent from the main project.
+
+Needs to be defined:
+
+- How the system will receive new-call events;
+- How authentication/communication between systems will work, if needed;
+- Which technology will be used for real-time communication;
+- How the call queue state will be managed;
+- How the audio playback queue will be implemented;
+- How to avoid duplicate calls;
+- How to handle reconnections if the panel loses connection;
+- How to recover the current queue state after a reconnection.
+
+### Points to study before implementation
+
+Before starting development, do a technical study to define the best architecture for the solution, mainly about:
+
+#### Real-time communication
+
+Evaluate which technology best fits the scenario of instant panel updates.
+
+#### Audio queue
+
+Define a reliable strategy to guarantee that:
+
+- Two audios are never played simultaneously;
+- Call order is respected;
+- Each call is repeated exactly 3 times;
+- New calls are queued if an announcement is in progress.
+
+#### Text-to-Speech (TTS)
+
+Evaluate how the voice playback will work:
+
+- Native browser API;
+- External Text-to-Speech service;
+- Pre-recorded audio files;
+- Another solution offering better quality and reliability.
+
+#### Synchronization
+
+Define how the panel will recover information if:
+
+- The page is reloaded;
+- The connection is lost;
+- The browser is closed and reopened;
+- The panel goes temporarily offline.
+
+### Possible future features
+
+Items that could be added later:
+
+- Average wait time display;
+- Number of people waiting;
+- Visual highlight and animations for new calls;
+- Different attendance types/priorities;
+- Configurable number of call repeats;
+- Configurable interval between announcements;
+- Fullscreen mode for use on TVs;
+- Support for multiple simultaneous panels;
+- Filter by department or unit;
+- Additional visual indicators;
+- Alert sounds before the call;
+- Expanded call history;
+- Admin panel to configure the system.
+
+### Expected outcome
+
+In the end, we'll have an independent **Call Panel** system, able to receive the main system's call events in real time, visually display the code called and the destination room, keep a history of the latest calls, and play voice announcements in an organized way.
+
+The system must guarantee that audio announcements never overlap, using a sequential playback queue, where each code is announced 3 times before the next call starts.
+
+The implementation must prioritize **real-time behavior, reliability, cross-system synchronization, and a good visual/audio experience for people on site**.
+
+---
+
+## 🚫 Out of scope
+
+- Build a gamification system — there are several examples out there, think about the best fit for the app (references: Quero Delivery, Duolingo).
+- Study and implement in-app payments (today payment only happens at the clinic). Note: this feature will only apply to private health units — public units (UBS) stay free.
+
+---
+
+## ✅ Completed (130)
+
+### 🏗️ Project Foundations & Initial Setup
+
+*Solo work from Feb–Aug 2026, before starting to pair on commits — never logged as tasks at the time, mapped retroactively from the commit history.*
+
+#### Backend
+
+1. Set up the initial backend project (NestJS/Node), core dependencies (bcrypt, Jest) and TypeScript configuration.
+2. Design the initial data model (DER) and base user settings.
+3. Standardize the API contract/OpenAPI pattern across the core entities (health unit, patient, health professional, queue, queue item, notification, appointment).
+4. Build the full Health Unit CRUD (entity, model, schema, repository, service, controller and factories).
+5. Build the full Patient CRUD, including lookup by user ID.
+6. Build the full Health Professional CRUD.
+7. Build the full Queue CRUD, enforcing that a professional can only have one open queue at a time.
+8. Build the full Queue Item CRUD, including the patient priority enum.
+9. Implement authentication: login, token issuance, JWT refresh flow and auth middleware.
+10. Build the full Notification and Appointment CRUDs (API, service, repository, schema).
+11. Implement the core queue lifecycle: open/close a queue, track the current item and call the next patient in line.
+12. Implement scheduling in minute-based slots tied to the health unit's operating hours, and add the logic to finish an appointment.
+13. Add health-unit image upload via Cloudinary.
+14. Support multiple queues per health professional across shifts (morning/afternoon).
+15. Build the aggregated "queue management" endpoint that powers the manager dashboard.
+16. Implement the initial notification system and WebSocket setup.
+
+#### Patient App
+
+17. Set up the initial Expo/React Native project and folder structure.
+18. Build the login and signup screens with React Hook Form + Zod validation.
+19. Wire up React Query + Axios and integrate real JWT authentication (login and user creation).
+20. Build the home screen (carousel, search bar and quick services section).
+21. List health units from the API, with a placeholder image when a unit has none.
+22. Build the dynamic health unit details page.
+23. Build the appointment scheduling flow (calendar screen and create-appointment request).
+24. Build the Explore screen for browsing health units and professionals.
+25. Build the initial profile screen with avatar initials, and show the patient's queue position, unit and professional's room.
+26. Implement the initial notification system in the app.
+
+#### Manager
+
+27. Set up the initial manager project and environment configuration.
+28. Implement authentication (login screen and API call), and keep the session alive on refresh (no logout on F5).
+29. Build the base panel layout: sidebar, navigation and global profile component.
+30. Build the Health Unit CRUD screens (list, card, create/edit modal with form validation).
+31. Build the Health Professional CRUD screens (list, card, create/edit modal with form validation).
+32. Build the queue management module: entities, query and consumption of the aggregated endpoint.
+33. Implement the current-queue-item component and the "open queue / call patient" logic, restricted to the first patient in line.
+34. Build the waiting-queue card with cache invalidation, and show the health unit's operating hours.
+
+#### Docs site
+
+35. Set up the initial docs site and point it to the Vercel deployment.
+
+### 🔄 Queue, Scheduling & Notifications
+
+36. Add paired queue codes, e.g. AP001 -> priority attendance, AN001 -> regular attendance; the numbers can reset at the end of the day and be reused the next day.
+37. Figure out how to compute the wait time on the backend and frontend.
+38. Create a notification system for **minha-vez-app**.
+39. Fix the WebSocket and notification bug.
+40. Improve the queue system to merge regular and priority patients into a single interleaved queue (regular, priority, regular, priority, etc.).
+41. Add a backend rule so patients can only cancel an appointment until noon of the day before.
+42. Add logic to ensure appointments can only be scheduled during the health unit's operating hours, not just based on the doctor's availability.
+43. Add a backend rule preventing the same user from booking more than one appointment on the same day.
+44. Fix notifications being sent at the wrong time (e.g. booked an appointment for tomorrow, correctly got "your appointment is tomorrow" but also incorrectly got "your appointment is today").
+45. Only send queue-position notifications while the queue is open and the doctor is calling patients, i.e. drive it via WebSocket.
+46. If a queue gets closed due to the doctor cancelling, before the appointment day, let the patient rebook with another doctor on that same day.
+47. Let the patient join the queue even while it's already open, as long as there's still an available slot; stop auto-closing the queue when the last patient is served (now it only closes via the doctor's button), and auto-close it at 12pm and 10pm if the doctor hasn't closed it already.
+48. Block a patient from booking two exams less than 2h apart, warning them visually in the app when a new booking falls within that window.
+
+### 📱 Patient App
+
+49. Add a doctor/clinic rating system and show a little card with the star rating (1 to 5).
+50. Add a cancel button (red, at the bottom) to the queue-info screen that opens a confirmation modal, with a confirm button and an X to close the modal if the patient decides not to cancel.
+51. Make the exam's "finished" status disappear from the user's screen as soon as the exam is completed.
+52. Add a "see all" screen for the services offered.
+53. Add a screen for a booked exam that also shows the prep instructions for that exam, since it currently only shows basic info like price, date and location.
+54. Add a new "My appointments" card/button under quick services that opens a screen listing all of the user's booked appointments, and tapping one opens that appointment's queue screen.
+55. Add a "see all" view under the Quick Services title that opens a screen listing every quick service using the same card layout as the home screen (4 per row), each redirecting to its respective screen.
+56. Add pagination (default page size of 10) to every list that can have many cards: clinics, exams, appointment history, etc.
+57. Add specialist photos inside the circular avatar on the Explore screen's specialist cards.
+58. Allow the small card under the home search bar to wrap onto a new line when the message is too long, but only when the text actually overflows the card.
+59. Check whether the wait-time/people-in-queue info shown on clinic cards in Explore was mocked, and if so, always show the real, live count of people in the currently open queue (or hide it if there's no open queue).
+60. Add a tappable "your next appointment/exam" component on the home screen that navigates to that appointment or exam's info screen.
+61. Always show the next upcoming exam/appointment in the reminder card.
+62. Show the clinic's image on the queue-item card.
+63. Add a new component that conditionally shows (whenever the user has a booked appointment/exam) the list of the user's booked appointments and exams.
+64. Add a yellow card that appears 1 day before an appointment/exam saying "your appointment/exam is tomorrow" in the new upcoming appointments/exams section (by default no card shows until this rule is met).
+65. Make the card turn red with a countdown when there's 1h left before the appointment/exam, and have it disappear (along with its info) once the time passes, leaving only the card in the upcoming appointments/exams list.
+66. Fix the frontend (minha-vez-manager) logic so that when a doctor finishes seeing patients or closes the queue without seeing anyone, it automatically disappears from the user's home screen in both places it's shown.
+67. Show the patient a modal with the reason the doctor typed as soon as the queue is closed (or upon login/opening the app, if they weren't online at the time), with a button to dismiss it, and auto-remove the queue from the user's screen.
+68. Fix the home screen's "active queues" section, which was showing several queues — some duplicated, some already closed, some in the future — when it should only show currently happening or upcoming queues (disappearing once the user has been served); also fix the queue card always showing the info from a single queue (usually the first one booked) instead of each queue's own data.
+69. Add a home-screen reminder telling the user to fill in their health info (blood type, etc.) if they haven't yet, flagging it as important.
+70. In the booked appointments/exams section, show all of the user's bookings when there's more than one, since that's currently the job of the "your next appointment/exam" section — this section should show everything booked, not just the next one.
+71. Fix the not-found page redirect and add a proper error page.
+72. Add a "My Prescriptions" screen in the app (new card under Quick Services) listing the prescriptions doctors have issued, with a card showing the date, the doctor's name and the health unit's name, plus a detail screen with everything the doctor entered in the manager.
+73. Add a button on the prescription card that jumps straight into the exam-booking screen with the prescribed exam already pre-selected, so the patient just needs to pick a time.
+74. In "My Prescriptions", when booking an exam, list every clinic that offers it (not just the prescribing doctor's clinic) and let the patient choose, since sometimes that clinic doesn't offer exams — only appointments.
+75. After booking an exam or appointment, redirect straight to that booking's info screen, and make the back button on that screen return to the home screen.
+76. Limit the "next appointment/exam" list (and similar ones) on the home screen to 5 items, with a "see all" screen for the full list when there are more.
+
+### 🖥️ Manager — Doctor, Admin, Front Desk & Exams
+
+77. Whenever the doctor opens the dashboard, they see all of their queues, but all of them are closed by default; the doctor can only open **one queue at a time**, based on the queue's scheduled date.
+78. Change the room input to accept just a number (e.g. 10, 40), instead of free text, capped at 9999.
+79. Build a new manager panel for the EXAMPROFESSIONAL role, with a tab listing patients who have a booked exam; they mark the exam as started when the patient arrives and as completed once it's done, plus history and profile screens; this flow doesn't use a queue — each patient just shows up at their booked time.
+80. In the EXAMPROFESSIONAL manager panel, add a feature so that once a patient's exam result is ready, the professional opens a modal to attach the exam PDF and the patient's CPF; confirming it emails the admin(s), who then forward it to the doctor and the patient as is done today — a whole new screen for this.
+81. Let the admin mark a health unit as public or private at registration time, since the current flow doesn't distinguish them, which would otherwise complicate the future gamification rollout.
+82. Minha-vez-manager - add dark, light and browser-default theme support.
+83. Minha-vez-manager - add clearer, more visual error messages to help users understand what went wrong.
+84. Minha-vez-manager - add a modal that opens when clicking an exam on the Available Exams screen to view its details.
+85. Add a modal for the doctor to type a reason when closing a queue without seeing anyone, sending it in real time over WebSocket.
+86. Add WebSocket support in the manager so a queue appears automatically for the doctor as soon as a patient books an appointment, with no need to refresh (F5).
+87. Let the doctor schedule a patient's follow-up visit up to a maximum of 20 days after the appointment date.
+88. Change the order queues are shown in the manager panel — instead of showing the most recently booked one, sort by date (e.g. 27, 28, 29, 30), and by shift when two fall on the same day (29 morning, 29 afternoon, 30, 31, 32).
+89. Fix the manager's not-found page redirect so it always sends the logged-in user back to their home screen based on their role.
+90. Add a front-desk/reception role and panel for clinic or UBS staff to book appointments and exams for patients who didn't use the app, with screens to book an appointment, book an exam and view their profile, joining the same queue and order as app bookings.
+91. Add CPF-based patient lookup in the reception panel for booking, and — if the patient doesn't exist yet — a registration flow (email, password and the same data the app requires) so they can later log into the app with the credentials the front desk hands them.
+92. Add the doctor's prescription for the patient they're currently seeing, where they can add exams, etc.
+93. Require the doctor to register a prescription before an attendance can be marked as finished — i.e. an attendance can only be completed once a prescription has been recorded.
+94. Minha-vez-manager - let the doctor cancel a queue that's still pending, before it's opened.
+
+### 👤 Profile, Account & Priority
+
+95. Add logic to show the user's password as they type via an eye icon they can tap.
+96. Add backend and frontend logic to let the user upload a profile picture.
+97. Show the user's profile picture -> header.tsx and profile-content.tsx.
+98. Add a button to edit/upload the profile picture in the app - profile-content.tsx.
+99. Automatically mark a patient as priority at registration when their age is over 60 (previously every registration defaulted to regular).
+100. Add a new dropdown at registration, based on the backend enum, for the patient to select whether they have a condition that grants priority attendance.
+101. In the priority dropdown, when a chronic-condition-type option is selected, show a small yellow message below it recommending they bring proof on the day or attach it in their profile — worded in the most recommended style.
+102. Add a new profile screen for the patient to attach a PDF or image proving the condition that grants priority, including optional fields like blood type and other health info.
+103. Update the yellow message in the patient registration modal to also mention uploading proof in their profile.
+104. Let the patient edit their priority status from their profile, since they currently can't, and a health issue that grants priority could arise later in life.
+105. Add a new "more settings" screen consolidating all the profile settings, since profile currently has many navigation buttons; leave the profile screen with just the photo/name, personal info, health info (new card matching the Figma design), notifications, and log out.
+106. Shrink the font size of the "not informed" blood-type label.
+107. Show the current app version and a copyright message ("made by Gabriel Santana Santos") at the bottom of the profile screen, after the last component.
+108. Add logic so that when a user taps their profile picture in the header (including on the home screen), they're taken to their profile.
+109. Add logic so that tapping the profile picture on the profile screen zooms it, similar to WhatsApp, so the user can view it properly.
+
+### 🎨 UX, Theme & Errors
+
+110. Add a **Loading Skeleton** shown while `isLoading` is `true`, using `react-native-skeleton-placeholder` — **minha-vez-app**.
+111. Darken the input placeholder colors for better visibility.
+112. Add visual error messages for user input mistakes, e.g. invalid date, invalid CPF, etc.
+113. Translate every English error message and text to Portuguese.
+114. Implement dark theme based on the OS setting.
+115. Let the user override the OS theme — e.g. their OS is in light mode but they want the app in dark mode, so they tap a button in profile to switch it.
+116. Change the birth date display to DD/MM/YYYY, the Brazilian standard.
+117. `Add a vars.scss file at the root of the frontend project with all colors defined separately, following the pattern: $primary, etc.`
+118. Fix the keyboard covering the inputs.
+119. Improve the not-found page with the app logo and a friendly message, and create a matching error page with a non-alarming message so it doesn't upset the user.
+120. Add a "How to use the app" button in the app and "How to use the Manager" in the manager (content varies by role in the manager) linking straight to the tutorial/user guide.
+
+### ⚙️ Infrastructure, Tooling & Docs
+
+121. Define a utility to pick an icon based on the health unit's service type.
+122. Set up Papertrail.
+123. Implement an automatic versioning system (e.g. 1.1.1) that bumps a version on every build.
+124. Write a script to seed MongoDB with several health units and professionals linked to them, to test pagination.
+125. Set up Papertrail in the manager panel and route errors into the Papertrail logs.
+126. Create a nice README for each repo (app and manager), with images.
+127. Create a user guide for the app and manager, basically a tutorial.
+128. Set up CI/CD for the project.
+129. Add a Dockerfile.dev to the backend, app and manager to spin up the local dev environment via containers.
+130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
