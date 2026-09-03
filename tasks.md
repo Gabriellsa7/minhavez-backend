@@ -10,7 +10,6 @@
 - Refactor the APP, especially the React Query request handling — _in progress_.
 - Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
-- Check whether Papertrail is configured in the PROD environment.
 
 ---
 
@@ -371,4 +370,4 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 129. Add a Dockerfile.dev to the backend, app and manager to spin up the local dev environment via containers.
 130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
 131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
-132.
+132. Check whether Papertrail is configured in the PROD environment.
