@@ -7,7 +7,7 @@
 ## 📋 Backlog
 
 - Polish the manager UI (doctor and admin) and the app too.
-- Refactor the APP, especially the React Query request handling — *in progress*.
+- Refactor the APP, especially the React Query request handling — _in progress_.
 - Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
 - Check whether Papertrail is configured in the PROD environment.
@@ -16,17 +16,17 @@
 
 ## 🔢 Versioning (semver)
 
-| Type | Format | When to use | Command |
-| --- | --- | --- | --- |
-| **patch** | `1.0.x` | Bug fixes, small tweaks, no visible behavior change. This is what the builds do automatically. | — |
-| **minor** | `1.x.0` | New feature that doesn't break anything existing. | `node scripts/bump-version.js minor` |
-| **major** | `x.0.0` | Big/breaking change, redesign, or an important product milestone. | `node scripts/bump-version.js major` |
+| Type      | Format  | When to use                                                                                    | Command                              |
+| --------- | ------- | ---------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **patch** | `1.0.x` | Bug fixes, small tweaks, no visible behavior change. This is what the builds do automatically. | —                                    |
+| **minor** | `1.x.0` | New feature that doesn't break anything existing.                                              | `node scripts/bump-version.js minor` |
+| **major** | `x.0.0` | Big/breaking change, redesign, or an important product milestone.                              | `node scripts/bump-version.js major` |
 
 ---
 
 ## 🗺️ Roadmap — Call Panel and Queue Update System
 
-*Within the TCC scope.*
+_Within the TCC scope._
 
 ### Goal
 
@@ -209,7 +209,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ### 🏗️ Project Foundations & Initial Setup
 
-*Solo work from Feb–Aug 2026, before starting to pair on commits — never logged as tasks at the time, mapped retroactively from the commit history.*
+_Solo work from Feb–Aug 2026, before starting to pair on commits — never logged as tasks at the time, mapped retroactively from the commit history._
 
 #### Backend
 
@@ -333,16 +333,16 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 97. Show the user's profile picture -> header.tsx and profile-content.tsx.
 98. Add a button to edit/upload the profile picture in the app - profile-content.tsx.
 99. Automatically mark a patient as priority at registration when their age is over 60 (previously every registration defaulted to regular).
-100. Add a new dropdown at registration, based on the backend enum, for the patient to select whether they have a condition that grants priority attendance.
-101. In the priority dropdown, when a chronic-condition-type option is selected, show a small yellow message below it recommending they bring proof on the day or attach it in their profile — worded in the most recommended style.
-102. Add a new profile screen for the patient to attach a PDF or image proving the condition that grants priority, including optional fields like blood type and other health info.
-103. Update the yellow message in the patient registration modal to also mention uploading proof in their profile.
-104. Let the patient edit their priority status from their profile, since they currently can't, and a health issue that grants priority could arise later in life.
-105. Add a new "more settings" screen consolidating all the profile settings, since profile currently has many navigation buttons; leave the profile screen with just the photo/name, personal info, health info (new card matching the Figma design), notifications, and log out.
-106. Shrink the font size of the "not informed" blood-type label.
-107. Show the current app version and a copyright message ("made by Gabriel Santana Santos") at the bottom of the profile screen, after the last component.
-108. Add logic so that when a user taps their profile picture in the header (including on the home screen), they're taken to their profile.
-109. Add logic so that tapping the profile picture on the profile screen zooms it, similar to WhatsApp, so the user can view it properly.
+100.  Add a new dropdown at registration, based on the backend enum, for the patient to select whether they have a condition that grants priority attendance.
+101.  In the priority dropdown, when a chronic-condition-type option is selected, show a small yellow message below it recommending they bring proof on the day or attach it in their profile — worded in the most recommended style.
+102.  Add a new profile screen for the patient to attach a PDF or image proving the condition that grants priority, including optional fields like blood type and other health info.
+103.  Update the yellow message in the patient registration modal to also mention uploading proof in their profile.
+104.  Let the patient edit their priority status from their profile, since they currently can't, and a health issue that grants priority could arise later in life.
+105.  Add a new "more settings" screen consolidating all the profile settings, since profile currently has many navigation buttons; leave the profile screen with just the photo/name, personal info, health info (new card matching the Figma design), notifications, and log out.
+106.  Shrink the font size of the "not informed" blood-type label.
+107.  Show the current app version and a copyright message ("made by Gabriel Santana Santos") at the bottom of the profile screen, after the last component.
+108.  Add logic so that when a user taps their profile picture in the header (including on the home screen), they're taken to their profile.
+109.  Add logic so that tapping the profile picture on the profile screen zooms it, similar to WhatsApp, so the user can view it properly.
 
 ### 🎨 UX, Theme & Errors
 
@@ -371,3 +371,4 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 129. Add a Dockerfile.dev to the backend, app and manager to spin up the local dev environment via containers.
 130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
 131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
+132.
