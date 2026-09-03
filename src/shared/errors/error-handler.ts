@@ -18,9 +18,9 @@ export function errorHandler(
     });
 
     if (error.status >= 500) {
-      Logger.error(logPayload);
+      Logger.error(logPayload, { statusCode: error.status });
     } else {
-      Logger.warn(logPayload);
+      Logger.warn(logPayload, { statusCode: error.status });
     }
 
     return res.status(error.status).json({
@@ -33,7 +33,7 @@ export function errorHandler(
 
   if (error instanceof HttpError) {
     if (error.status === 500) {
-      Logger.error(JSON.stringify(error));
+      Logger.error(JSON.stringify(error), { statusCode: error.status });
     }
 
     return res.status(error.status).json({
@@ -50,6 +50,7 @@ export function errorHandler(
       message: error.message,
       stack: error.stack,
     }),
+    { statusCode: 500 },
   );
 
   return res.status(500).json({
