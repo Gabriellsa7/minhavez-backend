@@ -12,7 +12,6 @@
 - Set up Papertrail error alerts to be emailed to me.
 - desenvolver o módulo de agendamento de consultas, com entrada do paciente na fila mediante confirmação de presença (check-in) na unidade, respeitando uma tolerância de atraso definida pela unidade, e com controle de ausência e de retorno de consulta;
 - considerar, na interface do aplicativo, critérios de acessibilidade das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2 aplicáveis a aplicativos móveis nativos — como tamanho mínimo de alvos de toque, suporte a múltiplas orientações de tela, alternativas a gestos multitoque e redução de entrada redundante de dados —, de modo a atender usuários idosos e com baixa familiaridade digital, mantendo a recepção presencial como canal alternativo para pacientes sem acesso ao aplicativo;
-- Impelmentar um aviso na parte da fila para casos de alterações por prioridade, encaixe ou ausência, com aviso explícito na interface sobre essa possibilidade de alteração;
 
 ---
 
@@ -374,3 +373,4 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
 131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
 132. Check whether Papertrail is configured in the PROD environment.
+133. Impelmentar um aviso na parte da fila para casos de alterações por prioridade, encaixe ou ausência, com aviso explícito na interface sobre essa possibilidade de alteração;
