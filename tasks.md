@@ -12,10 +12,6 @@
 - Set up Papertrail error alerts to be emailed to me.
 - considerar, na interface do aplicativo, critérios de acessibilidade das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2 aplicáveis a aplicativos móveis nativos — como tamanho mínimo de alvos de toque, suporte a múltiplas orientações de tela, alternativas a gestos multitoque e redução de entrada redundante de dados —, de modo a atender usuários idosos e com baixa familiaridade digital, mantendo a recepção presencial como canal alternativo para pacientes sem acesso ao aplicativo;
 - Ajustar posição da fila pois se um user marcar as 11 e um as 10 o primeiro é o que marcou primeiro ou seja o das 11 então vamos mudar a logica de fila, a posição do user so será mostrada quando estiver no dia da consulta quando tiver faltando 2h pra consulta pois a fila precisa ser reorganizada caso ele marca 11 o outro 9 a ai o oute 10 ia acaba ficando toda errada as posições. Ja que atualmente são duas filas no dia uma a tarde outra manha ou seja o cara pode marcar em qualquer horario disponivel pela manha ou pela tarde, as pessoas que forem cadastradas na fila de forma presencial elas entram conforme os horarios de cada user na fila exemplo uma pessoa é 10 outra 10:15 e outra 11:30 o tempo de atendimento é quinze então se a pessoa cehgar la vai ter os horarios que as recepcionista vão dizer que esta disponivel e ela pode escolher 10:30 ou 11h então será antes do de 11:30 então a posição na fila será atualizado, assim como se for AP ai temos a regra de um normal e um AP então se tiver 2 AN seguidos e surgiu um app que marcou presencial ai autera a posição novamente pra fica AN, AP, AN por isso adicionamos os avisos para o user.
--
--
--
-- Caso o user não faça o check-in nos 5 minutos de limite a partir do horario da consulta, sua consulta será cancelada ele será removido da fia e recebera uma notificação avisando que foi cancelado pq ele não fez o check-in, alem disso implementar tbm um aviso pra ele fazer o check-in e uma notificação sobre isso tbm, esse aviso de fazer o check-in aparecera no car de consultas que aparece quando marca uma ocnsulta ele aparece na home, aparecera nas infos da fila tbm e em formato de notificação.
 
 ---
 
@@ -210,7 +206,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (131)
+## ✅ Completed (153)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -377,9 +373,24 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 130. Redesign the docs site using Tailwind, applying the app's visual identity (logo, favicon and color palette), and set up CI/CD for the docs repo.
 131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
 132. Check whether Papertrail is configured in the PROD environment.
-133. Impelmentar um aviso na parte da fila para casos de alterações por prioridade, encaixe ou ausência, com aviso explícito na interface sobre essa possibilidade de alteração;
-134. desenvolver o módulo de agendamento de consultas, com entrada do paciente na fila mediante confirmação de presença (check-in) na unidade, respeitando uma tolerância de atraso definida pela unidade, e com controle de ausência e de retorno de consulta;
-135. Adicionar regra pra cancelar a fila e a consulta automaticamente se passar do tempo e o medico não abrir ela limite de 20 minutos de atraso, pois o medico pode esquecer de cancelar a fila.
-136. Ajustar mensagem de erro quando um user tenta marcar a consulta no mesmo dia que ja tem uma marcada, ja que não tem como ler aparece bem embaixo e o x pra fechar ta muito colado no canto sem padding.
-137. Resolver o problema de qualquer erro que acontece aparece um toaster de erro em branco que so fecha se marcar no x na parte de baixo do app.
-138. Ajustar o espera estimada pra colocar o minimo que a clinica ou medico selecionou tipo 15 mintos e etc.
+133. Add an explicit warning on the app's queue tracking screen that a patient's position isn't fixed, since priority patients, walk-ins, or no-shows can reorder the queue at any time.
+134. Add patient check-in on the backend: `PATCH /queue-items/:id/check-in` confirms presence at the unit ahead of being called (`QueueItem.checkInTime`, mirrored to `Appointment.checkInAt`), open to admins, exam professionals and receptionists, and broadcasts a WebSocket event so the app and the professional's live queue panel refresh automatically.
+135. Add a reception check-in screen in the manager (look up the patient by CPF and confirm their check-in for today's queue item) and a "Check-in feito / Sem check-in" presence badge on the professional's live waiting-queue card.
+136. Show check-in status on the app's queue tracking screen, so it's clear the front desk still needs to confirm presence before the professional can call the patient.
+137. Keep the app's home-screen "active queues" widget visible once an appointment's scheduled time arrives, instead of hiding it the moment the time passes while the patient is still waiting or being attended.
+138. Add a scheduled job (BullMQ, runs every minute) that sweeps today's scheduled appointments and marks a queue item ABSENT once the unit's 5-minute check-in tolerance passes without a check-in, and fix it to only run while the queue is actually open — a queue never opened (or already closed) no longer wrongly marks the patient absent.
+139. Add a scheduled job (BullMQ, runs every 2 minutes) that auto-cancels a queue — and cascades to cancel every appointment booked on it — once 10 minutes pass the first overdue appointment's scheduled time without the professional opening the queue, so patients aren't left waiting indefinitely if the doctor forgets.
+140. Show a clear, specific error message when a patient tries to book a second appointment on the same day (backend now rejects it explicitly), instead of a generic save-failure toast.
+141. Redesign the app's error toast with full, non-truncated text, a padded close button, and a safe-area-aware top offset, and make it render above the confirm modal instead of hidden behind it, since native `<Modal>` overlays sat above the root-level toast.
+142. Stop the app's axios interceptor from double-toasting on mutation errors — a generic, blank-looking toast was stacking on top of the mutation's own `onError` toast; the interceptor now only auto-toasts failed GET requests, and the two mutations missing their own error handling (rating submission, clear history) got it added.
+143. Stop error toasts from getting stuck behind still-open modals in the app: the interceptor's fallback toast for a 200 response carrying a business `errors[]` array now skips POST/PUT/PATCH/DELETE requests (which already show their own toast), and the cancel-appointment and rating modals now close before showing their own error toast.
+144. Show a real estimated wait time on the app's health unit info screen instead of a hardcoded "15 min" placeholder, wired to the live queue summary.
+145. Floor the estimated wait time — per patient and in the health unit's queue summary, backend and app — at the professional's configured appointment duration, since excluding the in-service patient from the math could show "0min" to the next person in line even though someone was still being attended.
+146. Clarify the reception check-in confirmation message in the app to state the check-in window: from 20 minutes before the appointment time, with a 5-minute late tolerance.
+147. Extend the missed-check-in sweep to fully cancel the appointment (not just mark the queue item ABSENT) once the 5-minute tolerance passes, reusing the existing "Cancelada" status and the ABSENT queue item's existing exclusion from active-queue position/wait-time math instead of adding new statuses.
+148. Add a one-time "please check in" reminder notification sent the moment the appointment's scheduled time arrives if the patient hasn't checked in yet, deduped via a new `checkInReminderSentAt` field so it fires once per appointment instead of on every sweep tick.
+149. Show the check-in reminder and countdown across the app — a red banner on the home screen's appointment card and on the "Minhas Consultas" card, plus a dynamic block that escalates to a live countdown on the queue tracking screen — and keep the appointment visible through the 5-minute grace window instead of disappearing the moment the scheduled time passes.
+150. Show a modal and notification explaining the cancellation when an appointment gets auto-cancelled for a missed check-in, and auto-redirect the patient home if they're actively on the queue tracking screen when it happens.
+151. Harden the home screen's "active queues" widget and "Minhas Consultas" with a 5-second poll as a fallback to the existing WebSocket-driven cache invalidation, and keep a recently-cancelled appointment visible there with a "Cancelada" badge and an explanatory toast instead of silently vanishing.
+152. Fix the check-in reminder notification resending on every sweep tick instead of once — the appointment repository wasn't mapping the new dedupe field back from MongoDB — and add the two new notification types to the OpenAPI contract, which had been rejecting them with a 500 validation error.
+153. Fix the Explore screen's specialty filter throwing "Parameter specialty must be url encoded" whenever a specialty name contained a reserved character (e.g. a "/" combining two specialties) — the OpenAPI contract was missing `allowReserved: true` on every free-text query parameter (specialty and search on health professionals, search on health units, name on exam-offering search).
