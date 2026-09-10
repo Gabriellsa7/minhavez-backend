@@ -22,12 +22,12 @@ import { QueueNotificationService } from '../../domain/notification/service/queu
 import { IPatientRepository } from '../../domain/patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../domain/patient/interfaces/patient.interface';
 import { IHealthUnitRepository } from '../../domain/health-unit/repository/health-unit.repository.interface';
-import { IHealthUnit, WeekDay } from '../../domain/health-unit/interfaces/health-unit.interface';
+import {
+  IHealthUnit,
+  WeekDay,
+} from '../../domain/health-unit/interfaces/health-unit.interface';
 import { INotificationSocketGateway } from '../../domain/notification/interfaces/notification-socket.interface';
 
-/** Open every day, all day, so existing tests (which don't exercise
- * operating-hours validation) keep passing regardless of the appointment
- * dateTime they use. */
 function buildOpenAllDayHealthUnitRepository(): IHealthUnitRepository {
   const healthUnit: Partial<IHealthUnit> = {
     _id: 'unit-1',
@@ -275,7 +275,10 @@ describe('AppointmentService', () => {
     const patientRepository = {
       getPatientById: jest
         .fn()
-        .mockResolvedValue({ _id: 'patient-3', priority: EPatientPriority.ELDERLY }),
+        .mockResolvedValue({
+          _id: 'patient-3',
+          priority: EPatientPriority.ELDERLY,
+        }),
     } as unknown as IPatientRepository;
 
     const service = new AppointmentService({
@@ -345,7 +348,10 @@ describe('AppointmentService', () => {
     const patientRepository = {
       getPatientById: jest
         .fn()
-        .mockResolvedValue({ _id: 'patient-4', priority: EPatientPriority.NORMAL }),
+        .mockResolvedValue({
+          _id: 'patient-4',
+          priority: EPatientPriority.NORMAL,
+        }),
     } as unknown as IPatientRepository;
 
     const service = new AppointmentService({
@@ -401,7 +407,6 @@ describe('AppointmentService', () => {
     };
 
     const queueItemRepository = {
-      // 9 patients already waiting, so the new one lands exactly on position 10
       listQueueItems: jest.fn().mockResolvedValue(new Array(9).fill({})),
       createQueueItem: jest.fn().mockResolvedValue(newQueueItem),
     } as unknown as IQueueItemRepository;
@@ -633,8 +638,6 @@ describe('AppointmentService', () => {
       healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
     });
 
-    // 21 days after the origin consultation's Brazil calendar day (00:00 BRT
-    // on the day after the 20-day window closes) — just past the cutoff.
     await expect(
       service.createAppointment({
         patientId: 'patient-1',
@@ -644,7 +647,9 @@ describe('AppointmentService', () => {
         isReturn: true,
         originQueueItemId: 'origin-queue-item-id',
       }),
-    ).rejects.toThrow('O retorno deve ser marcado em até 20 dias após a consulta.');
+    ).rejects.toThrow(
+      'O retorno deve ser marcado em até 20 dias após a consulta.',
+    );
 
     expect(repository.createAppointment).not.toHaveBeenCalled();
   });
@@ -722,8 +727,6 @@ describe('AppointmentService', () => {
       healthUnitRepository: buildOpenAllDayHealthUnitRepository(),
     });
 
-    // 17:00 BRT on the 20th day after the origin consultation — still within
-    // the window.
     await expect(
       service.createAppointment({
         patientId: 'patient-1',
@@ -738,13 +741,13 @@ describe('AppointmentService', () => {
 
   it('does not fail the return creation when marking the origin appointment fails', async () => {
     const repository = {
-      // The professionalId lookup (booking-conflict check) must keep working;
-      // only the queueItemId lookup used to find the origin appointment fails.
-      listAppointments: jest.fn().mockImplementation((filter) =>
-        filter.queueItemId
-          ? Promise.reject(new Error('db down'))
-          : Promise.resolve([]),
-      ),
+      listAppointments: jest
+        .fn()
+        .mockImplementation((filter) =>
+          filter.queueItemId
+            ? Promise.reject(new Error('db down'))
+            : Promise.resolve([]),
+        ),
       createAppointment: jest.fn().mockResolvedValue({
         _id: 'new-return-id',
         patientId: 'patient-1',
@@ -863,7 +866,6 @@ describe('AppointmentService', () => {
       });
     };
 
-    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
     const params: IParamsCreateAppointment = {
       patientId: 'patient-1',
       professionalId: 'professional-1',
@@ -993,7 +995,6 @@ describe('AppointmentService', () => {
       });
     };
 
-    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
     const params: IParamsCreateAppointment = {
       patientId: 'patient-1',
       professionalId: 'professional-1',
@@ -1024,8 +1025,6 @@ describe('AppointmentService', () => {
     });
 
     it('rejects a same-day booking even close to the Brazil day boundary', async () => {
-      // 2026-07-07T02:30:00Z is 2026-07-06T23:30 in Brazil (UTC-3) — same
-      // Brazil day as params.dateTime, despite falling on a different UTC day.
       const service = buildDeps([
         {
           _id: 'existing-id',
@@ -1118,7 +1117,6 @@ describe('AppointmentService', () => {
   });
 
   describe('createAppointment - rebooking after the professional canceled that day', () => {
-    // 2026-07-06 is a Monday; 13:00Z is 10:00 in Brazil (UTC-3).
     const params: IParamsCreateAppointment = {
       patientId: 'patient-1',
       professionalId: 'professional-1',
@@ -1127,10 +1125,6 @@ describe('AppointmentService', () => {
     };
 
     it('creates a fresh queue and queue item instead of reusing the canceled ones for that day/shift', async () => {
-      // The professional already canceled their queue for this day (closedAt
-      // set), leaving behind a stale QUEUE_CLOSED item for this patient. A
-      // rebooking with the same professional on the same day must not be
-      // silently attached to that dead queue/item.
       const appointmentRepository = {
         listAppointments: jest.fn().mockResolvedValue([]),
         createAppointment: jest.fn().mockResolvedValue({
@@ -1205,7 +1199,10 @@ describe('AppointmentService', () => {
 
       expect(createQueue).toHaveBeenCalled();
       expect(createQueueItem).toHaveBeenCalledWith(
-        expect.objectContaining({ queueId: 'queue-new', status: EQueueItemStatus.WAITING }),
+        expect.objectContaining({
+          queueId: 'queue-new',
+          status: EQueueItemStatus.WAITING,
+        }),
       );
       expect(appointmentRepository.createAppointment).toHaveBeenCalledWith(
         expect.objectContaining({ queueItemId: 'queue-item-new' }),
@@ -1391,8 +1388,18 @@ describe('AppointmentService', () => {
     it('keeps the queue and reindexes the remaining waiting items when others remain', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-07-09T11:00:00.000Z'));
       const remainingItems = [
-        { _id: 'queue-item-2', queueId: 'queue-1', status: EQueueItemStatus.WAITING, position: 2 },
-        { _id: 'queue-item-3', queueId: 'queue-1', status: EQueueItemStatus.WAITING, position: 3 },
+        {
+          _id: 'queue-item-2',
+          queueId: 'queue-1',
+          status: EQueueItemStatus.WAITING,
+          position: 2,
+        },
+        {
+          _id: 'queue-item-3',
+          queueId: 'queue-1',
+          status: EQueueItemStatus.WAITING,
+          position: 3,
+        },
       ];
 
       const { service, queueItemRepository, queueRepository } = buildService(

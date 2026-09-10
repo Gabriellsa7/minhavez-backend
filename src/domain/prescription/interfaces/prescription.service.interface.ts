@@ -4,7 +4,10 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { IUserRepository } from '../../user/repository/user.repository.interface';
 import { IPrescriptionRepository } from '../repository/prescription.repository.interface';
-import { IPrescription, IPrescriptionWithContext } from './prescription.interface';
+import {
+  IPrescription,
+  IPrescriptionWithContext,
+} from './prescription.interface';
 
 export interface IParamsPrescriptionService {
   prescriptionRepository: IPrescriptionRepository;
@@ -32,9 +35,9 @@ export interface IParamsCreatePrescription {
   medications?: string;
   observations?: string;
   exams: IParamsCreatePrescriptionExam[];
-  /** Only honored when the requester is an admin acting on behalf of a professional. */
+
   professionalId?: string;
-  /** Only honored when the requester is an admin acting on behalf of a professional. */
+
   healthUnitId?: string;
 }
 

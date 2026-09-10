@@ -42,10 +42,6 @@ const AFTERNOON_SHIFT_START_HOUR = 12;
 const AFTERNOON_SHIFT_START_MINUTE = 30;
 const AFTERNOON_SHIFT_START_LABEL = '12:30';
 
-// How late a professional can be to open the queue before it — and every
-// appointment booked on it — gets auto-canceled. Covers the professional
-// simply forgetting to open (or cancel) the queue, which otherwise leaves
-// patients stuck waiting on a queue that will never move.
 const UNOPENED_QUEUE_CANCEL_TOLERANCE_MINUTES = 10;
 
 export class QueueService implements IQueueService {
@@ -98,12 +94,6 @@ export class QueueService implements IQueueService {
 
     if (!appointmentDuration) return null;
 
-    // `position` only counts patients still WAITING — the one currently
-    // IN_SERVICE is excluded from it entirely, yet still has to finish
-    // before anyone waiting is seen. So the next patient in line (position
-    // 1) still faces a full appointmentDuration of wait, not zero: the
-    // clinic/professional's configured slot length is the floor for anyone
-    // actually waiting, not just a per-person increment.
     return patientItem.position * appointmentDuration;
   }
 
@@ -373,11 +363,6 @@ export class QueueService implements IQueueService {
         throw new Error('Queue not found');
       }
 
-      // A queue that already went through a full open→close cycle is done —
-      // closing it again is a no-op. But a queue that was never opened (e.g.
-      // one created ahead of time for a future appointment, born CLOSED) must
-      // still be cancelable, otherwise there's no way to cancel a future day
-      // in advance and cascade that to the patients booked on it.
       const alreadyClosedAfterOpening =
         queue.status === EQueueStatus.CLOSED && Boolean(queue.openedAt);
 
@@ -415,12 +400,6 @@ export class QueueService implements IQueueService {
     }
   }
 
-  /** Patients still WAITING or IN_SERVICE when the professional force-closes
-   * the queue were never attended today. Their queue item and appointment
-   * must reflect that the queue is done with them, otherwise they'd keep
-   * showing up as active on the patient's home screen forever. Each of them
-   * also gets a persisted notification with the professional's reason, so
-   * they see it in real time (socket) or the next time they log in. */
   private async closeUnattendedQueueItems(
     queueId: string,
     healthUnitId: string,
@@ -470,12 +449,6 @@ export class QueueService implements IQueueService {
     return pendingItems.map((item) => item._id);
   }
 
-  /** Force-closes every still-OPEN queue of a shift that the professional
-   * never closed manually — used by the scheduled 12:00/22:00 auto-close
-   * job. Reuses closeQueue so pending patients get the same cascade
-   * (QUEUE_CLOSED status, notification, queue.closed broadcast) as a manual
-   * force-close. Queues never opened today are born CLOSED, so filtering by
-   * OPEN alone is enough to scope this to queues actually in progress. */
   async autoCloseQueuesForShift(shift: EQueueShift): Promise<void> {
     const openQueues = await this.queueRepository.listQueues({
       shift,
@@ -490,15 +463,11 @@ export class QueueService implements IQueueService {
     }
   }
 
-  /** Sweeps today's scheduled appointments and auto-cancels any queue (and
-   * cascades to cancel every appointment on it, via closeQueue) that the
-   * professional still hasn't opened N minutes after the first overdue
-   * appointment's scheduled time. Run periodically by a scheduled worker —
-   * see QueueAutoCancelUnopenedWorker. */
   async autoCancelUnopenedQueues(now: Date = new Date()): Promise<void> {
-    const scheduledAppointments = await this.appointmentRepository.listAppointments({
-      status: EAppointmentStatus.SCHEDULED,
-    });
+    const scheduledAppointments =
+      await this.appointmentRepository.listAppointments({
+        status: EAppointmentStatus.SCHEDULED,
+      });
 
     const overdueQueueIds = new Set<string>();
 
@@ -522,9 +491,6 @@ export class QueueService implements IQueueService {
     for (const queueId of overdueQueueIds) {
       const queue = await this.queueRepository.getQueueById(queueId);
 
-      // Only queues born CLOSED that were never opened and never manually
-      // canceled qualify — an OPEN/IN_PROGRESS queue means the professional
-      // did show up, and one already closedAt is done, either way.
       const neverOpened =
         queue?.status === EQueueStatus.CLOSED &&
         !queue.openedAt &&
@@ -576,9 +542,7 @@ export class QueueService implements IQueueService {
     healthUnitId: string,
   ): Promise<IHealthUnitQueueSummary> {
     try {
-      return await this.queueRepository.getHealthUnitQueueSummary(
-        healthUnitId,
-      );
+      return await this.queueRepository.getHealthUnitQueueSummary(healthUnitId);
     } catch (error) {
       throw new Error(
         `Error retrieving health unit queue summary: ${(error as Error).message}`,

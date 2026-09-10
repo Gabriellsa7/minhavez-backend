@@ -210,7 +210,6 @@ export class HealthProfessionalRepository
     pagination?: IPaginationParams | null,
   ): Promise<{ items: IHealthProfessional[]; totalItems: number }> {
     try {
-      // Convert string IDs from filter to ObjectIds for Mongoose queries
       const mongoFilter: FilterQuery<IHealthProfessionalSchema> = {};
 
       if (filter._id) {
@@ -229,9 +228,6 @@ export class HealthProfessionalRepository
       if (filter.type) {
         mongoFilter.type = filter.type;
       } else {
-        // Exam professionals don't take regular consultations — this listing
-        // backs the patient-facing "pick a professional to book" screens, so
-        // they must be excluded unless a caller explicitly asks for a type.
         mongoFilter.type = { $ne: EHealthProfessionalType.EXAM_PROFESSIONAL };
       }
 

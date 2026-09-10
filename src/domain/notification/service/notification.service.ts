@@ -104,9 +104,6 @@ export class NotificationService implements INotificationService {
       notification.status === ENotificationStatus.SENT ||
       notification.status === ENotificationStatus.DELIVERED
     ) {
-      // A stalled/retried BullMQ job (e.g. the worker restarted right after
-      // Expo accepted the push, before the job could be marked completed)
-      // must not resend an already-delivered push to the patient's phone.
       Logger.warn('Notification already sent, skipping duplicate send', {
         notificationId: id,
         status: notification.status,
@@ -122,20 +119,30 @@ export class NotificationService implements INotificationService {
     });
 
     try {
-      if (!this.notificationProvider || !this.patientRepository || !this.userRepository) {
-        throw new Error('Notification delivery dependencies are not configured');
+      if (
+        !this.notificationProvider ||
+        !this.patientRepository ||
+        !this.userRepository
+      ) {
+        throw new Error(
+          'Notification delivery dependencies are not configured',
+        );
       }
 
       const patient = await this.patientRepository.getPatientById(
         notification.patientId,
       );
-      if (!patient) throw new Error(`Patient ${notification.patientId} not found`);
+      if (!patient)
+        throw new Error(`Patient ${notification.patientId} not found`);
       const user = await this.userRepository.findById(patient.userId);
-      const tokens = user?.devices
-        ?.filter((device) => device.enabled !== false)
-        .map((device) => device.token) ?? [];
+      const tokens =
+        user?.devices
+          ?.filter((device) => device.enabled !== false)
+          .map((device) => device.token) ?? [];
       if (tokens.length === 0) {
-        throw new Error(`No enabled Expo push token registered for patient ${notification.patientId}`);
+        throw new Error(
+          `No enabled Expo push token registered for patient ${notification.patientId}`,
+        );
       }
 
       const payloads = tokens.map((token) => ({
@@ -152,7 +159,9 @@ export class NotificationService implements INotificationService {
       }));
       const tickets = await this.notificationProvider.sendMany(payloads);
       const okTickets = tickets.filter((ticket) => ticket.status === 'ok');
-      const rejectedTickets = tickets.filter((ticket) => ticket.status !== 'ok');
+      const rejectedTickets = tickets.filter(
+        (ticket) => ticket.status !== 'ok',
+      );
 
       if (user) {
         await Promise.all(
@@ -178,26 +187,22 @@ export class NotificationService implements INotificationService {
         tickets,
       });
 
-      // The push has already left our system successfully at this point.
-      // Bookkeeping failures below (DB write, receipt scheduling, socket
-      // broadcast) must never bubble up into the outer catch: that would
-      // make BullMQ retry the whole job and send a brand-new push for a
-      // notification that was already delivered to the device.
       try {
         const ticketIds = okTickets.map((ticket) => ticket.id).filter(Boolean);
-        const updated = await this.notificationRepository.updateNotificationById(
-          id,
-          {
+        const updated =
+          await this.notificationRepository.updateNotificationById(id, {
             notificationData: {
               status: ENotificationStatus.SENT,
               sentAt: new Date(),
               provider: 'expo',
               deviceToken: okTickets[0].token,
               providerResponse: { tickets, ticketIds },
-              lastError: rejectedTickets.length > 0 ? JSON.stringify(rejectedTickets) : null,
+              lastError:
+                rejectedTickets.length > 0
+                  ? JSON.stringify(rejectedTickets)
+                  : null,
             },
-          },
-        );
+          });
         await this.notificationJobScheduler?.enqueueReceipt(id);
         this.notificationSocketGateway?.broadcastNotification({
           type: 'notification.delivered',
@@ -234,7 +239,8 @@ export class NotificationService implements INotificationService {
   }
 
   async processReceipt(id: string): Promise<INotification | null> {
-    const notification = await this.notificationRepository.getNotificationById(id);
+    const notification =
+      await this.notificationRepository.getNotificationById(id);
     if (!notification || !this.notificationProvider) return notification;
     const ticketIds = Array.isArray(notification.providerResponse?.ticketIds)
       ? notification.providerResponse.ticketIds.filter(
@@ -249,13 +255,16 @@ export class NotificationService implements INotificationService {
     if (errors.length > 0) {
       throw new Error(`Expo receipt error: ${JSON.stringify(errors)}`);
     }
-    const updated = await this.notificationRepository.updateNotificationById(id, {
-      notificationData: {
-        status: ENotificationStatus.DELIVERED,
-        deliveredAt: new Date(),
-        providerResponse: { ...notification.providerResponse, receipts },
+    const updated = await this.notificationRepository.updateNotificationById(
+      id,
+      {
+        notificationData: {
+          status: ENotificationStatus.DELIVERED,
+          deliveredAt: new Date(),
+          providerResponse: { ...notification.providerResponse, receipts },
+        },
       },
-    });
+    );
     Logger.info('Expo delivery confirmed by receipt', {
       notificationId: id,
       ticketIds,

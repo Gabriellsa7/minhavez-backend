@@ -21,7 +21,6 @@ export class UserService implements IUserService {
 
   async createUser(params: IParamsCreateUser): Promise<IUser> {
     try {
-      // Business logic (e.g., validation, ID/email uniqueness checks)
       const existingUser = await this.userRepository.findUserByEmail(
         params.email,
       );
@@ -105,7 +104,9 @@ export class UserService implements IUserService {
         avatar: uploadedImage.secureUrl,
       });
     } catch (error) {
-      throw new Error(`Error uploading user image: ${(error as Error).message}`);
+      throw new Error(
+        `Error uploading user image: ${(error as Error).message}`,
+      );
     }
   }
 

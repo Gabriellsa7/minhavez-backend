@@ -7,10 +7,6 @@ describe('ExamBookingRepository slot reservation concurrency', () => {
   const healthUnitId = '507f1f77bcf86cd799439011';
 
   beforeAll(async () => {
-    // Mongoose builds indexes in the background after `mongoose.model(...)`
-    // is called; without waiting for it here, the concurrent `create()`
-    // calls below can race the unique-index build and all succeed, making
-    // this very test flaky. `Model.init()` resolves once indexes exist.
     await MExamSlotCounter.init();
   });
 
@@ -79,7 +75,12 @@ describe('ExamBookingRepository slot reservation concurrency', () => {
 
   it('rejects a manual duplicate counter document at the database level', async () => {
     const slotKey = `${healthUnitId}_2030-01-01T12:00:00.000Z`;
-    await MExamSlotCounter.create({ healthUnitId, slotKey, capacity: 1, bookedCount: 0 });
+    await MExamSlotCounter.create({
+      healthUnitId,
+      slotKey,
+      capacity: 1,
+      bookedCount: 0,
+    });
 
     await expect(
       MExamSlotCounter.create({

@@ -6,7 +6,6 @@ interface PapertrailHttpsTransportOptions extends TransportStreamOptions {
   token: string;
 }
 
-// RFC 5424 syslog severities, mapped from winston's npm log levels.
 const SYSLOG_SEVERITY_BY_LEVEL: Record<string, number> = {
   error: 3,
   warn: 4,
@@ -21,15 +20,6 @@ const SYSLOG_FACILITY_LOCAL0 = 16;
 const HOSTNAME = os.hostname();
 const APP_NAME = process.env.SERVICE_NAME || 'minhavez-backend';
 
-/**
- * Ships logs to Papertrail (SolarWinds Observability) using its HTTPS
- * "single log" ingestion endpoint. Requests are fire-and-forget so a slow
- * or unreachable Papertrail never blocks application logging.
- *
- * Lines are wrapped as RFC 5424 syslog so Papertrail parses the severity
- * (and colors error/warn accordingly) instead of treating the payload as an
- * unclassified raw string.
- */
 export class PapertrailHttpsTransport extends Transport {
   private readonly endpoint: string;
 

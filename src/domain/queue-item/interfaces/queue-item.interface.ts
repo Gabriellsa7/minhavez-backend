@@ -12,7 +12,7 @@ export interface IQueueItem {
   finishedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
-  /** Only populated by queries that join the professional's schedule (e.g. queue management). */
+
   estimatedWaitMinutes?: number | null;
 }
 
@@ -27,6 +27,6 @@ export enum EQueueItemStatus {
   IN_SERVICE = 'IN_SERVICE',
   FINISHED = 'FINISHED',
   ABSENT = 'ABSENT',
-  /** Queue was closed by the professional before this item was ever called. */
+
   QUEUE_CLOSED = 'QUEUE_CLOSED',
 }

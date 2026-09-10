@@ -32,11 +32,6 @@ export interface IListExamBookingsByHealthUnitFilter {
 }
 
 export interface IExamBookingRepository {
-  /**
-   * Atomically reserves one seat in the (healthUnitId, slotKey) bucket, creating the
-   * counter document on first use. Returns false when the slot is already at capacity —
-   * callers must treat that as "slot full", not retry indefinitely.
-   */
   reserveSlot(
     healthUnitId: string,
     slotKey: string,

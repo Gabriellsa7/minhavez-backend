@@ -137,18 +137,12 @@ export class ExamBookingService implements IExamBookingService {
     return rule;
   }
 
-  /** The patient can book more than one exam for the same day, but each
-   * booking's selected clock time must be at least 2h apart from any other
-   * still-active booking of theirs — regardless of clinic/professional, and
-   * regardless of the order the bookings were created in. */
   private async assertMinimumGapFromOtherBookings(
     patientId: string,
     scheduledAt: Date,
   ): Promise<void> {
     const existingBookings =
-      await this.examBookingRepository.listExamBookingsByPatientId(
-        patientId,
-      );
+      await this.examBookingRepository.listExamBookingsByPatientId(patientId);
 
     const hasConflict = existingBookings.some((booking) => {
       const isActive =
@@ -175,9 +169,7 @@ export class ExamBookingService implements IExamBookingService {
     booking: IExamBooking,
   ): Promise<IExamBookingWithContext> {
     const [offering, healthUnit, patient] = await Promise.all([
-      this.examOfferingRepository.getExamOfferingById(
-        booking.examOfferingId,
-      ),
+      this.examOfferingRepository.getExamOfferingById(booking.examOfferingId),
       this.healthUnitRepository.getHealthUnitById(booking.healthUnitId),
       this.patientRepository.getPatientById(booking.patientId),
     ]);
@@ -247,9 +239,7 @@ export class ExamBookingService implements IExamBookingService {
         throw new AppError(404, 'Patient not found');
       }
     } else {
-      patient = await this.patientRepository.getPatientByUserId(
-        requester.sub,
-      );
+      patient = await this.patientRepository.getPatientByUserId(requester.sub);
 
       if (!patient) {
         throw new AppError(400, 'Patient profile is required to book an exam');
@@ -333,17 +323,14 @@ export class ExamBookingService implements IExamBookingService {
       throw new AppError(400, 'This booking can no longer be canceled');
     }
 
-    const updated = await this.examBookingRepository.updateExamBookingById(
-      id,
-      {
-        status: EExamBookingStatus.CANCELED,
-        canceledAt: new Date(),
-        canceledBy: requester.isAdmin
-          ? EExamBookingCanceledBy.STAFF
-          : EExamBookingCanceledBy.PATIENT,
-        cancelReason: reason,
-      },
-    );
+    const updated = await this.examBookingRepository.updateExamBookingById(id, {
+      status: EExamBookingStatus.CANCELED,
+      canceledAt: new Date(),
+      canceledBy: requester.isAdmin
+        ? EExamBookingCanceledBy.STAFF
+        : EExamBookingCanceledBy.PATIENT,
+      cancelReason: reason,
+    });
 
     await this.examBookingRepository.releaseSlot(
       booking.healthUnitId,
@@ -425,10 +412,9 @@ export class ExamBookingService implements IExamBookingService {
       throw new AppError(400, 'Invalid status transition');
     }
 
-    const updated = await this.examBookingRepository.updateExamBookingById(
-      id,
-      { status: newStatus },
-    );
+    const updated = await this.examBookingRepository.updateExamBookingById(id, {
+      status: newStatus,
+    });
 
     return this.enrich(updated!);
   }
@@ -460,9 +446,7 @@ export class ExamBookingService implements IExamBookingService {
     }
 
     const bookings =
-      await this.examBookingRepository.listExamBookingsByPatientId(
-        patientId,
-      );
+      await this.examBookingRepository.listExamBookingsByPatientId(patientId);
 
     let authorizedBookings: IExamBooking[];
 
@@ -569,10 +553,11 @@ export class ExamBookingService implements IExamBookingService {
       buildSlotKey(healthUnitId, slotDate),
     );
 
-    const bookedCounts = await this.examBookingRepository.getBookedCountsForSlots(
-      healthUnitId,
-      slotKeys,
-    );
+    const bookedCounts =
+      await this.examBookingRepository.getBookedCountsForSlots(
+        healthUnitId,
+        slotKeys,
+      );
 
     const now = Date.now();
 
@@ -598,9 +583,8 @@ export class ExamBookingService implements IExamBookingService {
     examId: string,
     requester: IExamBookingRequester,
   ): Promise<void> {
-    const booking = await this.examBookingRepository.getExamBookingById(
-      bookingId,
-    );
+    const booking =
+      await this.examBookingRepository.getExamBookingById(bookingId);
 
     if (!booking) {
       throw new AppError(404, 'Exam booking not found');

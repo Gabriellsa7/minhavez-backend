@@ -1,4 +1,7 @@
-import { IAppointment, EAppointmentStatus } from '../interfaces/appointment.interface';
+import {
+  IAppointment,
+  EAppointmentStatus,
+} from '../interfaces/appointment.interface';
 import { IPaginationParams } from '../../../shared/utils/pagination';
 
 export interface IParamsCreateAppointment {
@@ -9,7 +12,7 @@ export interface IParamsCreateAppointment {
   dateTime: Date;
   notes?: string;
   isReturn?: boolean;
-  /** QueueItemId of the appointment currently being attended, when this one is created via "Marcar Retorno". */
+
   originQueueItemId?: string;
 }
 

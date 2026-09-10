@@ -26,8 +26,7 @@ export interface IParamsCreateExamBooking {
   examOfferingId: string;
   scheduledAt: Date;
   notes?: string;
-  /** Only used when the requester is a receptionist booking on behalf of a
-   * patient who searched by CPF at the front desk. */
+
   patientId?: string;
 }
 

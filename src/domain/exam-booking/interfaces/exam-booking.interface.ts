@@ -1,6 +1,6 @@
 export enum EExamBookingStatus {
   SCHEDULED = 'SCHEDULED',
-  /** Reserved for a future "patient/clinic confirms attendance" step — not used by any transition in v1. */
+
   CONFIRMED = 'CONFIRMED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
@@ -33,11 +33,9 @@ export interface IExamBooking {
   updatedAt: Date;
 }
 
-/** True operational statuses a booking's `resultExamId`-derived label can be computed from. */
 export function isResultAvailable(booking: IExamBooking): boolean {
   return (
-    booking.status === EExamBookingStatus.COMPLETED &&
-    !!booking.resultExamId
+    booking.status === EExamBookingStatus.COMPLETED && !!booking.resultExamId
   );
 }
 

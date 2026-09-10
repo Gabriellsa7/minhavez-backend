@@ -46,29 +46,20 @@ export class QueueNotificationService {
         return null;
       }
 
-      // Position notifications only make sense once the patient's queue day
-      // has arrived and while the queue is actually open — a queue item can
-      // exist days ahead of the appointment, and a call/recalculate cascade
-      // can still be finishing up right as the professional closes the
-      // queue, so both must hold or the patient gets a stale/premature ping.
       const isQueueOpenToday = await this.isQueueOpenToday(queueItem.queueId);
       if (!isQueueOpenToday) {
-        Logger.info('Skipped queue position notification: queue not open today', {
-          patientId: queueItem.patientId,
-          queueItemId: queueItem._id,
-          queueId: queueItem.queueId,
-          position,
-        });
+        Logger.info(
+          'Skipped queue position notification: queue not open today',
+          {
+            patientId: queueItem.patientId,
+            queueItemId: queueItem._id,
+            queueId: queueItem.queueId,
+            position,
+          },
+        );
         return null;
       }
 
-      // A SET...NX...EX dedupe lock (instead of an in-memory Set) so duplicate
-      // threshold crossings are suppressed across process restarts and across
-      // multiple backend instances sharing the same Redis. Scoped to the
-      // queue item (not just the patient) so a fresh booking always starts
-      // with a clean slate — keying by patientId alone made a patient who
-      // had already crossed a threshold in an earlier, unrelated queue
-      // session that same day get silently skipped for 24h.
       const dedupeKey = `notification:dedupe:${queueItem._id}:${position}`;
       const acquired = await this.redisClient.set(
         dedupeKey,
@@ -78,11 +69,14 @@ export class QueueNotificationService {
         'NX',
       );
       if (acquired !== 'OK') {
-        Logger.info('Skipped queue position notification: already sent for this threshold', {
-          patientId: queueItem.patientId,
-          queueItemId: queueItem._id,
-          position,
-        });
+        Logger.info(
+          'Skipped queue position notification: already sent for this threshold',
+          {
+            patientId: queueItem.patientId,
+            queueItemId: queueItem._id,
+            position,
+          },
+        );
         return null;
       }
 
@@ -110,10 +104,6 @@ export class QueueNotificationService {
 
       return notification;
     } catch (error) {
-      // A failure here must never break the doctor's call/finish/absent
-      // action — the queue state change already succeeded by the time this
-      // runs, so the notification side-effect fails independently and loudly
-      // in the logs instead of surfacing as a 400 on an unrelated request.
       Logger.error('Failed to process queue position notification', {
         patientId: queueItem.patientId,
         queueItemId: queueItem._id,

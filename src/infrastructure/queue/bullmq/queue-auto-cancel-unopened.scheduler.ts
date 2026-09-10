@@ -9,13 +9,9 @@ export class QueueAutoCancelUnopenedScheduler {
   constructor(queue?: Queue) {
     this.queue =
       queue ??
-      new BullMqProvider().createQueue(
-        queueAutoCancelUnopenedConfig.queueName,
-      );
+      new BullMqProvider().createQueue(queueAutoCancelUnopenedConfig.queueName);
   }
 
-  /** upsertJobScheduler is idempotent by scheduler id, so calling this on
-   * every process boot never creates duplicate repeatable jobs. */
   async registerRepeatableJob(): Promise<void> {
     await this.queue.upsertJobScheduler(
       queueAutoCancelUnopenedConfig.schedulerId,

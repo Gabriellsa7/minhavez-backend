@@ -62,9 +62,6 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
       }
     }
 
-    // Exams only ever have one patient per time slot — there's no queue and
-    // no shared room the way regular appointments have, so capacity is not
-    // admin-configurable, unlike what the field name might suggest.
     const singleCapacityRules = rules.map((rule) => ({
       ...rule,
       capacityPerSlot: 1,
@@ -111,9 +108,7 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
     id: string,
     requestingAdminUserId: string,
   ): Promise<void> {
-    const blackout = await this.examAvailabilityRepository.getBlackoutById(
-      id,
-    );
+    const blackout = await this.examAvailabilityRepository.getBlackoutById(id);
 
     if (!blackout) {
       throw new AppError(404, 'Blackout not found');

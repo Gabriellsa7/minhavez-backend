@@ -1,6 +1,3 @@
-/** Validates the CPF check-digit algorithm — same rules the mobile app
- * already enforces client-side, mirrored here so the backend rejects an
- * invalid CPF regardless of which client sent it. */
 export function isValidCpf(value: string): boolean {
   const cpf = value.replace(/\D/g, '');
 

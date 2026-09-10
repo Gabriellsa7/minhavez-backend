@@ -32,7 +32,10 @@ import { INotificationJobScheduler } from '../../notification/interfaces/notific
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../patient/interfaces/patient.interface';
 import { AppError } from '../../../shared/errors/AppError';
-import { isSameBrazilDay, toBrazilDayStart } from '../../../shared/utils/brazilTime';
+import {
+  isSameBrazilDay,
+  toBrazilDayStart,
+} from '../../../shared/utils/brazilTime';
 
 const CANCEL_CUTOFF_HOUR = 12;
 const CANCEL_CUTOFF_MINUTE = 0;
@@ -94,14 +97,12 @@ export class AppointmentService implements IAppointmentService {
 
       if (params.originQueueItemId) {
         try {
-          const originAppointments = await this.appointmentRepository.listAppointments({
-            queueItemId: params.originQueueItemId,
-          });
+          const originAppointments =
+            await this.appointmentRepository.listAppointments({
+              queueItemId: params.originQueueItemId,
+            });
           originAppointment = originAppointments[0];
         } catch (error) {
-          // Best-effort: same as markOriginAppointmentReturnScheduled below —
-          // an inability to look up the origin appointment shouldn't block
-          // the return from being booked, it just skips the max-days check.
           console.error('Error fetching origin appointment:', error);
         }
 
@@ -209,10 +210,6 @@ export class AppointmentService implements IAppointmentService {
 
       const existingQueue = queues.find(
         (queue) =>
-          // A queue with closedAt set is done for good — either it ran its
-          // course or the professional canceled it ahead of time. Reusing it
-          // here would silently attach the new booking to a dead queue/queue
-          // item, so treat it as if it didn't exist and create a fresh one.
           !queue.closedAt &&
           queue.queueDate.getFullYear() === appointmentDateTime.getFullYear() &&
           queue.queueDate.getMonth() === appointmentDateTime.getMonth() &&
@@ -264,16 +261,10 @@ export class AppointmentService implements IAppointmentService {
         });
         createdQueueItemId = queueItem._id;
 
-        // A patient who joins straight onto one of the notification
-        // thresholds (e.g. the 10th person in an empty queue) must still be
-        // notified — otherwise their position only ever changes by later
-        // recalculations and that first threshold crossing is never observed.
         await this.queueNotificationService?.handleQueuePositionChange(
           queueItem,
         );
 
-        // Lets the professional's panel pick up the new patient without a
-        // manual refresh — it has no other way to learn about a booking.
         this.notificationSocketGateway?.broadcastNotification({
           type: 'queue-item.created',
           queueId: queue._id,
@@ -308,9 +299,6 @@ export class AppointmentService implements IAppointmentService {
     }
   }
 
-  /** Best-effort: the return appointment is already created either way — a
-   * failure here should only mean the "Concluir" guard stays active, not
-   * that the whole booking fails and gets rolled back. */
   private async markOriginAppointmentReturnScheduled(
     originAppointment: IAppointment,
   ): Promise<void> {
@@ -339,11 +327,7 @@ export class AppointmentService implements IAppointmentService {
         await this.queueRepository.deleteQueueById(queueId);
       }
     } catch (cleanupError) {
-      // Best-effort cleanup — the original error is what matters to the caller.
-      console.error(
-        'Error rolling back orphaned queue state:',
-        cleanupError,
-      );
+      console.error('Error rolling back orphaned queue state:', cleanupError);
     }
   }
 
@@ -451,9 +435,7 @@ export class AppointmentService implements IAppointmentService {
     id: string,
     requester: IAppointmentRequester,
   ): Promise<IAppointment> {
-    const appointment = await this.appointmentRepository.getAppointmentById(
-      id,
-    );
+    const appointment = await this.appointmentRepository.getAppointmentById(id);
 
     if (!appointment) {
       throw new AppError(404, 'Appointment not found');
@@ -491,7 +473,10 @@ export class AppointmentService implements IAppointmentService {
     return updated!;
   }
 
-  private canCancelAppointment(dateTime: Date, now: Date = new Date()): boolean {
+  private canCancelAppointment(
+    dateTime: Date,
+    now: Date = new Date(),
+  ): boolean {
     const cutoff = new Date(dateTime);
     cutoff.setDate(cutoff.getDate() - 1);
     cutoff.setHours(CANCEL_CUTOFF_HOUR, CANCEL_CUTOFF_MINUTE, 0, 0);
@@ -499,9 +484,6 @@ export class AppointmentService implements IAppointmentService {
     return now.getTime() < cutoff.getTime();
   }
 
-  /** Best-effort: the appointment is already canceled either way — a
-   * failure here should not undo the cancellation, just leave the queue
-   * item/queue in place for manual cleanup. */
   private async removeQueueItemAfterCancellation(
     queueItemId: string,
   ): Promise<void> {
@@ -533,9 +515,6 @@ export class AppointmentService implements IAppointmentService {
     }
   }
 
-  /** Mirrors QueueItemService's recalculatePositions: after a queue item is
-   * removed, the remaining WAITING items must be re-indexed so nobody keeps
-   * occupying a slot ahead of where they actually stand in line. */
   private async recalculateQueuePositions(queueId: string): Promise<void> {
     const waitingItems = (
       await this.queueItemRepository.listQueueItems({ queueId })

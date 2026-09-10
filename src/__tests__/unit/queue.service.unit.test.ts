@@ -5,7 +5,11 @@ import {
   IQueueItem,
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
-import { EQueueShift, EQueueStatus, IQueue } from '../../domain/queue/interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+  IQueue,
+} from '../../domain/queue/interfaces/queue.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
 import { IAppointmentRepository } from '../../domain/appointment/repository/appointment.repository.interface';
 import {
@@ -64,8 +68,16 @@ describe('QueueService.closeQueue', () => {
   it('marks pending queue items and their appointments as closed and broadcasts the change', async () => {
     const queueItems = [
       buildQueueItem({ _id: 'qi-1', status: EQueueItemStatus.IN_SERVICE }),
-      buildQueueItem({ _id: 'qi-2', status: EQueueItemStatus.WAITING, patientId: 'patient-2' }),
-      buildQueueItem({ _id: 'qi-3', status: EQueueItemStatus.FINISHED, patientId: 'patient-3' }),
+      buildQueueItem({
+        _id: 'qi-2',
+        status: EQueueItemStatus.WAITING,
+        patientId: 'patient-2',
+      }),
+      buildQueueItem({
+        _id: 'qi-3',
+        status: EQueueItemStatus.FINISHED,
+        patientId: 'patient-3',
+      }),
     ];
     const appointments: Record<string, IAppointment> = {
       'qi-1': buildAppointment({ _id: 'appt-1', queueItemId: 'qi-1' }),
@@ -86,7 +98,9 @@ describe('QueueService.closeQueue', () => {
     );
 
     const queueItemRepository = {
-      listQueueItems: jest.fn(async () => queueItems.map((item) => ({ ...item }))),
+      listQueueItems: jest.fn(async () =>
+        queueItems.map((item) => ({ ...item })),
+      ),
       updateQueueItemById,
     } as unknown as IQueueItemRepository;
 
@@ -201,7 +215,9 @@ describe('QueueService.closeQueue', () => {
     ];
 
     const queueItemRepository = {
-      listQueueItems: jest.fn(async () => queueItems.map((item) => ({ ...item }))),
+      listQueueItems: jest.fn(async () =>
+        queueItems.map((item) => ({ ...item })),
+      ),
       updateQueueItemById: jest.fn(async () => queueItems[0]),
     } as unknown as IQueueItemRepository;
 
@@ -241,7 +257,10 @@ describe('QueueService.closeQueue', () => {
   });
 
   it('is a no-op when the queue already went through a full open→close cycle', async () => {
-    const queue = buildQueue({ status: EQueueStatus.CLOSED, openedAt: new Date() });
+    const queue = buildQueue({
+      status: EQueueStatus.CLOSED,
+      openedAt: new Date(),
+    });
     const queueRepository = {
       getQueueById: jest.fn(async () => ({ ...queue })),
       updateQueueById: jest.fn(),
@@ -265,7 +284,9 @@ describe('QueueService.closeQueue', () => {
       healthUnitRepository: {} as never,
       healthProfessionalRepository: {} as never,
       appointmentRepository,
-      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+      notificationSocketGateway: {
+        broadcastNotification,
+      } as unknown as INotificationSocketGateway,
     });
 
     await service.closeQueue('queue-1');
@@ -275,10 +296,6 @@ describe('QueueService.closeQueue', () => {
   });
 
   it('cancels a pending queue that was never opened (e.g. a future appointment day) and cascades to its patients', async () => {
-    // Booking a future appointment creates the queue already CLOSED (see
-    // AppointmentService.createAppointment), with WAITING queue items for
-    // whoever booked ahead of time. Canceling it in advance must still
-    // cascade — unlike a queue that already completed its open→close cycle.
     const queueItems = [
       buildQueueItem({ _id: 'qi-1', status: EQueueItemStatus.WAITING }),
     ];
@@ -296,7 +313,9 @@ describe('QueueService.closeQueue', () => {
     );
 
     const queueItemRepository = {
-      listQueueItems: jest.fn(async () => queueItems.map((item) => ({ ...item }))),
+      listQueueItems: jest.fn(async () =>
+        queueItems.map((item) => ({ ...item })),
+      ),
       updateQueueItemById,
     } as unknown as IQueueItemRepository;
 
@@ -320,7 +339,10 @@ describe('QueueService.closeQueue', () => {
       updateAppointmentById,
     } as unknown as IAppointmentRepository;
 
-    const queue = buildQueue({ status: EQueueStatus.CLOSED, openedAt: undefined });
+    const queue = buildQueue({
+      status: EQueueStatus.CLOSED,
+      openedAt: undefined,
+    });
     const queueRepository = {
       getQueueById: jest.fn(async () => ({ ...queue })),
       updateQueueById: jest.fn(async (_id: string, params: Partial<IQueue>) => {
@@ -338,8 +360,12 @@ describe('QueueService.closeQueue', () => {
       healthUnitRepository: {} as never,
       healthProfessionalRepository: {} as never,
       appointmentRepository,
-      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
-      notificationService: { createNotification } as unknown as INotificationService,
+      notificationSocketGateway: {
+        broadcastNotification,
+      } as unknown as INotificationSocketGateway,
+      notificationService: {
+        createNotification,
+      } as unknown as INotificationService,
     });
 
     await service.closeQueue('queue-1', 'Médico indisponível nesse dia');
@@ -430,7 +456,9 @@ describe('QueueService.autoCloseQueuesForShift', () => {
       healthUnitRepository: {} as never,
       healthProfessionalRepository: {} as never,
       appointmentRepository,
-      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+      notificationSocketGateway: {
+        broadcastNotification,
+      } as unknown as INotificationSocketGateway,
     });
 
     await service.autoCloseQueuesForShift(EQueueShift.MORNING);
@@ -515,21 +543,19 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
       },
     );
 
-    const listAppointments = jest.fn(
-      async (filter: Partial<IAppointment>) => {
-        if (filter.status) {
-          return Object.values(appointments).filter(
-            (a) => a.status === filter.status,
-          );
-        }
-        if (filter.queueItemId) {
-          return Object.values(appointments).filter(
-            (a) => a.queueItemId === filter.queueItemId,
-          );
-        }
-        return Object.values(appointments);
-      },
-    );
+    const listAppointments = jest.fn(async (filter: Partial<IAppointment>) => {
+      if (filter.status) {
+        return Object.values(appointments).filter(
+          (a) => a.status === filter.status,
+        );
+      }
+      if (filter.queueItemId) {
+        return Object.values(appointments).filter(
+          (a) => a.queueItemId === filter.queueItemId,
+        );
+      }
+      return Object.values(appointments);
+    });
 
     const appointmentRepository = {
       listAppointments,
@@ -544,10 +570,17 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
       healthUnitRepository: {} as never,
       healthProfessionalRepository: {} as never,
       appointmentRepository,
-      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+      notificationSocketGateway: {
+        broadcastNotification,
+      } as unknown as INotificationSocketGateway,
     });
 
-    return { service, updateQueueById, updateQueueItemById, updateAppointmentById };
+    return {
+      service,
+      updateQueueById,
+      updateQueueItemById,
+      updateAppointmentById,
+    };
   }
 
   it('cancels a queue and its appointment once 10 minutes pass the scheduled time without the professional opening it', async () => {
@@ -560,7 +593,7 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
     const appointment = buildAppointment({
       _id: 'appt-1',
       queueItemId: 'qi-1',
-      dateTime: new Date('2024-05-06T11:49:00.000Z'), // 11 minutes before NOW
+      dateTime: new Date('2024-05-06T11:49:00.000Z'),
     });
 
     const { service, updateQueueById, updateAppointmentById } = buildHarness(
@@ -590,7 +623,7 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
     const appointment = buildAppointment({
       _id: 'appt-1',
       queueItemId: 'qi-1',
-      dateTime: new Date('2024-05-06T11:55:00.000Z'), // 5 minutes before NOW
+      dateTime: new Date('2024-05-06T11:55:00.000Z'),
     });
 
     const { service, updateQueueById } = buildHarness(queue, appointment);
@@ -610,7 +643,7 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
     const appointment = buildAppointment({
       _id: 'appt-1',
       queueItemId: 'qi-1',
-      dateTime: new Date('2024-05-06T11:30:00.000Z'), // 30 minutes before NOW
+      dateTime: new Date('2024-05-06T11:30:00.000Z'),
     });
 
     const { service, updateQueueById } = buildHarness(queue, appointment);
@@ -630,7 +663,7 @@ describe('QueueService.autoCancelUnopenedQueues', () => {
     const appointment = buildAppointment({
       _id: 'appt-1',
       queueItemId: 'qi-1',
-      dateTime: new Date('2024-05-05T11:30:00.000Z'), // yesterday
+      dateTime: new Date('2024-05-05T11:30:00.000Z'),
     });
 
     const { service, updateQueueById } = buildHarness(queue, appointment);

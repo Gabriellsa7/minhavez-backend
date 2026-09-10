@@ -65,8 +65,6 @@ function createFakeRepository(initialItems: IQueueItem[]) {
   };
 }
 
-// Simulates repeatedly calling the next person into service, marking them
-// called so the alternation has a "last called" to react to on the next pick.
 async function simulateCallOrder(
   repository: ReturnType<typeof createFakeRepository>,
   callsToSimulate: number,
@@ -80,7 +78,9 @@ async function simulateCallOrder(
 
     order.push(next._id);
 
-    const item = repository.items.find((candidate) => candidate._id === next._id);
+    const item = repository.items.find(
+      (candidate) => candidate._id === next._id,
+    );
     if (item) {
       item.status = EQueueItemStatus.IN_SERVICE;
       clock += 1;

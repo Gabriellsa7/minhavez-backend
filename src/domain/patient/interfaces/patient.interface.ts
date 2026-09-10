@@ -62,8 +62,6 @@ export interface IPatientMedicalDocument {
   uploadedAt: Date;
 }
 
-/** Safe-to-return shape — omits Cloudinary storage details, same precedent as
- * exams stripping `filePublicId` before responses reach clients. */
 export type IPatientMedicalDocumentPublic = Omit<
   IPatientMedicalDocument,
   'filePublicId' | 'fileFormat'

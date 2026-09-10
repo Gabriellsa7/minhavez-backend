@@ -18,9 +18,6 @@ export class ReceptionistService implements IReceptionistService {
     this.receptionistRepository = params.receptionistRepository;
   }
 
-  /** Strips the password hash before a receptionist is returned to a
-   * client — same precedent as patients stripping Cloudinary storage
-   * details before responses reach clients. */
   private sanitize(receptionist: IReceptionist): IReceptionist {
     const { password: _password, ...rest } = receptionist;
     return { ...rest, password: '' };
@@ -32,10 +29,12 @@ export class ReceptionistService implements IReceptionistService {
     try {
       const hashedPassword = await bcrypt.hash(params.password, 10);
 
-      const receptionist = await this.receptionistRepository.createReceptionist({
-        ...params,
-        password: hashedPassword,
-      });
+      const receptionist = await this.receptionistRepository.createReceptionist(
+        {
+          ...params,
+          password: hashedPassword,
+        },
+      );
 
       return this.sanitize(receptionist);
     } catch (error) {

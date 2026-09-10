@@ -72,8 +72,7 @@ export class BullMqProvider {
       port: Number(process.env.REDIS_PORT || 6379),
       password: process.env.REDIS_PASSWORD || undefined,
       db: Number(process.env.REDIS_DB || 0),
-      // BullMQ Workers require this setting. The shared client is also used by
-      // Queue and QueueEvents so every BullMQ component gets a compatible client.
+
       maxRetriesPerRequest: null,
     };
   }

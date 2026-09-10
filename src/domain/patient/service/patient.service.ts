@@ -47,9 +47,6 @@ export class PatientService implements IPatientService {
     }
   }
 
-  /** Strips Cloudinary storage details from medical documents before a
-   * patient is returned to a client — same precedent as exams stripping
-   * `filePublicId`. */
   private sanitizePatient(patient: IPatient): IPatient {
     return {
       ...patient,

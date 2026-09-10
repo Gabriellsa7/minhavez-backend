@@ -1,4 +1,7 @@
-import { EQueueItemPriority, IQueueItem } from '../interfaces/queue-item.interface';
+import {
+  EQueueItemPriority,
+  IQueueItem,
+} from '../interfaces/queue-item.interface';
 
 export interface IQueueItemPickerRepository {
   getLastCalledQueueItem(queueId: string): Promise<IQueueItem | null>;
@@ -9,15 +12,6 @@ export interface IQueueItemPickerRepository {
   getNextWaitingQueueItem(queueId: string): Promise<IQueueItem | null>;
 }
 
-/**
- * Alternates between the priority (AP) and normal (AN) lines — AP, AN, AP,
- * AN, ... — instead of draining one group before ever touching the other.
- * The choice is derived from whichever group was called last (not a stored
- * counter), so it stays correct across manual calls, absences and restarts.
- * Once one side of the alternation runs dry, it falls back to whichever
- * group still has people, so the remaining line keeps advancing in FIFO
- * order instead of stalling.
- */
 export async function pickNextWaitingQueueItem(
   queueId: string,
   repository: IQueueItemPickerRepository,

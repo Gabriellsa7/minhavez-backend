@@ -8,14 +8,9 @@ export class QueueAutoCloseScheduler {
 
   constructor(queue?: Queue) {
     this.queue =
-      queue ??
-      new BullMqProvider().createQueue(queueAutoCloseConfig.queueName);
+      queue ?? new BullMqProvider().createQueue(queueAutoCloseConfig.queueName);
   }
 
-  /** Registers the two daily scheduled jobs. upsertJobScheduler is
-   * idempotent by scheduler id (it overrides in place), so calling this on
-   * every process boot — or after a cron pattern changes between deploys —
-   * never creates duplicate schedules. */
   async registerRepeatableJobs(): Promise<void> {
     await this.queue.upsertJobScheduler(
       queueAutoCloseConfig.jobNames.closeMorningShift,

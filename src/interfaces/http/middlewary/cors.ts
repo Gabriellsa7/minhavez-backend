@@ -11,9 +11,6 @@ const localDevelopmentOrigin =
 const isAllowedOrigin = (origin: string) => {
   if (configuredOrigins.includes(origin)) return true;
 
-  // Expo/Metro changes the host IP with the active local network. Keep this
-  // convenience restricted to local development; production must configure
-  // CORS_ALLOWED_ORIGINS explicitly.
   return (
     process.env.NODE_ENV !== 'production' && localDevelopmentOrigin.test(origin)
   );
@@ -21,7 +18,6 @@ const isAllowedOrigin = (origin: string) => {
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    // permite mobile, postman, etc
     if (!origin) return callback(null, true);
 
     if (isAllowedOrigin(origin)) {

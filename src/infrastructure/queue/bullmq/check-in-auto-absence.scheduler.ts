@@ -12,8 +12,6 @@ export class CheckInAutoAbsenceScheduler {
       new BullMqProvider().createQueue(checkInAutoAbsenceConfig.queueName);
   }
 
-  /** upsertJobScheduler is idempotent by scheduler id, so calling this on
-   * every process boot never creates duplicate repeatable jobs. */
   async registerRepeatableJob(): Promise<void> {
     await this.queue.upsertJobScheduler(
       checkInAutoAbsenceConfig.schedulerId,

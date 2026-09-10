@@ -81,7 +81,9 @@ export class ExpoNotificationProvider implements INotificationProvider {
       response: result,
     });
     if (!response.ok) {
-      throw new Error(result.errors?.[0]?.message || 'Expo push request failed');
+      throw new Error(
+        result.errors?.[0]?.message || 'Expo push request failed',
+      );
     }
 
     const tickets = payloads.map((payload, index) => ({
@@ -95,9 +97,7 @@ export class ExpoNotificationProvider implements INotificationProvider {
     if (rejected.length > 0) {
       Logger.warn('Expo rejected some push tickets', { rejected });
     }
-    // Partial failures (e.g. a single stale token) must not block delivery to
-    // the patient's other registered devices; the caller inspects per-ticket
-    // status to decide what succeeded and what needs cleanup.
+
     return tickets;
   }
 
@@ -126,7 +126,9 @@ export class ExpoNotificationProvider implements INotificationProvider {
       response: result,
     });
     if (!response.ok) {
-      throw new Error(result.errors?.[0]?.message || 'Expo receipts request failed');
+      throw new Error(
+        result.errors?.[0]?.message || 'Expo receipts request failed',
+      );
     }
     return ticketIds.map((id) => ({
       id,

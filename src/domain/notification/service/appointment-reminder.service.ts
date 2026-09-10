@@ -2,7 +2,10 @@ import { IAppointment } from '../../appointment/interfaces/appointment.interface
 import { INotificationService } from '../interfaces/notification.service.interface';
 import { ENotificationType } from '../interfaces/notification.interface';
 import { notificationConfig } from '../../../infrastructure/config/notification.constants';
-import { formatBrazilDateTime, toBrazilDayStart } from '../../../shared/utils/brazilTime';
+import {
+  formatBrazilDateTime,
+  toBrazilDayStart,
+} from '../../../shared/utils/brazilTime';
 
 export interface IParamsAppointmentReminderService {
   notificationService: Pick<INotificationService, 'createNotification'>;
@@ -44,9 +47,11 @@ export class AppointmentReminderService {
         appointmentBrazilDayStart.getTime() - daysBefore * ONE_DAY_MS,
       );
 
-      const dayComparison = this.compareDay(targetDayStart, todayBrazilDayStart);
-      // A window whose day already passed no longer applies — e.g. booking
-      // on the day of the appointment must only produce the "hoje" reminder.
+      const dayComparison = this.compareDay(
+        targetDayStart,
+        todayBrazilDayStart,
+      );
+
       if (dayComparison === 'past') {
         continue;
       }

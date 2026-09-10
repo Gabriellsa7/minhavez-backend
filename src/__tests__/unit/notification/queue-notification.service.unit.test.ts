@@ -3,7 +3,11 @@ import { QueueNotificationService } from '../../../domain/notification/service/q
 import { ENotificationType } from '../../../domain/notification/interfaces/notification.interface';
 import { INotificationService } from '../../../domain/notification/interfaces/notification.service.interface';
 import { IQueueRepository } from '../../../domain/queue/repository/queue.repository.interface';
-import { EQueueShift, EQueueStatus, IQueue } from '../../../domain/queue/interfaces/queue.interface';
+import {
+  EQueueShift,
+  EQueueStatus,
+  IQueue,
+} from '../../../domain/queue/interfaces/queue.interface';
 import {
   EQueueItemStatus,
   IQueueItem,
@@ -20,7 +24,10 @@ function createFakeRedisClient() {
   } as unknown as IORedis;
 }
 
-function createFakeQueueRepository(queueDate: Date, status: EQueueStatus = EQueueStatus.OPEN) {
+function createFakeQueueRepository(
+  queueDate: Date,
+  status: EQueueStatus = EQueueStatus.OPEN,
+) {
   return {
     getQueueById: jest.fn().mockResolvedValue({
       _id: 'queue-1',
@@ -39,7 +46,10 @@ describe('QueueNotificationService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new QueueNotificationService({
-      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+      notificationService: { createNotification } as unknown as Pick<
+        INotificationService,
+        'createNotification'
+      >,
       queueRepository: createFakeQueueRepository(new Date()),
       redisClient: createFakeRedisClient(),
     });
@@ -78,7 +88,10 @@ describe('QueueNotificationService', () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const service = new QueueNotificationService({
-      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+      notificationService: { createNotification } as unknown as Pick<
+        INotificationService,
+        'createNotification'
+      >,
       queueRepository: createFakeQueueRepository(tomorrow),
       redisClient: createFakeRedisClient(),
     });
@@ -101,8 +114,14 @@ describe('QueueNotificationService', () => {
       .mockResolvedValue({ _id: 'notification-1' });
 
     const service = new QueueNotificationService({
-      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
-      queueRepository: createFakeQueueRepository(new Date(), EQueueStatus.CLOSED),
+      notificationService: { createNotification } as unknown as Pick<
+        INotificationService,
+        'createNotification'
+      >,
+      queueRepository: createFakeQueueRepository(
+        new Date(),
+        EQueueStatus.CLOSED,
+      ),
       redisClient: createFakeRedisClient(),
     });
 
@@ -123,14 +142,14 @@ describe('QueueNotificationService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new QueueNotificationService({
-      notificationService: { createNotification } as unknown as Pick<INotificationService, 'createNotification'>,
+      notificationService: { createNotification } as unknown as Pick<
+        INotificationService,
+        'createNotification'
+      >,
       queueRepository: createFakeQueueRepository(new Date()),
       redisClient: createFakeRedisClient(),
     });
 
-    // Same patient, same threshold, but a different queue item — e.g. an
-    // earlier appointment/queue session from earlier the same day. This
-    // must not be silently skipped by dedupe meant for the previous session.
     await service.handleQueuePositionChange({
       _id: 'queue-item-old',
       patientId: 'patient-1',

@@ -251,7 +251,10 @@ export class QueueRepository implements IQueueRepository {
                   branches: [
                     {
                       case: {
-                        $eq: ['$queueItems.status', EQueueItemStatus.IN_SERVICE],
+                        $eq: [
+                          '$queueItems.status',
+                          EQueueItemStatus.IN_SERVICE,
+                        ],
                       },
                       then: 0,
                     },
@@ -508,10 +511,7 @@ export class QueueRepository implements IQueueRepository {
         {
           $project: {
             waitingCount: 1,
-            // A patient currently IN_SERVICE isn't in `waitingCount`, but
-            // still has to finish before anyone joining now is seen — so
-            // the clinic/professional's configured slot length is always
-            // the floor for the estimate, never zero for an active queue.
+
             estimatedWaitMinutes: {
               $cond: [
                 { $gt: ['$appointmentDuration', 0] },

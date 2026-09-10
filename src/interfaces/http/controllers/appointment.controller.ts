@@ -139,7 +139,9 @@ export class AppointmentController implements IController {
           status,
           pagination,
         );
-      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
+      res
+        .status(200)
+        .json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -169,7 +171,10 @@ export class AppointmentController implements IController {
         await this.appointmentService.clearAppointmentHistoryByPatientId(id);
       res
         .status(200)
-        .json({ message: 'Histórico limpo com sucesso', count: deleted.length });
+        .json({
+          message: 'Histórico limpo com sucesso',
+          count: deleted.length,
+        });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -183,7 +188,6 @@ export class AppointmentController implements IController {
       console.log('Request body:', JSON.stringify(data, null, 2));
       console.log('='.repeat(80));
 
-      // Validate required fields
       const requiredFields = [
         'patientId',
         'professionalId',
