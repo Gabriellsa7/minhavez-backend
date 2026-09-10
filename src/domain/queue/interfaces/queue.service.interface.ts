@@ -39,6 +39,7 @@ export interface IQueueService {
   openQueue(queueId: string): Promise<IQueue>;
   closeQueue(queueId: string, reason?: string): Promise<IQueue>;
   autoCloseQueuesForShift(shift: EQueueShift): Promise<void>;
+  autoCancelUnopenedQueues(now?: Date): Promise<void>;
   getQueuesByProfessionalId(professionalId: string): Promise<IQueue[]>;
   listQueues(filter: Partial<IQueue>): Promise<IQueue[]>;
   getQueueHistoryByProfessionalId(

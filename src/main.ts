@@ -40,6 +40,8 @@ import { QueueServiceFactory } from './infrastructure/config/factories/queue/que
 import { CheckInAutoAbsenceWorker } from './infrastructure/queue/bullmq/workers/check-in-auto-absence.worker';
 import { CheckInAutoAbsenceScheduler } from './infrastructure/queue/bullmq/check-in-auto-absence.scheduler';
 import { QueueItemServiceFactory } from './infrastructure/config/factories/queue-item/queue-item.service.factory';
+import { QueueAutoCancelUnopenedWorker } from './infrastructure/queue/bullmq/workers/queue-auto-cancel-unopened.worker';
+import { QueueAutoCancelUnopenedScheduler } from './infrastructure/queue/bullmq/queue-auto-cancel-unopened.scheduler';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -81,6 +83,12 @@ async function start() {
   );
   queueAutoCloseWorker.start();
   await new QueueAutoCloseScheduler().registerRepeatableJobs();
+
+  const queueAutoCancelUnopenedWorker = new QueueAutoCancelUnopenedWorker(
+    QueueServiceFactory.create(),
+  );
+  queueAutoCancelUnopenedWorker.start();
+  await new QueueAutoCancelUnopenedScheduler().registerRepeatableJob();
 
   const checkInAutoAbsenceWorker = new CheckInAutoAbsenceWorker(
     QueueItemServiceFactory.create(),

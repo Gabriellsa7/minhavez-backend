@@ -461,3 +461,182 @@ describe('QueueService.autoCloseQueuesForShift', () => {
     );
   });
 });
+
+describe('QueueService.autoCancelUnopenedQueues', () => {
+  const NOW = new Date('2024-05-06T12:00:00.000Z');
+
+  function buildHarness(queue: IQueue, appointment: IAppointment) {
+    const queues: Record<string, IQueue> = { [queue._id]: queue };
+    const queueItem = buildQueueItem({
+      _id: appointment.queueItemId ?? 'qi-1',
+      queueId: queue._id,
+      status: EQueueItemStatus.WAITING,
+    });
+    const appointments: Record<string, IAppointment> = {
+      [appointment._id]: appointment,
+    };
+
+    const updateQueueById = jest.fn(
+      async (id: string, params: Partial<IQueue>) => {
+        Object.assign(queues[id], params);
+        return { ...queues[id] };
+      },
+    );
+
+    const queueRepository = {
+      getQueueById: jest.fn(async (id: string) =>
+        queues[id] ? { ...queues[id] } : null,
+      ),
+      updateQueueById,
+    } as unknown as IQueueRepository;
+
+    const updateQueueItemById = jest.fn(
+      async (id: string, params: Partial<IQueueItem>) => {
+        if (id !== queueItem._id) return null;
+        Object.assign(queueItem, params);
+        return { ...queueItem };
+      },
+    );
+
+    const queueItemRepository = {
+      getQueueItemById: jest.fn(async (id: string) =>
+        id === queueItem._id ? { ...queueItem } : null,
+      ),
+      listQueueItems: jest.fn(async () => [{ ...queueItem }]),
+      updateQueueItemById,
+    } as unknown as IQueueItemRepository;
+
+    const updateAppointmentById = jest.fn(
+      async (id: string, params: Partial<IAppointment>) => {
+        const found = Object.values(appointments).find((a) => a._id === id);
+        if (!found) return null;
+        Object.assign(found, params);
+        return { ...found };
+      },
+    );
+
+    const listAppointments = jest.fn(
+      async (filter: Partial<IAppointment>) => {
+        if (filter.status) {
+          return Object.values(appointments).filter(
+            (a) => a.status === filter.status,
+          );
+        }
+        if (filter.queueItemId) {
+          return Object.values(appointments).filter(
+            (a) => a.queueItemId === filter.queueItemId,
+          );
+        }
+        return Object.values(appointments);
+      },
+    );
+
+    const appointmentRepository = {
+      listAppointments,
+      updateAppointmentById,
+    } as unknown as IAppointmentRepository;
+
+    const broadcastNotification = jest.fn();
+
+    const service = new QueueService({
+      queueRepository,
+      queueItemRepository,
+      healthUnitRepository: {} as never,
+      healthProfessionalRepository: {} as never,
+      appointmentRepository,
+      notificationSocketGateway: { broadcastNotification } as unknown as INotificationSocketGateway,
+    });
+
+    return { service, updateQueueById, updateQueueItemById, updateAppointmentById };
+  }
+
+  it('cancels a queue and its appointment once 10 minutes pass the scheduled time without the professional opening it', async () => {
+    const queue = buildQueue({
+      _id: 'queue-1',
+      status: EQueueStatus.CLOSED,
+      openedAt: undefined,
+      closedAt: undefined,
+    });
+    const appointment = buildAppointment({
+      _id: 'appt-1',
+      queueItemId: 'qi-1',
+      dateTime: new Date('2024-05-06T11:49:00.000Z'), // 11 minutes before NOW
+    });
+
+    const { service, updateQueueById, updateAppointmentById } = buildHarness(
+      queue,
+      appointment,
+    );
+
+    await service.autoCancelUnopenedQueues(NOW);
+
+    expect(updateQueueById).toHaveBeenCalledWith(
+      'queue-1',
+      expect.objectContaining({ status: EQueueStatus.CLOSED }),
+    );
+    expect(updateAppointmentById).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({ status: EAppointmentStatus.QUEUE_CLOSED }),
+    );
+  });
+
+  it('leaves the queue alone while still inside the 10-minute tolerance', async () => {
+    const queue = buildQueue({
+      _id: 'queue-1',
+      status: EQueueStatus.CLOSED,
+      openedAt: undefined,
+      closedAt: undefined,
+    });
+    const appointment = buildAppointment({
+      _id: 'appt-1',
+      queueItemId: 'qi-1',
+      dateTime: new Date('2024-05-06T11:55:00.000Z'), // 5 minutes before NOW
+    });
+
+    const { service, updateQueueById } = buildHarness(queue, appointment);
+
+    await service.autoCancelUnopenedQueues(NOW);
+
+    expect(updateQueueById).not.toHaveBeenCalled();
+  });
+
+  it('does not touch a queue the professional already opened', async () => {
+    const queue = buildQueue({
+      _id: 'queue-1',
+      status: EQueueStatus.OPEN,
+      openedAt: new Date('2024-05-06T11:35:00.000Z'),
+      closedAt: undefined,
+    });
+    const appointment = buildAppointment({
+      _id: 'appt-1',
+      queueItemId: 'qi-1',
+      dateTime: new Date('2024-05-06T11:30:00.000Z'), // 30 minutes before NOW
+    });
+
+    const { service, updateQueueById } = buildHarness(queue, appointment);
+
+    await service.autoCancelUnopenedQueues(NOW);
+
+    expect(updateQueueById).not.toHaveBeenCalled();
+  });
+
+  it('ignores an appointment scheduled for a different day', async () => {
+    const queue = buildQueue({
+      _id: 'queue-1',
+      status: EQueueStatus.CLOSED,
+      openedAt: undefined,
+      closedAt: undefined,
+    });
+    const appointment = buildAppointment({
+      _id: 'appt-1',
+      queueItemId: 'qi-1',
+      dateTime: new Date('2024-05-05T11:30:00.000Z'), // yesterday
+    });
+
+    const { service, updateQueueById } = buildHarness(queue, appointment);
+
+    await service.autoCancelUnopenedQueues(NOW);
+
+    expect(updateQueueById).not.toHaveBeenCalled();
+  });
+});

@@ -32,12 +32,21 @@ import { EAppointmentStatus } from '../../appointment/interfaces/appointment.int
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 import { INotificationService } from '../../notification/interfaces/notification.service.interface';
 import { ENotificationType } from '../../notification/interfaces/notification.interface';
+import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
 
 const QUEUE_CLOSED_DEFAULT_MESSAGE = 'O profissional encerrou a fila.';
+const QUEUE_AUTO_CANCEL_UNOPENED_MESSAGE =
+  'Sua consulta foi cancelada automaticamente porque o profissional não iniciou o atendimento a tempo. Marque uma nova consulta ou entre em contato com a administração da unidade.';
 
 const AFTERNOON_SHIFT_START_HOUR = 12;
 const AFTERNOON_SHIFT_START_MINUTE = 30;
 const AFTERNOON_SHIFT_START_LABEL = '12:30';
+
+// How late a professional can be to open the queue before it — and every
+// appointment booked on it — gets auto-canceled. Covers the professional
+// simply forgetting to open (or cancel) the queue, which otherwise leaves
+// patients stuck waiting on a queue that will never move.
+const UNOPENED_QUEUE_CANCEL_TOLERANCE_MINUTES = 10;
 
 export class QueueService implements IQueueService {
   private queueRepository: IQueueRepository;
@@ -472,6 +481,52 @@ export class QueueService implements IQueueService {
         queue._id,
         'Fila encerrada automaticamente pelo horário de expediente.',
       );
+    }
+  }
+
+  /** Sweeps today's scheduled appointments and auto-cancels any queue (and
+   * cascades to cancel every appointment on it, via closeQueue) that the
+   * professional still hasn't opened N minutes after the first overdue
+   * appointment's scheduled time. Run periodically by a scheduled worker —
+   * see QueueAutoCancelUnopenedWorker. */
+  async autoCancelUnopenedQueues(now: Date = new Date()): Promise<void> {
+    const scheduledAppointments = await this.appointmentRepository.listAppointments({
+      status: EAppointmentStatus.SCHEDULED,
+    });
+
+    const overdueQueueIds = new Set<string>();
+
+    for (const appointment of scheduledAppointments) {
+      if (!appointment.queueItemId) continue;
+      if (!isSameBrazilDay(new Date(appointment.dateTime), now)) continue;
+
+      const cancelCutoff =
+        new Date(appointment.dateTime).getTime() +
+        UNOPENED_QUEUE_CANCEL_TOLERANCE_MINUTES * 60 * 1000;
+
+      if (now.getTime() < cancelCutoff) continue;
+
+      const queueItem = await this.queueItemRepository.getQueueItemById(
+        appointment.queueItemId,
+      );
+
+      if (queueItem) overdueQueueIds.add(queueItem.queueId);
+    }
+
+    for (const queueId of overdueQueueIds) {
+      const queue = await this.queueRepository.getQueueById(queueId);
+
+      // Only queues born CLOSED that were never opened and never manually
+      // canceled qualify — an OPEN/IN_PROGRESS queue means the professional
+      // did show up, and one already closedAt is done, either way.
+      const neverOpened =
+        queue?.status === EQueueStatus.CLOSED &&
+        !queue.openedAt &&
+        !queue.closedAt;
+
+      if (!neverOpened) continue;
+
+      await this.closeQueue(queueId, QUEUE_AUTO_CANCEL_UNOPENED_MESSAGE);
     }
   }
 
