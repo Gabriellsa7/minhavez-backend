@@ -27,6 +27,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       status: appointmentDoc.status,
       notes: appointmentDoc.notes,
       checkInAt: appointmentDoc.checkInAt,
+      checkInReminderSentAt: appointmentDoc.checkInReminderSentAt,
       finishedAt: appointmentDoc.finishedAt,
       isReturn: appointmentDoc.isReturn ?? false,
       returnScheduled: appointmentDoc.returnScheduled ?? false,
@@ -39,7 +40,6 @@ export class AppointmentRepository implements IAppointmentRepository {
     appointmentData: IParamsCreateAppointment,
   ): Promise<IAppointment> {
     try {
-      // Convert string IDs to Mongoose ObjectIds and ensure dateTime is a Date object
       try {
         const appointmentToCreate = {
           patientId: new Types.ObjectId(appointmentData.patientId),
@@ -48,7 +48,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           queueItemId: appointmentData.queueItemId
             ? new Types.ObjectId(appointmentData.queueItemId)
             : undefined,
-          dateTime: new Date(appointmentData.dateTime), // Ensure dateTime is a Date object
+          dateTime: new Date(appointmentData.dateTime),
           notes: appointmentData.notes,
           isReturn: appointmentData.isReturn ?? false,
         };
@@ -142,7 +142,6 @@ export class AppointmentRepository implements IAppointmentRepository {
     filter: Partial<IAppointment>,
   ): Promise<IAppointment[]> {
     try {
-      // Convert string IDs in filter to ObjectIds for proper Mongoose queries
       const mongoFilter: FilterQuery<IAppointmentSchema> = {};
 
       if (filter.patientId) {

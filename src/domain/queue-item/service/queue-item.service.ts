@@ -11,14 +11,26 @@ import { IQueueItemService } from '../interfaces/queue-item.service.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
 import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
-import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
+import {
+  EAppointmentStatus,
+  IAppointment,
+} from '../../appointment/interfaces/appointment.interface';
 import { IPrescriptionRepository } from '../../prescription/repository/prescription.repository.interface';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
+import { NotificationService } from '../../notification/service/notification.service';
+import { ENotificationType } from '../../notification/interfaces/notification.interface';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 import { pickNextWaitingQueueItem } from '../utils/pick-next-queue-item';
 import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
+import { Logger } from 'traceability';
 
 const CHECK_IN_TOLERANCE_MINUTES = 5;
+
+const CHECK_IN_REMINDER_MESSAGE =
+  'Sua consulta começou. Confirme sua presença na recepção da unidade em até 5 minutos para não perder sua vaga.';
+
+const APPOINTMENT_AUTO_CANCELED_MESSAGE =
+  'Sua consulta foi cancelada automaticamente porque não identificamos seu check-in em até 5 minutos após o horário marcado.';
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
@@ -26,6 +38,7 @@ export class QueueItemService implements IQueueItemService {
   private appointmentRepository: IAppointmentRepository;
   private prescriptionRepository: IPrescriptionRepository;
   private queueNotificationService?: QueueNotificationService;
+  private notificationService?: NotificationService;
 
   constructor(params: {
     queueItemRepository: IQueueItemRepository;
@@ -33,6 +46,7 @@ export class QueueItemService implements IQueueItemService {
     appointmentRepository: IAppointmentRepository;
     prescriptionRepository: IPrescriptionRepository;
     queueNotificationService?: QueueNotificationService;
+    notificationService?: NotificationService;
     notificationSocketGateway?: INotificationSocketGateway;
   }) {
     this.queueItemRepository = params.queueItemRepository;
@@ -40,6 +54,7 @@ export class QueueItemService implements IQueueItemService {
     this.appointmentRepository = params.appointmentRepository;
     this.prescriptionRepository = params.prescriptionRepository;
     this.queueNotificationService = params.queueNotificationService;
+    this.notificationService = params.notificationService;
     this.notificationSocketGateway = params.notificationSocketGateway;
   }
   private notificationSocketGateway?: INotificationSocketGateway;
@@ -168,9 +183,7 @@ export class QueueItemService implements IQueueItemService {
       await this.prescriptionRepository.existsForQueueItemId(queueItemId);
 
     if (!hasPrescription) {
-      throw new Error(
-        'Registre uma receita antes de concluir o atendimento.',
-      );
+      throw new Error('Registre uma receita antes de concluir o atendimento.');
     }
 
     const updated = await this.queueItemRepository.updateQueueItemById(
@@ -245,10 +258,6 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  /** Confirms the patient is physically present at the unit, ahead of being
-   * called. This is independent from `calledAt`/`finishedAt`: those mark the
-   * moment the professional attends the patient, while check-in is the
-   * front-desk gate that feeds the late-tolerance/absence rule below. */
   async checkInQueueItem(queueItemId: string): Promise<IQueueItem> {
     const queueItem =
       await this.queueItemRepository.getQueueItemById(queueItemId);
@@ -272,10 +281,6 @@ export class QueueItemService implements IQueueItemService {
 
     await this.mirrorCheckInToAppointment(queueItemId, checkInTime);
 
-    // Lets the patient's queue screen and the professional's live queue
-    // panel pick up the check-in without a manual refresh — both already
-    // invalidate their queue queries on any broadcast (see
-    // NotificationService.subscribeToSocket / QueueSocketService).
     this.notificationSocketGateway?.broadcastNotification({
       type: 'queue-item.checked-in',
       queueId: queueItem.queueId,
@@ -286,9 +291,6 @@ export class QueueItemService implements IQueueItemService {
     return updated!;
   }
 
-  /** Keeps Appointment.checkInAt as a denormalized copy of the check-in
-   * recorded on the queue item, so the appointment keeps its own arrival
-   * record even if the queue item is later deleted (e.g. cancellation). */
   private async mirrorCheckInToAppointment(
     queueItemId: string,
     checkInTime: Date,
@@ -304,25 +306,40 @@ export class QueueItemService implements IQueueItemService {
     });
   }
 
-  /** Sweeps today's scheduled appointments and marks as ABSENT any queue
-   * item whose patient never checked in within the unit's late-tolerance
-   * window. Run periodically by a scheduled worker — see
-   * CheckInAutoAbsenceWorker. */
-  async markMissedCheckInsAsAbsent(now: Date = new Date()): Promise<IQueueItem[]> {
-    const scheduledAppointments = await this.appointmentRepository.listAppointments({
-      status: EAppointmentStatus.SCHEDULED,
+  async markMissedCheckInsAsAbsent(
+    now: Date = new Date(),
+  ): Promise<IQueueItem[]> {
+    const scheduledAppointments =
+      await this.appointmentRepository.listAppointments({
+        status: EAppointmentStatus.SCHEDULED,
+      });
+
+    const eligibleAppointments = scheduledAppointments.filter((appointment) => {
+      if (!appointment.queueItemId || appointment.checkInAt) return false;
+      return isSameBrazilDay(new Date(appointment.dateTime), now);
     });
 
-    const overdueAppointments = scheduledAppointments.filter((appointment) => {
-      if (!appointment.queueItemId || appointment.checkInAt) return false;
-      if (!isSameBrazilDay(new Date(appointment.dateTime), now)) return false;
+    const dueForReminder = eligibleAppointments.filter((appointment) => {
+      if (appointment.checkInReminderSentAt) return false;
 
+      const dateTimeMs = new Date(appointment.dateTime).getTime();
+      const toleranceCutoff =
+        dateTimeMs + CHECK_IN_TOLERANCE_MINUTES * 60 * 1000;
+
+      return now.getTime() >= dateTimeMs && now.getTime() < toleranceCutoff;
+    });
+
+    const overdueAppointments = eligibleAppointments.filter((appointment) => {
       const toleranceCutoff =
         new Date(appointment.dateTime).getTime() +
         CHECK_IN_TOLERANCE_MINUTES * 60 * 1000;
 
       return now.getTime() >= toleranceCutoff;
     });
+
+    for (const appointment of dueForReminder) {
+      await this.sendCheckInReminder(appointment, now);
+    }
 
     const marked: IQueueItem[] = [];
 
@@ -336,8 +353,35 @@ export class QueueItemService implements IQueueItemService {
     return marked;
   }
 
-  /** Best-effort per item: one stale/already-handled queue item shouldn't
-   * abort the sweep for the rest of the day's appointments. */
+  private async sendCheckInReminder(
+    appointment: IAppointment,
+    now: Date,
+  ): Promise<void> {
+    try {
+      await this.notificationService?.createNotification({
+        patientId: appointment.patientId,
+        type: ENotificationType.CHECK_IN_REMINDER,
+        title: 'Faça seu check-in',
+        message: CHECK_IN_REMINDER_MESSAGE,
+        queueItemId: appointment.queueItemId ?? undefined,
+        appointmentId: appointment._id,
+        data: {
+          appointmentId: appointment._id,
+          queueItemId: appointment.queueItemId ?? null,
+        },
+      });
+
+      await this.appointmentRepository.updateAppointmentById(appointment._id, {
+        checkInReminderSentAt: now,
+      });
+    } catch (error) {
+      console.error(
+        `Error sending check-in reminder for appointment ${appointment._id}:`,
+        error,
+      );
+    }
+  }
+
   private async markAbsentForMissedCheckIn(
     queueItemId: string,
   ): Promise<IQueueItem | null> {
@@ -351,13 +395,12 @@ export class QueueItemService implements IQueueItemService {
 
       if (queueItem.checkInTime) return null;
 
-      // A patient can't be blamed for missing check-in on a queue the
-      // professional never opened (or already closed) — there was nothing to
-      // check into. That case is QueueService.autoCancelUnopenedQueues'
-      // job instead, which cancels the queue and tells the patient why. Only
-      // a queue actually running can produce a genuine no-show here.
       const queue = await this.queueRepository.getQueueById(queueItem.queueId);
       if (!queue || queue.status === EQueueStatus.CLOSED) {
+        Logger.info('Skipped missed-check-in auto-cancel: queue not open', {
+          queueItemId,
+          queueStatus: queue?.status ?? null,
+        });
         return null;
       }
 
@@ -371,6 +414,45 @@ export class QueueItemService implements IQueueItemService {
 
       await this.recalculatePositions(queueItem.queueId);
 
+      const [appointment] = await this.appointmentRepository.listAppointments({
+        queueItemId,
+      });
+
+      if (appointment) {
+        await this.appointmentRepository.updateAppointmentById(
+          appointment._id,
+          {
+            status: EAppointmentStatus.CANCELED,
+            finishedAt: new Date(),
+          },
+        );
+      } else {
+        Logger.warn(
+          'No appointment found for queue item during missed-check-in auto-cancel',
+          { queueItemId },
+        );
+      }
+
+      await this.notificationService?.createNotification({
+        patientId: queueItem.patientId,
+        type: ENotificationType.APPOINTMENT_AUTO_CANCELED,
+        title: 'Consulta cancelada por falta de check-in',
+        message: APPOINTMENT_AUTO_CANCELED_MESSAGE,
+        queueItemId,
+        appointmentId: appointment?._id,
+        data: {
+          queueId: queueItem.queueId,
+          healthUnitId: queue.healthUnitId,
+          appointmentId: appointment?._id ?? null,
+        },
+      });
+
+      Logger.info('Auto-cancelled appointment for missed check-in', {
+        queueItemId,
+        appointmentId: appointment?._id ?? null,
+        appointmentFound: Boolean(appointment),
+      });
+
       return updated;
     } catch (error) {
       console.error(
@@ -381,10 +463,6 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  /** Attending the last waiting patient no longer closes the queue — it
-   * stays OPEN so a professional who doesn't press "Fechar fila" keeps
-   * receiving walk-in bookings until the scheduled auto-close or a manual
-   * close (see QueueService.autoCloseQueuesForShift / closeQueue). */
   private async advanceQueue(queueId: string): Promise<void> {
     try {
       const next = await pickNextWaitingQueueItem(
@@ -437,13 +515,10 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
-  /** Keeps the persisted position equal to the patient's current place in
-   * the waiting line, not the immutable order in which they checked in.
-   * Being called into service takes a patient out of the line entirely —
-   * they must not keep occupying a slot that blocks everyone behind them
-   * from advancing (and being notified) until they're finished. */
   private async recalculatePositions(queueId: string): Promise<void> {
-    const waitingItems = (await this.queueItemRepository.listQueueItems({ queueId }))
+    const waitingItems = (
+      await this.queueItemRepository.listQueueItems({ queueId })
+    )
       .filter((item) => item.status === EQueueItemStatus.WAITING)
       .sort((left, right) => left.position - right.position);
 

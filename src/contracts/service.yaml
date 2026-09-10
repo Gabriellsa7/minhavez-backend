@@ -274,6 +274,7 @@ paths:
         - name: search
           in: query
           required: false
+          allowReserved: true
           schema:
             type: string
           description: Free-text search term to filter health units by name, description or address
@@ -1004,12 +1005,14 @@ paths:
         - name: search
           in: query
           required: false
+          allowReserved: true
           schema:
             type: string
           description: Free-text search term to filter health professionals by name or specialty
         - name: specialty
           in: query
           required: false
+          allowReserved: true
           schema:
             type: string
           description: Filter health professionals by exact specialty
@@ -3959,6 +3962,7 @@ paths:
         - name: name
           in: query
           required: true
+          allowReserved: true
           schema:
             type: string
           description: The exam name to search for
@@ -4448,7 +4452,7 @@ paths:
         - ExamScheduling
       summary: List an patient's exam bookings
       operationId: listExamBookingsByPatient
-      description: "Meus exames agendados\" — restricted to the patient themself."
+      description: 'Meus exames agendados" — restricted to the patient themself.'
       security:
         - bearerAuth: []
       parameters:
@@ -6135,6 +6139,8 @@ components:
             - QUEUE_CALLED
             - EXAM_READY
             - QUEUE_CLOSED
+            - CHECK_IN_REMINDER
+            - APPOINTMENT_AUTO_CANCELED
         message:
           type: string
           description: The content of the notification
@@ -6199,6 +6205,8 @@ components:
             - QUEUE_CALLED
             - EXAM_READY
             - QUEUE_CLOSED
+            - CHECK_IN_REMINDER
+            - APPOINTMENT_AUTO_CANCELED
         message:
           type: string
           description: The content of the notification
@@ -6279,6 +6287,11 @@ components:
           type: string
           format: date-time
           description: The date and time the patient checked in for the appointment (null if not checked in yet)
+          nullable: true
+        checkInReminderSentAt:
+          type: string
+          format: date-time
+          description: The date and time the check-in reminder notification was sent (null if not sent yet)
           nullable: true
         finishedAt:
           type: string

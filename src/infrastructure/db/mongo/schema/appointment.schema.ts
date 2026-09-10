@@ -40,6 +40,10 @@ export const appointmentSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    checkInReminderSentAt: {
+      type: Date,
+      required: false,
+    },
     finishedAt: {
       type: Date,
       required: false,
@@ -68,6 +72,7 @@ export interface IAppointmentSchema {
   status: EAppointmentStatus;
   notes?: string;
   checkInAt?: Date | null;
+  checkInReminderSentAt?: Date | null;
   finishedAt?: Date | null;
   isReturn: boolean;
   returnScheduled: boolean;

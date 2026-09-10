@@ -32,6 +32,7 @@ export class QueueItemServiceFactory {
       appointmentRepository,
       prescriptionRepository,
       queueNotificationService,
+      notificationService,
       notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });
   }

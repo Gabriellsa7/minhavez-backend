@@ -6,13 +6,18 @@ import {
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
-import { EQueueStatus, IQueue } from '../../domain/queue/interfaces/queue.interface';
+import {
+  EQueueStatus,
+  IQueue,
+} from '../../domain/queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../domain/appointment/repository/appointment.repository.interface';
 import {
   EAppointmentStatus,
   IAppointment,
 } from '../../domain/appointment/interfaces/appointment.interface';
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
+import { NotificationService } from '../../domain/notification/service/notification.service';
+import { ENotificationType } from '../../domain/notification/interfaces/notification.interface';
 import { IPrescriptionRepository } from '../../domain/prescription/repository/prescription.repository.interface';
 
 function createFakePrescriptionRepository(hasPrescription = true) {
@@ -38,17 +43,20 @@ function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
       const item = items.find((candidate) => candidate._id === id);
       return item ? { ...item } : null;
     }),
-    updateQueueItemById: jest.fn(async (id: string, params: Partial<IQueueItem>) => {
-      const item = items.find((candidate) => candidate._id === id);
-      if (!item) return null;
-      Object.assign(item, params);
-      return { ...item };
-    }),
+    updateQueueItemById: jest.fn(
+      async (id: string, params: Partial<IQueueItem>) => {
+        const item = items.find((candidate) => candidate._id === id);
+        if (!item) return null;
+        Object.assign(item, params);
+        return { ...item };
+      },
+    ),
     getNextWaitingQueueItem: jest.fn(async (queueId: string) => {
       const waiting = items
         .filter(
           (item) =>
-            item.queueId === queueId && item.status === EQueueItemStatus.WAITING,
+            item.queueId === queueId &&
+            item.status === EQueueItemStatus.WAITING,
         )
         .sort((left, right) => left.position - right.position);
       return waiting[0] ? { ...waiting[0] } : null;
@@ -144,22 +152,26 @@ describe('QueueItemService position notifications', () => {
       queueNotificationService,
     });
 
-    // Doctor calls the first patient: patient-3 (last in line) should move
-    // from position 3 to position 2 right away and be notified.
     await service.callQueueItem('qi-1');
 
     expect(handleQueuePositionChange).toHaveBeenCalledWith(
-      expect.objectContaining({ _id: 'qi-3', patientId: 'patient-3', position: 2 }),
+      expect.objectContaining({
+        _id: 'qi-3',
+        patientId: 'patient-3',
+        position: 2,
+      }),
     );
 
     handleQueuePositionChange.mockClear();
 
-    // Doctor finishes the first patient: patient-3 should now move to
-    // position 1 and be notified again.
     await service.finishQueueItem('qi-1');
 
     expect(handleQueuePositionChange).toHaveBeenCalledWith(
-      expect.objectContaining({ _id: 'qi-3', patientId: 'patient-3', position: 1 }),
+      expect.objectContaining({
+        _id: 'qi-3',
+        patientId: 'patient-3',
+        position: 1,
+      }),
     );
   });
 });
@@ -194,7 +206,8 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
         .mockResolvedValue(appointment ? [appointment] : []),
       updateAppointmentById: jest.fn(),
     } as unknown as IAppointmentRepository;
-    const prescriptionRepository = createFakePrescriptionRepository(hasPrescription);
+    const prescriptionRepository =
+      createFakePrescriptionRepository(hasPrescription);
 
     const service = new QueueItemService({
       queueItemRepository,
@@ -203,7 +216,12 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
       prescriptionRepository,
     });
 
-    return { service, appointmentRepository, queueRepository, prescriptionRepository };
+    return {
+      service,
+      appointmentRepository,
+      queueRepository,
+      prescriptionRepository,
+    };
   }
 
   function buildAppointment(overrides: Partial<IAppointment>): IAppointment {
@@ -238,9 +256,9 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
       buildAppointment({ isReturn: false, returnScheduled: true }),
     );
 
-    await expect(
-      service.finishQueueItem('qi-1'),
-    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+    await expect(service.finishQueueItem('qi-1')).resolves.toMatchObject({
+      status: EQueueItemStatus.FINISHED,
+    });
   });
 
   it('allows finishing a return appointment without requiring another return', async () => {
@@ -248,17 +266,17 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
       buildAppointment({ isReturn: true, returnScheduled: false }),
     );
 
-    await expect(
-      service.finishQueueItem('qi-1'),
-    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+    await expect(service.finishQueueItem('qi-1')).resolves.toMatchObject({
+      status: EQueueItemStatus.FINISHED,
+    });
   });
 
   it('allows finishing a queue item with no backing appointment (walk-in)', async () => {
     const { service } = buildService(undefined);
 
-    await expect(
-      service.finishQueueItem('qi-1'),
-    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+    await expect(service.finishQueueItem('qi-1')).resolves.toMatchObject({
+      status: EQueueItemStatus.FINISHED,
+    });
   });
 
   it('does not close the queue when finishing the last waiting patient — only a manual or scheduled close should', async () => {
@@ -295,7 +313,8 @@ describe('QueueItemService finishQueueItem prescription guard', () => {
       listAppointments: jest.fn().mockResolvedValue([]),
       updateAppointmentById: jest.fn(),
     } as unknown as IAppointmentRepository;
-    const prescriptionRepository = createFakePrescriptionRepository(hasPrescription);
+    const prescriptionRepository =
+      createFakePrescriptionRepository(hasPrescription);
 
     const service = new QueueItemService({
       queueItemRepository,
@@ -318,9 +337,9 @@ describe('QueueItemService finishQueueItem prescription guard', () => {
   it('allows finishing once a prescription has been registered for this attendance', async () => {
     const { service, prescriptionRepository } = buildService(true);
 
-    await expect(
-      service.finishQueueItem('qi-1'),
-    ).resolves.toMatchObject({ status: EQueueItemStatus.FINISHED });
+    await expect(service.finishQueueItem('qi-1')).resolves.toMatchObject({
+      status: EQueueItemStatus.FINISHED,
+    });
 
     expect(prescriptionRepository.existsForQueueItemId).toHaveBeenCalledWith(
       'qi-1',
@@ -343,7 +362,9 @@ describe('QueueItemService checkInQueueItem', () => {
     };
   }
 
-  function buildAppointment(overrides: Partial<IAppointment> = {}): IAppointment {
+  function buildAppointment(
+    overrides: Partial<IAppointment> = {},
+  ): IAppointment {
     return {
       _id: 'appointment-1',
       patientId: 'patient-1',
@@ -360,10 +381,7 @@ describe('QueueItemService checkInQueueItem', () => {
     };
   }
 
-  function buildService(
-    queueItem: IQueueItem,
-    appointment?: IAppointment,
-  ) {
+  function buildService(queueItem: IQueueItem, appointment?: IAppointment) {
     const queueItemRepository = createFakeQueueItemRepository([queueItem]);
     const queueRepository = {
       updateQueueById: jest.fn(),
@@ -447,7 +465,9 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
     };
   }
 
-  function buildAppointment(overrides: Partial<IAppointment> = {}): IAppointment {
+  function buildAppointment(
+    overrides: Partial<IAppointment> = {},
+  ): IAppointment {
     return {
       _id: 'appointment-1',
       patientId: 'patient-1',
@@ -490,27 +510,48 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
       updateQueueById: jest.fn(),
     } as unknown as IQueueRepository;
     const appointmentRepository = {
-      listAppointments: jest.fn().mockResolvedValue(appointments),
+      listAppointments: jest
+        .fn()
+        .mockImplementation((filter: { queueItemId?: string }) =>
+          Promise.resolve(
+            filter?.queueItemId
+              ? appointments.filter((a) => a.queueItemId === filter.queueItemId)
+              : appointments,
+          ),
+        ),
       updateAppointmentById: jest.fn(),
     } as unknown as IAppointmentRepository;
+
+    const notificationService = {
+      createNotification: jest.fn(),
+    } as unknown as NotificationService;
 
     const service = new QueueItemService({
       queueItemRepository,
       queueRepository,
       appointmentRepository,
       prescriptionRepository: createFakePrescriptionRepository(),
+      notificationService,
     });
 
-    return { service, queueItemRepository, queueRepository };
+    return {
+      service,
+      queueItemRepository,
+      queueRepository,
+      appointmentRepository,
+      notificationService,
+    };
   }
 
   const now = new Date('2026-01-05T09:06:00-03:00');
 
-  it('marks a queue item absent once the 5-minute check-in tolerance has passed', async () => {
-    const { service, queueItemRepository } = buildService(
-      buildQueueItem(),
-      [buildAppointment()],
-    );
+  it('marks a queue item absent, cancels the appointment and notifies the patient once the 5-minute check-in tolerance has passed', async () => {
+    const {
+      service,
+      queueItemRepository,
+      appointmentRepository,
+      notificationService,
+    } = buildService(buildQueueItem(), [buildAppointment()]);
 
     const marked = await service.markMissedCheckInsAsAbsent(now);
 
@@ -519,19 +560,68 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
       'qi-1',
       expect.objectContaining({ status: EQueueItemStatus.ABSENT }),
     );
+    expect(appointmentRepository.updateAppointmentById).toHaveBeenCalledWith(
+      'appointment-1',
+      expect.objectContaining({ status: EAppointmentStatus.CANCELED }),
+    );
+    expect(notificationService.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.APPOINTMENT_AUTO_CANCELED,
+        appointmentId: 'appointment-1',
+        queueItemId: 'qi-1',
+      }),
+    );
   });
 
-  it('does not mark a patient absent while still inside the tolerance window', async () => {
+  it('does not mark a patient absent while still inside the tolerance window, but sends a one-time check-in reminder', async () => {
     const withinTolerance = new Date('2026-01-05T09:04:00-03:00');
-    const { service, queueItemRepository } = buildService(
-      buildQueueItem(),
-      [buildAppointment()],
-    );
+    const {
+      service,
+      queueItemRepository,
+      appointmentRepository,
+      notificationService,
+    } = buildService(buildQueueItem(), [buildAppointment()]);
 
     const marked = await service.markMissedCheckInsAsAbsent(withinTolerance);
 
     expect(marked).toHaveLength(0);
     expect(queueItemRepository.updateQueueItemById).not.toHaveBeenCalled();
+    expect(notificationService.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.CHECK_IN_REMINDER,
+        appointmentId: 'appointment-1',
+      }),
+    );
+    expect(appointmentRepository.updateAppointmentById).toHaveBeenCalledWith(
+      'appointment-1',
+      { checkInReminderSentAt: withinTolerance },
+    );
+  });
+
+  it('does not resend the check-in reminder on a later tick within the same window', async () => {
+    const laterTick = new Date('2026-01-05T09:04:30-03:00');
+    const { service, notificationService } = buildService(buildQueueItem(), [
+      buildAppointment({
+        checkInReminderSentAt: new Date('2026-01-05T09:04:00-03:00'),
+      }),
+    ]);
+
+    await service.markMissedCheckInsAsAbsent(laterTick);
+
+    expect(notificationService.createNotification).not.toHaveBeenCalled();
+  });
+
+  it('does not send a check-in reminder before the appointment time arrives', async () => {
+    const beforeAppointment = new Date('2026-01-05T08:59:00-03:00');
+    const { service, notificationService } = buildService(buildQueueItem(), [
+      buildAppointment(),
+    ]);
+
+    await service.markMissedCheckInsAsAbsent(beforeAppointment);
+
+    expect(notificationService.createNotification).not.toHaveBeenCalled();
   });
 
   it('does not touch a patient who already checked in', async () => {
@@ -547,14 +637,11 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
   });
 
   it('ignores appointments scheduled for a different day', async () => {
-    const { service, queueItemRepository } = buildService(
-      buildQueueItem(),
-      [
-        buildAppointment({
-          dateTime: new Date('2026-01-04T09:00:00-03:00'),
-        }),
-      ],
-    );
+    const { service, queueItemRepository } = buildService(buildQueueItem(), [
+      buildAppointment({
+        dateTime: new Date('2026-01-04T09:00:00-03:00'),
+      }),
+    ]);
 
     const marked = await service.markMissedCheckInsAsAbsent(now);
 
@@ -563,9 +650,6 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
   });
 
   it('does not mark a patient absent when the queue was never opened by the professional', async () => {
-    // Nothing to check into yet — that's QueueService.autoCancelUnopenedQueues'
-    // job, which cancels the whole queue and tells the patient why instead of
-    // silently blaming them for not checking in.
     const { service, queueItemRepository } = buildService(
       buildQueueItem(),
       [buildAppointment()],
