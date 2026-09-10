@@ -11,7 +11,6 @@
 - Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
 - considerar, na interface do aplicativo, critérios de acessibilidade das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2 aplicáveis a aplicativos móveis nativos — como tamanho mínimo de alvos de toque, suporte a múltiplas orientações de tela, alternativas a gestos multitoque e redução de entrada redundante de dados —, de modo a atender usuários idosos e com baixa familiaridade digital, mantendo a recepção presencial como canal alternativo para pacientes sem acesso ao aplicativo;
-- Ajustar posição da fila pois se um user marcar as 11 e um as 10 o primeiro é o que marcou primeiro ou seja o das 11 então vamos mudar a logica de fila, a posição do user so será mostrada quando estiver no dia da consulta quando tiver faltando 2h pra consulta pois a fila precisa ser reorganizada caso ele marca 11 o outro 9 a ai o oute 10 ia acaba ficando toda errada as posições. Ja que atualmente são duas filas no dia uma a tarde outra manha ou seja o cara pode marcar em qualquer horario disponivel pela manha ou pela tarde, as pessoas que forem cadastradas na fila de forma presencial elas entram conforme os horarios de cada user na fila exemplo uma pessoa é 10 outra 10:15 e outra 11:30 o tempo de atendimento é quinze então se a pessoa cehgar la vai ter os horarios que as recepcionista vão dizer que esta disponivel e ela pode escolher 10:30 ou 11h então será antes do de 11:30 então a posição na fila será atualizado, assim como se for AP ai temos a regra de um normal e um AP então se tiver 2 AN seguidos e surgiu um app que marcou presencial ai autera a posição novamente pra fica AN, AP, AN por isso adicionamos os avisos para o user.
 
 ---
 
@@ -206,7 +205,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (153)
+## ✅ Completed (157)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -394,3 +393,7 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 151. Harden the home screen's "active queues" widget and "Minhas Consultas" with a 5-second poll as a fallback to the existing WebSocket-driven cache invalidation, and keep a recently-cancelled appointment visible there with a "Cancelada" badge and an explanatory toast instead of silently vanishing.
 152. Fix the check-in reminder notification resending on every sweep tick instead of once — the appointment repository wasn't mapping the new dedupe field back from MongoDB — and add the two new notification types to the OpenAPI contract, which had been rejecting them with a 500 validation error.
 153. Fix the Explore screen's specialty filter throwing "Parameter specialty must be url encoded" whenever a specialty name contained a reserved character (e.g. a "/" combining two specialties) — the OpenAPI contract was missing `allowReserved: true` on every free-text query parameter (specialty and search on health professionals, search on health units, name on exam-offering search).
+154. Rework queue-position ordering to sort by the item's scheduled appointment time (falling back to check-in time, then booking time) instead of booking/creation order, fixing the bug where a patient who booked an earlier time slot after someone else had already booked a later slot still ended up behind them in the queue.
+155. Recalculate the AN/AP interleaving (regular, priority, regular, priority) from the full time-sorted queue on every mutating event — new booking, walk-in insertion, call, finish, absence — instead of only interleaving once at insertion, so a newly inserted priority patient correctly reshuffles a run of consecutive regular patients.
+156. Hide a patient's queue position until the day of the appointment and until 2 hours (configurable) are left before it, since positions aren't meaningful before the queue is close to being reorganized; add a background scheduler that promotes items into that 2h window as time passes and fires a "position revealed" notification once it does.
+157. Let front-desk walk-in registrations book the patient into a specific available time slot (computed from the professional's appointment duration) instead of appending them to the end of the queue, so a walk-in given, say, 10:30 is correctly placed ahead of an existing 11:30 booking by the same time-based ordering used for app bookings.
