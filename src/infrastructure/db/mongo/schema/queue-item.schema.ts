@@ -25,13 +25,30 @@ export const queueItemSchema = new mongoose.Schema(
 
     position: {
       type: Number,
-      required: true,
+      required: false,
+      default: null,
     },
 
     priority: {
       type: String,
       enum: Object.values(EQueueItemPriority),
       required: true,
+    },
+
+    scheduledDateTime: {
+      type: Date,
+      required: true,
+    },
+
+    isWalkIn: {
+      type: Boolean,
+      default: false,
+    },
+
+    positionRevealedAt: {
+      type: Date,
+      required: false,
+      default: null,
     },
 
     missedCalls: {
@@ -64,12 +81,17 @@ export const queueItemSchema = new mongoose.Schema(
 );
 
 queueItemSchema.index({ queueId: 1, code: 1 }, { unique: true });
+queueItemSchema.index({ queueId: 1, status: 1, scheduledDateTime: 1 });
+queueItemSchema.index({ status: 1, position: 1, scheduledDateTime: 1 });
 
 export interface IQueueItemSchema {
   queueId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
-  position: number;
+  position: number | null;
   priority: EQueueItemPriority;
+  scheduledDateTime: Date;
+  isWalkIn: boolean;
+  positionRevealedAt?: Date | null;
   missedCalls: number;
   room: string;
   status: EQueueItemStatus;

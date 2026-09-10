@@ -42,7 +42,7 @@ export class QueueNotificationService {
       const thresholds = notificationQueueConfig.thresholds;
       const position = queueItem.position;
 
-      if (!thresholds.includes(position)) {
+      if (position == null || !thresholds.includes(position)) {
         return null;
       }
 
@@ -109,6 +109,52 @@ export class QueueNotificationService {
         queueItemId: queueItem._id,
         queueId: queueItem.queueId,
         position: queueItem.position,
+        error: (error as Error).message,
+      });
+      return null;
+    }
+  }
+
+  async handleQueuePositionRevealed(
+    queueItem: IQueueItem,
+  ): Promise<INotification | null> {
+    try {
+      const isQueueOpenToday = await this.isQueueOpenToday(queueItem.queueId);
+      if (!isQueueOpenToday) {
+        Logger.info(
+          'Skipped queue position revealed notification: queue not open today',
+          {
+            patientId: queueItem.patientId,
+            queueItemId: queueItem._id,
+            queueId: queueItem.queueId,
+          },
+        );
+        return null;
+      }
+
+      const notification = await this.notificationService.createNotification({
+        patientId: queueItem.patientId,
+        title: 'Acompanhe sua posição na fila',
+        message: `Sua consulta entrou na janela de acompanhamento da fila. Sua posição atual é ${queueItem.position}.`,
+        type: ENotificationType.QUEUE_WINDOW_OPENED,
+        status: ENotificationStatus.PENDING,
+        queueItemId: queueItem._id,
+        priority: notificationQueueConfig.priorities.default,
+      });
+
+      Logger.info('Queue position revealed notification created', {
+        patientId: queueItem.patientId,
+        queueItemId: queueItem._id,
+        position: queueItem.position,
+        notificationId: notification._id,
+      });
+
+      return notification;
+    } catch (error) {
+      Logger.error('Failed to process queue position revealed notification', {
+        patientId: queueItem.patientId,
+        queueItemId: queueItem._id,
+        queueId: queueItem.queueId,
         error: (error as Error).message,
       });
       return null;

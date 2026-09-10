@@ -26,7 +26,6 @@ import {
   IQueueHistoryFilter,
 } from '../interfaces/queue-history.interface';
 import { AppError } from '../../../shared/errors/AppError';
-import { pickNextWaitingQueueItem } from '../../queue-item/utils/pick-next-queue-item';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
@@ -81,6 +80,7 @@ export class QueueService implements IQueueService {
 
     if (
       patientItem.status !== EQueueItemStatus.WAITING ||
+      patientItem.position == null ||
       patientItem.position <= 0
     ) {
       return null;
@@ -283,9 +283,8 @@ export class QueueService implements IQueueService {
         throw new AppError(404, 'Queue not found');
       }
 
-      const nextItem = await pickNextWaitingQueueItem(
+      const nextItem = await this.queueItemRepository.getNextWaitingQueueItem(
         queueManagement.queue._id,
-        this.queueItemRepository,
       );
 
       return { ...queueManagement, nextQueueItemId: nextItem?._id ?? null };

@@ -8,9 +8,11 @@ export interface IParamsCreateQueueItem {
   queueId: string;
   patientId: string;
   code?: string;
-  position: number;
+  position?: number | null;
   priority: EQueueItemPriority;
   status: EQueueItemStatus;
+  scheduledDateTime: Date;
+  isWalkIn?: boolean;
 }
 
 export type IParamsUpdateQueueItem = Partial<IQueueItem>;
@@ -29,11 +31,7 @@ export interface IQueueItemRepository {
     professionalId: string,
   ): Promise<IQueueItem[] | null>;
   getNextWaitingQueueItem(queueId: string): Promise<IQueueItem | null>;
-  getLastCalledQueueItem(queueId: string): Promise<IQueueItem | null>;
-  getNextWaitingQueueItemByPriorityGroup(
-    queueId: string,
-    isPriority: boolean,
-  ): Promise<IQueueItem | null>;
   getLastQueuePosition(queueId: string): Promise<number>;
   listQueueItems(filter: Partial<IQueueItem>): Promise<IQueueItem[]>;
+  findDistinctQueueIdsPendingPromotion(now: Date): Promise<string[]>;
 }

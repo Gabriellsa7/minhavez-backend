@@ -1,21 +1,16 @@
-import { QueueItemService } from '../../../../domain/queue-item/service/queue-item.service';
-import { NotificationService } from '../../../../domain/notification/service/notification.service';
+import { QueueOrderingService } from '../../../../domain/queue-item/service/queue-ordering.service';
 import { QueueNotificationService } from '../../../../domain/notification/service/queue-notification.service';
-import { AppointmentRepository } from '../../../repository/appointment/appointment.repository';
+import { NotificationService } from '../../../../domain/notification/service/notification.service';
 import { QueueItemRepository } from '../../../repository/queue-item/queue-item.repository';
 import { QueueRepository } from '../../../repository/queue/queue.repository';
-import { PrescriptionRepository } from '../../../repository/prescription/prescription.repository';
 import { NotificationRepository } from '../../../repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
 import { NotificationSocketGateway } from '../../../socket/notification.socket';
-import { QueueOrderingServiceFactory } from './queue-ordering.service.factory';
 
-export class QueueItemServiceFactory {
-  static create() {
+export class QueueOrderingServiceFactory {
+  static create(): QueueOrderingService {
     const queueItemRepository = new QueueItemRepository();
     const queueRepository = new QueueRepository();
-    const appointmentRepository = new AppointmentRepository();
-    const prescriptionRepository = new PrescriptionRepository();
     const notificationRepository = new NotificationRepository();
     const notificationService = new NotificationService({
       notificationRepository,
@@ -27,15 +22,10 @@ export class QueueItemServiceFactory {
       queueRepository,
     });
 
-    return new QueueItemService({
+    return new QueueOrderingService({
       queueItemRepository,
-      queueRepository,
-      appointmentRepository,
-      prescriptionRepository,
       queueNotificationService,
-      notificationService,
       notificationSocketGateway: NotificationSocketGateway.getInstance(),
-      queueOrderingService: QueueOrderingServiceFactory.create(),
     });
   }
 }

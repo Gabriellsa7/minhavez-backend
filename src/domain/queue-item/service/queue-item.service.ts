@@ -20,7 +20,7 @@ import { QueueNotificationService } from '../../notification/service/queue-notif
 import { NotificationService } from '../../notification/service/notification.service';
 import { ENotificationType } from '../../notification/interfaces/notification.interface';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
-import { pickNextWaitingQueueItem } from '../utils/pick-next-queue-item';
+import { QueueOrderingService } from './queue-ordering.service';
 import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
 import { Logger } from 'traceability';
 
@@ -39,6 +39,7 @@ export class QueueItemService implements IQueueItemService {
   private prescriptionRepository: IPrescriptionRepository;
   private queueNotificationService?: QueueNotificationService;
   private notificationService?: NotificationService;
+  private queueOrderingService: QueueOrderingService;
 
   constructor(params: {
     queueItemRepository: IQueueItemRepository;
@@ -48,6 +49,7 @@ export class QueueItemService implements IQueueItemService {
     queueNotificationService?: QueueNotificationService;
     notificationService?: NotificationService;
     notificationSocketGateway?: INotificationSocketGateway;
+    queueOrderingService?: QueueOrderingService;
   }) {
     this.queueItemRepository = params.queueItemRepository;
     this.queueRepository = params.queueRepository;
@@ -56,6 +58,13 @@ export class QueueItemService implements IQueueItemService {
     this.queueNotificationService = params.queueNotificationService;
     this.notificationService = params.notificationService;
     this.notificationSocketGateway = params.notificationSocketGateway;
+    this.queueOrderingService =
+      params.queueOrderingService ??
+      new QueueOrderingService({
+        queueItemRepository: params.queueItemRepository,
+        queueNotificationService: params.queueNotificationService,
+        notificationSocketGateway: params.notificationSocketGateway,
+      });
   }
   private notificationSocketGateway?: INotificationSocketGateway;
 
@@ -198,7 +207,7 @@ export class QueueItemService implements IQueueItemService {
     await this.completeAppointment(queueItemId);
 
     await this.advanceQueue(queueItem.queueId);
-    await this.recalculatePositions(queueItem.queueId);
+    await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 
     return updated!;
   }
@@ -233,7 +242,7 @@ export class QueueItemService implements IQueueItemService {
         );
 
         await this.advanceQueue(queueItem.queueId);
-        await this.recalculatePositions(queueItem.queueId);
+        await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 
         return updated!;
       }
@@ -250,7 +259,7 @@ export class QueueItemService implements IQueueItemService {
       );
 
       await this.advanceQueue(queueItem.queueId);
-      await this.recalculatePositions(queueItem.queueId);
+      await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 
       return updated!;
     } catch (error) {
@@ -412,7 +421,7 @@ export class QueueItemService implements IQueueItemService {
         },
       );
 
-      await this.recalculatePositions(queueItem.queueId);
+      await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 
       const [appointment] = await this.appointmentRepository.listAppointments({
         queueItemId,
@@ -465,9 +474,8 @@ export class QueueItemService implements IQueueItemService {
 
   private async advanceQueue(queueId: string): Promise<void> {
     try {
-      const next = await pickNextWaitingQueueItem(
+      const next = await this.queueItemRepository.getNextWaitingQueueItem(
         queueId,
-        this.queueItemRepository,
       );
 
       if (next) {
@@ -507,43 +515,14 @@ export class QueueItemService implements IQueueItemService {
       await this.queueNotificationService?.handleQueuePositionChange(
         updatedQueueItem,
       );
-      await this.recalculatePositions(updatedQueueItem.queueId);
+      await this.queueOrderingService.recalculatePositions(
+        updatedQueueItem.queueId,
+      );
 
       return updatedQueueItem;
     } catch (error) {
       throw new Error(`Error calling queue item: ${(error as Error).message}`);
     }
-  }
-
-  private async recalculatePositions(queueId: string): Promise<void> {
-    const waitingItems = (
-      await this.queueItemRepository.listQueueItems({ queueId })
-    )
-      .filter((item) => item.status === EQueueItemStatus.WAITING)
-      .sort((left, right) => left.position - right.position);
-
-    const changed = [] as IQueueItem[];
-    for (const [index, item] of waitingItems.entries()) {
-      const position = index + 1;
-      if (item.position !== position) {
-        const updated = await this.queueItemRepository.updateQueueItemById(
-          item._id,
-          { position },
-        );
-        if (updated) changed.push(updated);
-      }
-    }
-
-    for (const item of changed) {
-      await this.queueNotificationService?.handleQueuePositionChange(item);
-    }
-
-    this.notificationSocketGateway?.broadcastNotification({
-      type: 'queue.updated',
-      queueId,
-      changedQueueItemIds: changed.map((item) => item._id),
-      connectedAt: new Date().toISOString(),
-    });
   }
 
   private async completeAppointment(queueItemId: string): Promise<void> {

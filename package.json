@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --env-file=.env src/main.ts",
     "worker:notifications": "ts-node-dev --env-file=.env src/workers/notification.worker.ts",
+    "backfill:queue-item-scheduled-date-time": "ts-node --env-file=.env src/infrastructure/db/mongo/scripts/backfill-queue-item-scheduled-date-time.ts",
     "build": "tsc -p .;yarn run copy-essentials",
     "start": "node dist/src/main.js",
     "copy-essentials": "mkdir -p dist/src/contracts && cp src/contracts/*.yaml dist/src/contracts",

@@ -13,11 +13,17 @@ export class QueueItem implements IQueueItem {
 
   code: string;
 
-  position: number;
+  position: number | null;
 
   priority: EQueueItemPriority;
 
   status: EQueueItemStatus;
+
+  scheduledDateTime: Date;
+
+  isWalkIn: boolean;
+
+  positionRevealedAt?: Date | null;
 
   checkInTime?: Date | undefined;
 
@@ -41,6 +47,11 @@ export class QueueItem implements IQueueItem {
     this.position = data.position;
     this.priority = data.priority;
     this.status = data.status;
+    this.scheduledDateTime = new Date(data.scheduledDateTime);
+    this.isWalkIn = data.isWalkIn;
+    this.positionRevealedAt = data.positionRevealedAt
+      ? new Date(data.positionRevealedAt)
+      : data.positionRevealedAt;
     this.room = data.room;
     this.missedCalls = data.missedCalls;
     this.checkInTime = data.checkInTime

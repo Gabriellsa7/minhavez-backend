@@ -43,6 +43,8 @@ function buildQueueItem(overrides: Partial<IQueueItem>): IQueueItem {
     priority: EQueueItemPriority.MEDIUM,
     status: EQueueItemStatus.WAITING,
     missedCalls: 0,
+    scheduledDateTime: new Date(),
+    isWalkIn: false,
     ...overrides,
   };
 }

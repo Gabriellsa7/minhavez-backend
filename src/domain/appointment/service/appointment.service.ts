@@ -6,7 +6,6 @@ import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import {
   EQueueItemPriority,
   EQueueItemStatus,
-  IQueueItem,
 } from '../../queue-item/interfaces/queue-item.interface';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 import {
@@ -28,6 +27,7 @@ import { IHealthUnitRepository } from '../../health-unit/repository/health-unit.
 import { isHealthUnitOpenAt } from '../../health-unit/utils/opening-hours.util';
 import { AppointmentReminderService } from '../../notification/service/appointment-reminder.service';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
+import { QueueOrderingService } from '../../queue-item/service/queue-ordering.service';
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
 import { EPatientPriority } from '../../patient/interfaces/patient.interface';
@@ -49,6 +49,7 @@ export class AppointmentService implements IAppointmentService {
   private healthUnitRepository: IHealthUnitRepository;
   private appointmentReminderService?: AppointmentReminderService;
   private queueNotificationService?: QueueNotificationService;
+  private queueOrderingService: QueueOrderingService;
   private notificationJobScheduler?: INotificationJobScheduler;
   private patientRepository?: IPatientRepository;
   private notificationSocketGateway?: INotificationSocketGateway;
@@ -57,6 +58,7 @@ export class AppointmentService implements IAppointmentService {
     params: IParamsAppointmentService & {
       appointmentReminderService?: AppointmentReminderService;
       queueNotificationService?: QueueNotificationService;
+      queueOrderingService?: QueueOrderingService;
       notificationJobScheduler?: INotificationJobScheduler;
       patientRepository?: IPatientRepository;
       notificationSocketGateway?: INotificationSocketGateway;
@@ -72,6 +74,13 @@ export class AppointmentService implements IAppointmentService {
     this.notificationJobScheduler = params.notificationJobScheduler;
     this.patientRepository = params.patientRepository;
     this.notificationSocketGateway = params.notificationSocketGateway;
+    this.queueOrderingService =
+      params.queueOrderingService ??
+      new QueueOrderingService({
+        queueItemRepository: params.queueItemRepository,
+        queueNotificationService: params.queueNotificationService,
+        notificationSocketGateway: params.notificationSocketGateway,
+      });
   }
 
   async createAppointment(
@@ -255,15 +264,12 @@ export class AppointmentService implements IAppointmentService {
         queueItem = await this.queueItemRepository.createQueueItem({
           queueId: queue._id,
           patientId: params.patientId,
-          position: queueItems.length + 1,
           priority,
           status: EQueueItemStatus.WAITING,
+          scheduledDateTime: appointmentDateTime,
+          isWalkIn: params.isWalkIn ?? false,
         });
         createdQueueItemId = queueItem._id;
-
-        await this.queueNotificationService?.handleQueuePositionChange(
-          queueItem,
-        );
 
         this.notificationSocketGateway?.broadcastNotification({
           type: 'queue-item.created',
@@ -271,6 +277,8 @@ export class AppointmentService implements IAppointmentService {
           queueItemId: queueItem._id,
           professionalId: params.professionalId,
         });
+
+        await this.queueOrderingService.recalculatePositions(queue._id);
       }
 
       const appointment = await this.appointmentRepository.createAppointment({
@@ -506,44 +514,13 @@ export class AppointmentService implements IAppointmentService {
         return;
       }
 
-      await this.recalculateQueuePositions(queueItem.queueId);
+      await this.queueOrderingService.recalculatePositions(queueItem.queueId);
     } catch (error) {
       console.error(
         'Error removing queue item after appointment cancellation:',
         error,
       );
     }
-  }
-
-  private async recalculateQueuePositions(queueId: string): Promise<void> {
-    const waitingItems = (
-      await this.queueItemRepository.listQueueItems({ queueId })
-    )
-      .filter((item) => item.status === EQueueItemStatus.WAITING)
-      .sort((left, right) => left.position - right.position);
-
-    const changed: IQueueItem[] = [];
-    for (const [index, item] of waitingItems.entries()) {
-      const position = index + 1;
-      if (item.position !== position) {
-        const updatedItem = await this.queueItemRepository.updateQueueItemById(
-          item._id,
-          { position },
-        );
-        if (updatedItem) changed.push(updatedItem);
-      }
-    }
-
-    for (const item of changed) {
-      await this.queueNotificationService?.handleQueuePositionChange(item);
-    }
-
-    this.notificationSocketGateway?.broadcastNotification({
-      type: 'queue.updated',
-      queueId,
-      changedQueueItemIds: changed.map((item) => item._id),
-      connectedAt: new Date().toISOString(),
-    });
   }
 
   async deleteAppointmentById(id: string): Promise<IAppointment | null> {

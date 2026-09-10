@@ -397,18 +397,40 @@ describe('AppointmentService', () => {
       }),
     } as unknown as IQueueRepository;
 
-    const newQueueItem = {
-      _id: 'queue-item-10',
-      queueId: 'queue-1',
-      patientId: 'patient-10',
-      position: 10,
-      priority: EQueueItemPriority.MEDIUM,
-      status: EQueueItemStatus.WAITING,
-    };
+    const now = new Date();
+    const items: Record<string, unknown>[] = Array.from({ length: 9 }).map(
+      (_, index) => ({
+        _id: `queue-item-${index + 1}`,
+        queueId: 'queue-1',
+        patientId: `patient-${index + 1}`,
+        code: `AN00${index + 1}`,
+        position: index + 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.WAITING,
+        missedCalls: 0,
+        scheduledDateTime: new Date(now.getTime() + (index + 1) * 60 * 1000),
+        isWalkIn: false,
+      }),
+    );
 
     const queueItemRepository = {
-      listQueueItems: jest.fn().mockResolvedValue(new Array(9).fill({})),
-      createQueueItem: jest.fn().mockResolvedValue(newQueueItem),
+      listQueueItems: jest.fn(async () => items.map((item) => ({ ...item }))),
+      createQueueItem: jest.fn(async (params: Record<string, unknown>) => {
+        const created = {
+          _id: 'queue-item-10',
+          position: null,
+          missedCalls: 0,
+          ...params,
+        };
+        items.push(created);
+        return { ...created };
+      }),
+      updateQueueItemById: jest.fn(async (id: string, params: object) => {
+        const item = items.find((candidate) => candidate._id === id);
+        if (!item) return null;
+        Object.assign(item, params);
+        return { ...item };
+      }),
     } as unknown as IQueueItemRepository;
 
     const professionalRepository = {
@@ -419,8 +441,10 @@ describe('AppointmentService', () => {
     } as unknown as IHealthProfessionalRepository;
 
     const handleQueuePositionChange = jest.fn().mockResolvedValue(null);
+    const handleQueuePositionRevealed = jest.fn().mockResolvedValue(null);
     const queueNotificationService = {
       handleQueuePositionChange,
+      handleQueuePositionRevealed,
     } as unknown as QueueNotificationService;
 
     const service = new AppointmentService({
@@ -436,10 +460,16 @@ describe('AppointmentService', () => {
       patientId: 'patient-10',
       professionalId: 'professional-1',
       healthUnitId: 'unit-1',
-      dateTime: new Date(),
+      dateTime: new Date(now.getTime() + 100 * 60 * 1000),
     });
 
-    expect(handleQueuePositionChange).toHaveBeenCalledWith(newQueueItem);
+    expect(handleQueuePositionChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _id: 'queue-item-10',
+        patientId: 'patient-10',
+        position: 10,
+      }),
+    );
   });
 
   it('does not fire a position notification when the patient already had a queue item', async () => {
@@ -1393,12 +1423,18 @@ describe('AppointmentService', () => {
           queueId: 'queue-1',
           status: EQueueItemStatus.WAITING,
           position: 2,
+          priority: EQueueItemPriority.MEDIUM,
+          scheduledDateTime: new Date('2026-07-09T11:30:00.000Z'),
+          createdAt: new Date('2026-07-09T09:00:00.000Z'),
         },
         {
           _id: 'queue-item-3',
           queueId: 'queue-1',
           status: EQueueItemStatus.WAITING,
           position: 3,
+          priority: EQueueItemPriority.MEDIUM,
+          scheduledDateTime: new Date('2026-07-09T11:45:00.000Z'),
+          createdAt: new Date('2026-07-09T09:05:00.000Z'),
         },
       ];
 
@@ -1429,11 +1465,11 @@ describe('AppointmentService', () => {
       expect(queueRepository.deleteQueueById).not.toHaveBeenCalled();
       expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledWith(
         'queue-item-2',
-        { position: 1 },
+        expect.objectContaining({ position: 1 }),
       );
       expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledWith(
         'queue-item-3',
-        { position: 2 },
+        expect.objectContaining({ position: 2 }),
       );
     });
 

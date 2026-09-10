@@ -164,8 +164,17 @@ export class QueueRepository implements IQueueRepository {
         },
 
         {
+          $addFields: {
+            'queueItems.sortPosition': {
+              $ifNull: ['$queueItems.position', Number.MAX_SAFE_INTEGER],
+            },
+          },
+        },
+
+        {
           $sort: {
-            'queueItems.position': 1,
+            'queueItems.sortPosition': 1,
+            'queueItems.scheduledDateTime': 1,
           },
         },
 
@@ -241,6 +250,8 @@ export class QueueRepository implements IQueueRepository {
               position: '$queueItems.position',
               priority: '$queueItems.priority',
               status: '$queueItems.status',
+              scheduledDateTime: '$queueItems.scheduledDateTime',
+              isWalkIn: '$queueItems.isWalkIn',
               checkInTime: '$queueItems.checkInTime',
               calledAt: '$queueItems.calledAt',
               finishedAt: '$queueItems.finishedAt',

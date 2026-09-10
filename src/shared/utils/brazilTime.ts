@@ -27,6 +27,19 @@ export function toBrazilDayStart(date: Date): Date {
   );
 }
 
+export function fromBrazilWallClock(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+): Date {
+  return new Date(
+    Date.UTC(year, month - 1, day, hour, minute) +
+      BRAZIL_UTC_OFFSET_HOURS * 60 * 60 * 1000,
+  );
+}
+
 export function formatBrazilDateTime(date: Date): string {
   const shifted = toBrazilDate(date);
   const day = String(shifted.getUTCDate()).padStart(2, '0');

@@ -11,6 +11,7 @@ import {
   IQueueItemRepository,
 } from '../../../domain/queue-item/repository/queue-item.repository.interface';
 import { MQueueItem } from '../../db/mongo/models/queue-item.model';
+import { QUEUE_POSITION_WINDOW_MS } from '../../config/queue-position-window.constants';
 
 export class QueueItemRepository implements IQueueItemRepository {
   private mapToDomain(
@@ -21,8 +22,11 @@ export class QueueItemRepository implements IQueueItemRepository {
       queueId: queueItemDoc.queueId.toString(),
       patientId: queueItemDoc.patientId.toString(),
       code: queueItemDoc.code,
-      position: queueItemDoc.position,
+      position: queueItemDoc.position ?? null,
       priority: queueItemDoc.priority,
+      scheduledDateTime: queueItemDoc.scheduledDateTime,
+      isWalkIn: queueItemDoc.isWalkIn ?? false,
+      positionRevealedAt: queueItemDoc.positionRevealedAt ?? null,
       missedCalls: queueItemDoc.missedCalls,
       status: queueItemDoc.status,
       checkInTime: queueItemDoc.checkInTime,
@@ -175,34 +179,7 @@ export class QueueItemRepository implements IQueueItemRepository {
     const doc = await MQueueItem.findOne({
       queueId,
       status: EQueueItemStatus.WAITING,
-    }).sort({
-      position: 1,
-    });
-
-    return doc ? this.mapToDomain(doc) : null;
-  }
-
-  async getLastCalledQueueItem(queueId: string): Promise<IQueueItem | null> {
-    const doc = await MQueueItem.findOne({
-      queueId,
-      calledAt: { $ne: null },
-    }).sort({
-      calledAt: -1,
-    });
-
-    return doc ? this.mapToDomain(doc) : null;
-  }
-
-  async getNextWaitingQueueItemByPriorityGroup(
-    queueId: string,
-    isPriority: boolean,
-  ): Promise<IQueueItem | null> {
-    const doc = await MQueueItem.findOne({
-      queueId,
-      status: EQueueItemStatus.WAITING,
-      priority: isPriority
-        ? EQueueItemPriority.HIGH
-        : { $ne: EQueueItemPriority.HIGH },
+      position: { $ne: null },
     }).sort({
       position: 1,
     });
@@ -213,6 +190,7 @@ export class QueueItemRepository implements IQueueItemRepository {
   async getLastQueuePosition(queueId: string): Promise<number> {
     const last = await MQueueItem.findOne({
       queueId,
+      position: { $ne: null },
     }).sort({
       position: -1,
     });
@@ -227,5 +205,17 @@ export class QueueItemRepository implements IQueueItemRepository {
     } catch (error) {
       throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }
+  }
+
+  async findDistinctQueueIdsPendingPromotion(now: Date): Promise<string[]> {
+    const windowEnd = new Date(now.getTime() + QUEUE_POSITION_WINDOW_MS);
+
+    const ids = await MQueueItem.distinct('queueId', {
+      status: EQueueItemStatus.WAITING,
+      position: null,
+      scheduledDateTime: { $lte: windowEnd },
+    });
+
+    return ids.map((id) => id.toString());
   }
 }

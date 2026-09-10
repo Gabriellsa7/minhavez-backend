@@ -17,6 +17,7 @@ import { HealthUnitControllerFactory } from './infrastructure/config/factories/h
 import { PatientControllerFactory } from './infrastructure/config/factories/patient/patient.controller.factory';
 import { HealthProfessionalControllerFactory } from './infrastructure/config/factories/health-professional/health-professional.controller.factory';
 import { QueueControllerFactory } from './infrastructure/config/factories/queue/queue.controller.factory';
+import { AvailabilityControllerFactory } from './infrastructure/config/factories/availability/availability.controller.factory';
 import { QueueItemControllerFactory } from './infrastructure/config/factories/queue-item/queue-item.controller.factory';
 import { NotificationControllerFactory } from './infrastructure/config/factories/notification/notification.controller.factory';
 import { AppointmentControllerFactory } from './infrastructure/config/factories/appointment/appointment.controller.factory';
@@ -42,6 +43,9 @@ import { CheckInAutoAbsenceScheduler } from './infrastructure/queue/bullmq/check
 import { QueueItemServiceFactory } from './infrastructure/config/factories/queue-item/queue-item.service.factory';
 import { QueueAutoCancelUnopenedWorker } from './infrastructure/queue/bullmq/workers/queue-auto-cancel-unopened.worker';
 import { QueueAutoCancelUnopenedScheduler } from './infrastructure/queue/bullmq/queue-auto-cancel-unopened.scheduler';
+import { QueueWindowPromotionWorker } from './infrastructure/queue/bullmq/workers/queue-window-promotion.worker';
+import { QueueWindowPromotionScheduler } from './infrastructure/queue/bullmq/queue-window-promotion.scheduler';
+import { QueueOrderingServiceFactory } from './infrastructure/config/factories/queue-item/queue-ordering.service.factory';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -53,6 +57,7 @@ const app = new Server({
     HealthProfessionalControllerFactory.create(),
     QueueControllerFactory.create(),
     QueueItemControllerFactory.create(),
+    AvailabilityControllerFactory.create(),
     NotificationControllerFactory.create(),
     AppointmentControllerFactory.create(),
     RatingControllerFactory.create(),
@@ -95,6 +100,12 @@ async function start() {
   );
   checkInAutoAbsenceWorker.start();
   await new CheckInAutoAbsenceScheduler().registerRepeatableJob();
+
+  const queueWindowPromotionWorker = new QueueWindowPromotionWorker(
+    QueueOrderingServiceFactory.create(),
+  );
+  queueWindowPromotionWorker.start();
+  await new QueueWindowPromotionScheduler().registerRepeatableJob();
 }
 
 start();

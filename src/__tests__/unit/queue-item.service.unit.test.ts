@@ -56,37 +56,16 @@ function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
         .filter(
           (item) =>
             item.queueId === queueId &&
-            item.status === EQueueItemStatus.WAITING,
+            item.status === EQueueItemStatus.WAITING &&
+            item.position != null,
         )
-        .sort((left, right) => left.position - right.position);
+        .sort((left, right) => (left.position as number) - (right.position as number));
       return waiting[0] ? { ...waiting[0] } : null;
     }),
-    getLastCalledQueueItem: jest.fn(async (queueId: string) => {
-      const called = items
-        .filter((item) => item.queueId === queueId && item.calledAt)
-        .sort(
-          (left, right) =>
-            (right.calledAt as Date).getTime() -
-            (left.calledAt as Date).getTime(),
-        );
-      return called[0] ? { ...called[0] } : null;
-    }),
-    getNextWaitingQueueItemByPriorityGroup: jest.fn(
-      async (queueId: string, isPriority: boolean) => {
-        const waiting = items
-          .filter(
-            (item) =>
-              item.queueId === queueId &&
-              item.status === EQueueItemStatus.WAITING &&
-              (isPriority
-                ? item.priority === EQueueItemPriority.HIGH
-                : item.priority !== EQueueItemPriority.HIGH),
-          )
-          .sort((left, right) => left.position - right.position);
-        return waiting[0] ? { ...waiting[0] } : null;
-      },
+    getLastQueuePosition: jest.fn(
+      async () => items.filter((item) => item.position != null).length,
     ),
-    getLastQueuePosition: jest.fn(async () => items.length),
+    findDistinctQueueIdsPendingPromotion: jest.fn(async () => []),
     createQueueItem: jest.fn(),
     deleteQueueItemById: jest.fn(),
     getQueueItemsByPatientId: jest.fn(),
@@ -107,6 +86,9 @@ describe('QueueItemService position notifications', () => {
         priority: EQueueItemPriority.MEDIUM,
         status: EQueueItemStatus.WAITING,
         missedCalls: 0,
+        scheduledDateTime: new Date(Date.now() + 30 * 60 * 1000),
+        isWalkIn: false,
+        createdAt: new Date(Date.now() - 3000),
       },
       {
         _id: 'qi-2',
@@ -117,6 +99,9 @@ describe('QueueItemService position notifications', () => {
         priority: EQueueItemPriority.MEDIUM,
         status: EQueueItemStatus.WAITING,
         missedCalls: 0,
+        scheduledDateTime: new Date(Date.now() + 30 * 60 * 1000),
+        isWalkIn: false,
+        createdAt: new Date(Date.now() - 2000),
       },
       {
         _id: 'qi-3',
@@ -127,6 +112,9 @@ describe('QueueItemService position notifications', () => {
         priority: EQueueItemPriority.MEDIUM,
         status: EQueueItemStatus.WAITING,
         missedCalls: 0,
+        scheduledDateTime: new Date(Date.now() + 30 * 60 * 1000),
+        isWalkIn: false,
+        createdAt: new Date(Date.now() - 1000),
       },
     ];
 
@@ -140,8 +128,10 @@ describe('QueueItemService position notifications', () => {
     } as unknown as IAppointmentRepository;
 
     const handleQueuePositionChange = jest.fn().mockResolvedValue(null);
+    const handleQueuePositionRevealed = jest.fn().mockResolvedValue(null);
     const queueNotificationService = {
       handleQueuePositionChange,
+      handleQueuePositionRevealed,
     } as unknown as QueueNotificationService;
 
     const service = new QueueItemService({
@@ -187,6 +177,8 @@ describe('QueueItemService finishQueueItem return-scheduling guard', () => {
       priority: EQueueItemPriority.MEDIUM,
       status: EQueueItemStatus.IN_SERVICE,
       missedCalls: 0,
+      scheduledDateTime: new Date(),
+      isWalkIn: false,
     };
   }
 
@@ -299,6 +291,8 @@ describe('QueueItemService finishQueueItem prescription guard', () => {
       priority: EQueueItemPriority.MEDIUM,
       status: EQueueItemStatus.IN_SERVICE,
       missedCalls: 0,
+      scheduledDateTime: new Date(),
+      isWalkIn: false,
     };
   }
 
@@ -358,6 +352,8 @@ describe('QueueItemService checkInQueueItem', () => {
       priority: EQueueItemPriority.MEDIUM,
       status: EQueueItemStatus.WAITING,
       missedCalls: 0,
+      scheduledDateTime: new Date(),
+      isWalkIn: false,
       ...overrides,
     };
   }
@@ -461,6 +457,8 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
       priority: EQueueItemPriority.MEDIUM,
       status: EQueueItemStatus.WAITING,
       missedCalls: 0,
+      scheduledDateTime: new Date(),
+      isWalkIn: false,
       ...overrides,
     };
   }

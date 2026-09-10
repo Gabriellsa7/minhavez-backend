@@ -11,6 +11,7 @@ import { PatientRepository } from '../../../repository/patient/patient.repositor
 import { NotificationRepository } from '../../../repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../queue/bullmq/notification-job-scheduler';
 import { NotificationSocketGateway } from '../../../socket/notification.socket';
+import { QueueOrderingServiceFactory } from '../queue-item/queue-ordering.service.factory';
 
 export class AppointmentServiceFactory {
   static create() {
@@ -44,6 +45,7 @@ export class AppointmentServiceFactory {
       patientRepository: patientRepo,
       appointmentReminderService,
       queueNotificationService,
+      queueOrderingService: QueueOrderingServiceFactory.create(),
       notificationJobScheduler,
       notificationSocketGateway: NotificationSocketGateway.getInstance(),
     });

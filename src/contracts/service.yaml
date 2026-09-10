@@ -6018,11 +6018,30 @@ components:
             new queue is created daily.
         position:
           type: integer
-          description: The position of the queue item in the queue
+          nullable: true
+          description: >-
+            The position of the queue item in the queue. Null until the
+            patient's appointment is within 2 hours, since positions are
+            only calculated and revealed close to the appointment time.
         priority:
           type: string
           enum: [LOW, MEDIUM, HIGH]
           description: The priority level of the patient (1-5)
+        scheduledDateTime:
+          type: string
+          format: date-time
+          description: The scheduled appointment date and time backing this queue item
+        isWalkIn:
+          type: boolean
+          description: Whether this queue item was registered in person at the front desk
+        positionRevealedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            The date and time this item's position was first revealed
+            (i.e. when it entered the 2-hour window). Null if not yet
+            revealed.
         missedCalls:
           type: number
           description: The Missed Calls
@@ -6067,6 +6086,7 @@ components:
         - queueId
         - patientId
         - priority
+        - scheduledDateTime
       properties:
         queueId:
           type: string
@@ -6078,6 +6098,13 @@ components:
           type: string
           enum: [LOW, MEDIUM, HIGH]
           description: The priority level of the patient (1-5)
+        scheduledDateTime:
+          type: string
+          format: date-time
+          description: The scheduled appointment date and time backing this queue item
+        isWalkIn:
+          type: boolean
+          description: Whether this queue item was registered in person at the front desk
     UpdateQueueItem:
       type: object
       properties:
@@ -6089,6 +6116,7 @@ components:
           description: The patient identifier associated with the queue item
         position:
           type: integer
+          nullable: true
           description: The position of the queue item in the queue
         priority:
           type: string
@@ -6333,6 +6361,9 @@ components:
         notes:
           type: string
           description: Notes about the appointment
+        isWalkIn:
+          type: boolean
+          description: Whether this appointment was registered in person at the front desk
     UpdateAppointment:
       type: object
       properties:

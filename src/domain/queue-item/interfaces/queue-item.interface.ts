@@ -3,10 +3,13 @@ export interface IQueueItem {
   queueId: string;
   patientId: string;
   code: string;
-  position: number;
+  position: number | null;
   priority: EQueueItemPriority;
   missedCalls: number;
   status: EQueueItemStatus;
+  scheduledDateTime: Date;
+  isWalkIn: boolean;
+  positionRevealedAt?: Date | null;
   checkInTime?: Date;
   calledAt?: Date;
   finishedAt?: Date;

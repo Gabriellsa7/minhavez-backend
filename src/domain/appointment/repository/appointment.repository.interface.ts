@@ -12,6 +12,7 @@ export interface IParamsCreateAppointment {
   dateTime: Date;
   notes?: string;
   isReturn?: boolean;
+  isWalkIn?: boolean;
 
   originQueueItemId?: string;
 }
