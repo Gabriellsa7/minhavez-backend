@@ -9,6 +9,7 @@ import {
 } from '../repository/queue-item.repository.interface';
 import { IQueueItemService } from '../interfaces/queue-item.service.interface';
 import { IQueueRepository } from '../../queue/repository/queue.repository.interface';
+import { EQueueStatus } from '../../queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../appointment/repository/appointment.repository.interface';
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { IPrescriptionRepository } from '../../prescription/repository/prescription.repository.interface';
@@ -349,6 +350,16 @@ export class QueueItemService implements IQueueItemService {
       }
 
       if (queueItem.checkInTime) return null;
+
+      // A patient can't be blamed for missing check-in on a queue the
+      // professional never opened (or already closed) — there was nothing to
+      // check into. That case is QueueService.autoCancelUnopenedQueues'
+      // job instead, which cancels the queue and tells the patient why. Only
+      // a queue actually running can produce a genuine no-show here.
+      const queue = await this.queueRepository.getQueueById(queueItem.queueId);
+      if (!queue || queue.status === EQueueStatus.CLOSED) {
+        return null;
+      }
 
       const updated = await this.queueItemRepository.updateQueueItemById(
         queueItemId,

@@ -6,6 +6,7 @@ import {
 } from '../../domain/queue-item/interfaces/queue-item.interface';
 import { IQueueItemRepository } from '../../domain/queue-item/repository/queue-item.repository.interface';
 import { IQueueRepository } from '../../domain/queue/repository/queue.repository.interface';
+import { EQueueStatus, IQueue } from '../../domain/queue/interfaces/queue.interface';
 import { IAppointmentRepository } from '../../domain/appointment/repository/appointment.repository.interface';
 import {
   EAppointmentStatus,
@@ -463,9 +464,29 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
     };
   }
 
-  function buildService(queueItem: IQueueItem, appointments: IAppointment[]) {
+  function buildQueue(overrides: Partial<IQueue> = {}): IQueue {
+    return {
+      _id: 'queue-1',
+      professionalId: 'professional-1',
+      healthUnitId: 'unit-1',
+      queueDate: new Date('2026-01-05T09:00:00-03:00'),
+      shift: 'MORNING' as IQueue['shift'],
+      status: EQueueStatus.OPEN,
+      openedAt: new Date('2026-01-05T08:00:00-03:00'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    } as IQueue;
+  }
+
+  function buildService(
+    queueItem: IQueueItem,
+    appointments: IAppointment[],
+    queue: IQueue | null = buildQueue(),
+  ) {
     const queueItemRepository = createFakeQueueItemRepository([queueItem]);
     const queueRepository = {
+      getQueueById: jest.fn().mockResolvedValue(queue),
       updateQueueById: jest.fn(),
     } as unknown as IQueueRepository;
     const appointmentRepository = {
@@ -480,7 +501,7 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
       prescriptionRepository: createFakePrescriptionRepository(),
     });
 
-    return { service, queueItemRepository };
+    return { service, queueItemRepository, queueRepository };
   }
 
   const now = new Date('2026-01-05T09:06:00-03:00');
@@ -539,5 +560,51 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
 
     expect(marked).toHaveLength(0);
     expect(queueItemRepository.updateQueueItemById).not.toHaveBeenCalled();
+  });
+
+  it('does not mark a patient absent when the queue was never opened by the professional', async () => {
+    // Nothing to check into yet — that's QueueService.autoCancelUnopenedQueues'
+    // job, which cancels the whole queue and tells the patient why instead of
+    // silently blaming them for not checking in.
+    const { service, queueItemRepository } = buildService(
+      buildQueueItem(),
+      [buildAppointment()],
+      buildQueue({ status: EQueueStatus.CLOSED, openedAt: undefined }),
+    );
+
+    const marked = await service.markMissedCheckInsAsAbsent(now);
+
+    expect(marked).toHaveLength(0);
+    expect(queueItemRepository.updateQueueItemById).not.toHaveBeenCalled();
+  });
+
+  it('does not mark a patient absent when the queue has already been closed', async () => {
+    const { service, queueItemRepository } = buildService(
+      buildQueueItem(),
+      [buildAppointment()],
+      buildQueue({ status: EQueueStatus.CLOSED, closedAt: new Date() }),
+    );
+
+    const marked = await service.markMissedCheckInsAsAbsent(now);
+
+    expect(marked).toHaveLength(0);
+    expect(queueItemRepository.updateQueueItemById).not.toHaveBeenCalled();
+  });
+
+  it('marks a patient absent once the queue is actually open and running', async () => {
+    const { service, queueItemRepository, queueRepository } = buildService(
+      buildQueueItem(),
+      [buildAppointment()],
+      buildQueue({ status: EQueueStatus.IN_PROGRESS }),
+    );
+
+    const marked = await service.markMissedCheckInsAsAbsent(now);
+
+    expect(queueRepository.getQueueById).toHaveBeenCalledWith('queue-1');
+    expect(marked).toHaveLength(1);
+    expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledWith(
+      'qi-1',
+      expect.objectContaining({ status: EQueueItemStatus.ABSENT }),
+    );
   });
 });
