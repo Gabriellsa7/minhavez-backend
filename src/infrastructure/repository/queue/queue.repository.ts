@@ -490,6 +490,17 @@ export class QueueRepository implements IQueueRepository {
                 },
               },
             },
+            inServiceCount: {
+              $size: {
+                $filter: {
+                  input: '$queueItems',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', EQueueItemStatus.IN_SERVICE],
+                  },
+                },
+              },
+            },
             appointmentDuration: '$professional.appointmentDuration',
           },
         },
@@ -497,10 +508,19 @@ export class QueueRepository implements IQueueRepository {
         {
           $project: {
             waitingCount: 1,
+            // A patient currently IN_SERVICE isn't in `waitingCount`, but
+            // still has to finish before anyone joining now is seen — so
+            // the clinic/professional's configured slot length is always
+            // the floor for the estimate, never zero for an active queue.
             estimatedWaitMinutes: {
               $cond: [
                 { $gt: ['$appointmentDuration', 0] },
-                { $multiply: ['$waitingCount', '$appointmentDuration'] },
+                {
+                  $multiply: [
+                    { $add: ['$waitingCount', '$inServiceCount'] },
+                    '$appointmentDuration',
+                  ],
+                },
                 null,
               ],
             },

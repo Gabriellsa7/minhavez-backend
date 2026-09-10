@@ -98,7 +98,13 @@ export class QueueService implements IQueueService {
 
     if (!appointmentDuration) return null;
 
-    return (patientItem.position - 1) * appointmentDuration;
+    // `position` only counts patients still WAITING — the one currently
+    // IN_SERVICE is excluded from it entirely, yet still has to finish
+    // before anyone waiting is seen. So the next patient in line (position
+    // 1) still faces a full appointmentDuration of wait, not zero: the
+    // clinic/professional's configured slot length is the floor for anyone
+    // actually waiting, not just a per-person increment.
+    return patientItem.position * appointmentDuration;
   }
 
   private hasShiftStarted(shift: EQueueShift, now: Date): boolean {

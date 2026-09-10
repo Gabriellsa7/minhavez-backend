@@ -10,18 +10,20 @@
 - Refactor the APP, especially the React Query request handling — _in progress_.
 - Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
-- desenvolver o módulo de agendamento de consultas, com entrada do paciente na fila mediante confirmação de presença (check-in) na unidade, respeitando uma tolerância de atraso definida pela unidade, e com controle de ausência e de retorno de consulta;
 - considerar, na interface do aplicativo, critérios de acessibilidade das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2 aplicáveis a aplicativos móveis nativos — como tamanho mínimo de alvos de toque, suporte a múltiplas orientações de tela, alternativas a gestos multitoque e redução de entrada redundante de dados —, de modo a atender usuários idosos e com baixa familiaridade digital, mantendo a recepção presencial como canal alternativo para pacientes sem acesso ao aplicativo;
-- Adicionar regra pra cancelar a fila e a consulta automaticamente se passar do tempo e o medico não abrir ela limite de 20 minutos de atraso, pois o medico pode esquecer de cancelar a fila.
-- Ajustar mensagem de erro quando um user tenta marcar a consulta no mesmo dia que ja tem uma marcada, ja que não tem como ler aparece bem embaixo e o x pra fechar ta muito colado no canto sem padding.
+- Ajustar posição da fila pois se um user marcar as 11 e um as 10 o primeiro é o que marcou primeiro ou seja o das 11 então vamos mudar a logica de fila, a posição do user so será mostrada quando estiver no dia da consulta quando tiver faltando 2h pra consulta pois a fila precisa ser reorganizada caso ele marca 11 o outro 9 a ai o oute 10 ia acaba ficando toda errada as posições. Ja que atualmente são duas filas no dia uma a tarde outra manha ou seja o cara pode marcar em qualquer horario disponivel pela manha ou pela tarde, as pessoas que forem cadastradas na fila de forma presencial elas entram conforme os horarios de cada user na fila exemplo uma pessoa é 10 outra 10:15 e outra 11:30 o tempo de atendimento é quinze então se a pessoa cehgar la vai ter os horarios que as recepcionista vão dizer que esta disponivel e ela pode escolher 10:30 ou 11h então será antes do de 11:30 então a posição na fila será atualizado, assim como se for AP ai temos a regra de um normal e um AP então se tiver 2 AN seguidos e surgiu um app que marcou presencial ai autera a posição novamente pra fica AN, AP, AN por isso adicionamos os avisos para o user.
+-
+-
+-
+- Caso o user não faça o check-in nos 5 minutos de limite a partir do horario da consulta, sua consulta será cancelada ele será removido da fia e recebera uma notificação avisando que foi cancelado pq ele não fez o check-in, alem disso implementar tbm um aviso pra ele fazer o check-in e uma notificação sobre isso tbm, esse aviso de fazer o check-in aparecera no car de consultas que aparece quando marca uma ocnsulta ele aparece na home, aparecera nas infos da fila tbm e em formato de notificação.
 
 ---
 
 ## 🔢 Versioning (semver)
 
-| Type            | Format    | When to use                                                                                    | Command                                |
-| --------------- | --------- | ---------------------------------------------------------------------------------------------- | -------------------------------------- |
-| **patch** | `1.0.x` | Bug fixes, small tweaks, no visible behavior change. This is what the builds do automatically. | —                                     |
+| Type      | Format  | When to use                                                                                    | Command                              |
+| --------- | ------- | ---------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **patch** | `1.0.x` | Bug fixes, small tweaks, no visible behavior change. This is what the builds do automatically. | —                                    |
 | **minor** | `1.x.0` | New feature that doesn't break anything existing.                                              | `node scripts/bump-version.js minor` |
 | **major** | `x.0.0` | Big/breaking change, redesign, or an important product milestone.                              | `node scripts/bump-version.js major` |
 
@@ -336,16 +338,16 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 97. Show the user's profile picture -> header.tsx and profile-content.tsx.
 98. Add a button to edit/upload the profile picture in the app - profile-content.tsx.
 99. Automatically mark a patient as priority at registration when their age is over 60 (previously every registration defaulted to regular).
-100. Add a new dropdown at registration, based on the backend enum, for the patient to select whether they have a condition that grants priority attendance.
-101. In the priority dropdown, when a chronic-condition-type option is selected, show a small yellow message below it recommending they bring proof on the day or attach it in their profile — worded in the most recommended style.
-102. Add a new profile screen for the patient to attach a PDF or image proving the condition that grants priority, including optional fields like blood type and other health info.
-103. Update the yellow message in the patient registration modal to also mention uploading proof in their profile.
-104. Let the patient edit their priority status from their profile, since they currently can't, and a health issue that grants priority could arise later in life.
-105. Add a new "more settings" screen consolidating all the profile settings, since profile currently has many navigation buttons; leave the profile screen with just the photo/name, personal info, health info (new card matching the Figma design), notifications, and log out.
-106. Shrink the font size of the "not informed" blood-type label.
-107. Show the current app version and a copyright message ("made by Gabriel Santana Santos") at the bottom of the profile screen, after the last component.
-108. Add logic so that when a user taps their profile picture in the header (including on the home screen), they're taken to their profile.
-109. Add logic so that tapping the profile picture on the profile screen zooms it, similar to WhatsApp, so the user can view it properly.
+100.  Add a new dropdown at registration, based on the backend enum, for the patient to select whether they have a condition that grants priority attendance.
+101.  In the priority dropdown, when a chronic-condition-type option is selected, show a small yellow message below it recommending they bring proof on the day or attach it in their profile — worded in the most recommended style.
+102.  Add a new profile screen for the patient to attach a PDF or image proving the condition that grants priority, including optional fields like blood type and other health info.
+103.  Update the yellow message in the patient registration modal to also mention uploading proof in their profile.
+104.  Let the patient edit their priority status from their profile, since they currently can't, and a health issue that grants priority could arise later in life.
+105.  Add a new "more settings" screen consolidating all the profile settings, since profile currently has many navigation buttons; leave the profile screen with just the photo/name, personal info, health info (new card matching the Figma design), notifications, and log out.
+106.  Shrink the font size of the "not informed" blood-type label.
+107.  Show the current app version and a copyright message ("made by Gabriel Santana Santos") at the bottom of the profile screen, after the last component.
+108.  Add logic so that when a user taps their profile picture in the header (including on the home screen), they're taken to their profile.
+109.  Add logic so that tapping the profile picture on the profile screen zooms it, similar to WhatsApp, so the user can view it properly.
 
 ### 🎨 UX, Theme & Errors
 
@@ -376,3 +378,8 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 131. Swap the Tutorial's `{/* IMG: ... */}` placeholders for real screenshots of the app and manager (admin, doctor/exam, front desk), organized under `static/img/`.
 132. Check whether Papertrail is configured in the PROD environment.
 133. Impelmentar um aviso na parte da fila para casos de alterações por prioridade, encaixe ou ausência, com aviso explícito na interface sobre essa possibilidade de alteração;
+134. desenvolver o módulo de agendamento de consultas, com entrada do paciente na fila mediante confirmação de presença (check-in) na unidade, respeitando uma tolerância de atraso definida pela unidade, e com controle de ausência e de retorno de consulta;
+135. Adicionar regra pra cancelar a fila e a consulta automaticamente se passar do tempo e o medico não abrir ela limite de 20 minutos de atraso, pois o medico pode esquecer de cancelar a fila.
+136. Ajustar mensagem de erro quando um user tenta marcar a consulta no mesmo dia que ja tem uma marcada, ja que não tem como ler aparece bem embaixo e o x pra fechar ta muito colado no canto sem padding.
+137. Resolver o problema de qualquer erro que acontece aparece um toaster de erro em branco que so fecha se marcar no x na parte de baixo do app.
+138. Ajustar o espera estimada pra colocar o minimo que a clinica ou medico selecionou tipo 15 mintos e etc.
