@@ -37,6 +37,9 @@ import { NotificationSocketGateway } from './infrastructure/socket/notification.
 import { QueueAutoCloseWorker } from './infrastructure/queue/bullmq/workers/queue-auto-close.worker';
 import { QueueAutoCloseScheduler } from './infrastructure/queue/bullmq/queue-auto-close.scheduler';
 import { QueueServiceFactory } from './infrastructure/config/factories/queue/queue.service.factory';
+import { CheckInAutoAbsenceWorker } from './infrastructure/queue/bullmq/workers/check-in-auto-absence.worker';
+import { CheckInAutoAbsenceScheduler } from './infrastructure/queue/bullmq/check-in-auto-absence.scheduler';
+import { QueueItemServiceFactory } from './infrastructure/config/factories/queue-item/queue-item.service.factory';
 
 const app = new Server({
   port: Number(process.env.PORT) || 3000,
@@ -78,6 +81,12 @@ async function start() {
   );
   queueAutoCloseWorker.start();
   await new QueueAutoCloseScheduler().registerRepeatableJobs();
+
+  const checkInAutoAbsenceWorker = new CheckInAutoAbsenceWorker(
+    QueueItemServiceFactory.create(),
+  );
+  checkInAutoAbsenceWorker.start();
+  await new CheckInAutoAbsenceScheduler().registerRepeatableJob();
 }
 
 start();

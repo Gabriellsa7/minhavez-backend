@@ -27,5 +27,7 @@ export interface IQueueItemService {
   finishQueueItem(queueItemId: string): Promise<IQueueItem>;
   markQueueItemAsAbsent(queueItemId: string): Promise<IQueueItem>;
   callQueueItem(id: string): Promise<IQueueItem>;
+  checkInQueueItem(queueItemId: string): Promise<IQueueItem>;
+  markMissedCheckInsAsAbsent(now?: Date): Promise<IQueueItem[]>;
   listQueueItem(filter: Partial<IQueueItem>): Promise<IQueueItem[]>;
 }

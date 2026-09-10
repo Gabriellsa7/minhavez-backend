@@ -1966,6 +1966,51 @@ paths:
         '500':
           description: Internal server error
 
+  /queue-items/{id}/check-in:
+    patch:
+      tags:
+        - Queue Items
+      summary: Check in a patient waiting in the queue
+      operationId: checkInQueueItem
+      description: >-
+        Confirms the patient is physically present at the unit, ahead of
+        being called. Used by the front-desk (admin, exam professional, or
+        receptionist) after looking up the patient by CPF.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Queue item ID
+      responses:
+        '200':
+          description: Check-in recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '400':
+          description: Invalid request (patient not waiting, or already checked in)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /queue-items/professionals/{id}:
     get:
       tags:

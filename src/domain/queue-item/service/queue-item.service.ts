@@ -15,6 +15,9 @@ import { IPrescriptionRepository } from '../../prescription/repository/prescript
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { INotificationSocketGateway } from '../../notification/interfaces/notification-socket.interface';
 import { pickNextWaitingQueueItem } from '../utils/pick-next-queue-item';
+import { isSameBrazilDay } from '../../../shared/utils/brazilTime';
+
+const CHECK_IN_TOLERANCE_MINUTES = 5;
 
 export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
@@ -238,6 +241,132 @@ export class QueueItemService implements IQueueItemService {
       return updated!;
     } catch (error) {
       throw new Error(`Error listing queue items: ${(error as Error).message}`);
+    }
+  }
+
+  /** Confirms the patient is physically present at the unit, ahead of being
+   * called. This is independent from `calledAt`/`finishedAt`: those mark the
+   * moment the professional attends the patient, while check-in is the
+   * front-desk gate that feeds the late-tolerance/absence rule below. */
+  async checkInQueueItem(queueItemId: string): Promise<IQueueItem> {
+    const queueItem =
+      await this.queueItemRepository.getQueueItemById(queueItemId);
+
+    if (!queueItem) throw new Error('Queue item not found');
+
+    if (queueItem.status !== EQueueItemStatus.WAITING) {
+      throw new Error('Somente pacientes aguardando podem fazer check-in');
+    }
+
+    if (queueItem.checkInTime) {
+      throw new Error('Check-in já realizado para este paciente');
+    }
+
+    const checkInTime = new Date();
+
+    const updated = await this.queueItemRepository.updateQueueItemById(
+      queueItemId,
+      { checkInTime },
+    );
+
+    await this.mirrorCheckInToAppointment(queueItemId, checkInTime);
+
+    // Lets the patient's queue screen and the professional's live queue
+    // panel pick up the check-in without a manual refresh — both already
+    // invalidate their queue queries on any broadcast (see
+    // NotificationService.subscribeToSocket / QueueSocketService).
+    this.notificationSocketGateway?.broadcastNotification({
+      type: 'queue-item.checked-in',
+      queueId: queueItem.queueId,
+      queueItemId: queueItem._id,
+      patientId: queueItem.patientId,
+    });
+
+    return updated!;
+  }
+
+  /** Keeps Appointment.checkInAt as a denormalized copy of the check-in
+   * recorded on the queue item, so the appointment keeps its own arrival
+   * record even if the queue item is later deleted (e.g. cancellation). */
+  private async mirrorCheckInToAppointment(
+    queueItemId: string,
+    checkInTime: Date,
+  ): Promise<void> {
+    const [appointment] = await this.appointmentRepository.listAppointments({
+      queueItemId,
+    });
+
+    if (!appointment) return;
+
+    await this.appointmentRepository.updateAppointmentById(appointment._id, {
+      checkInAt: checkInTime,
+    });
+  }
+
+  /** Sweeps today's scheduled appointments and marks as ABSENT any queue
+   * item whose patient never checked in within the unit's late-tolerance
+   * window. Run periodically by a scheduled worker — see
+   * CheckInAutoAbsenceWorker. */
+  async markMissedCheckInsAsAbsent(now: Date = new Date()): Promise<IQueueItem[]> {
+    const scheduledAppointments = await this.appointmentRepository.listAppointments({
+      status: EAppointmentStatus.SCHEDULED,
+    });
+
+    const overdueAppointments = scheduledAppointments.filter((appointment) => {
+      if (!appointment.queueItemId || appointment.checkInAt) return false;
+      if (!isSameBrazilDay(new Date(appointment.dateTime), now)) return false;
+
+      const toleranceCutoff =
+        new Date(appointment.dateTime).getTime() +
+        CHECK_IN_TOLERANCE_MINUTES * 60 * 1000;
+
+      return now.getTime() >= toleranceCutoff;
+    });
+
+    const marked: IQueueItem[] = [];
+
+    for (const appointment of overdueAppointments) {
+      const absentItem = await this.markAbsentForMissedCheckIn(
+        appointment.queueItemId!,
+      );
+      if (absentItem) marked.push(absentItem);
+    }
+
+    return marked;
+  }
+
+  /** Best-effort per item: one stale/already-handled queue item shouldn't
+   * abort the sweep for the rest of the day's appointments. */
+  private async markAbsentForMissedCheckIn(
+    queueItemId: string,
+  ): Promise<IQueueItem | null> {
+    try {
+      const queueItem =
+        await this.queueItemRepository.getQueueItemById(queueItemId);
+
+      if (!queueItem || queueItem.status !== EQueueItemStatus.WAITING) {
+        return null;
+      }
+
+      if (queueItem.checkInTime) return null;
+
+      const updated = await this.queueItemRepository.updateQueueItemById(
+        queueItemId,
+        {
+          status: EQueueItemStatus.ABSENT,
+          finishedAt: new Date(),
+        },
+      );
+
+      await this.recalculatePositions(queueItem.queueId);
+
+      return updated;
+    } catch (error) {
+      console.error(
+        `Error marking queue item ${queueItemId} absent for missed check-in:`,
+        error,
+      );
+      return null;
     }
   }
 

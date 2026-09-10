@@ -5,6 +5,10 @@ import {
   IParamsCreateQueueItem,
   IParamsUpdateQueueItem,
 } from '../../../domain/queue-item/repository/queue-item.repository.interface';
+import {
+  authMiddleware,
+  authorizeAdminOrExamProfessionalOrReceptionist,
+} from '../middlewary/auth.middleware';
 
 export class QueueItemController implements IController {
   router: Router;
@@ -33,6 +37,12 @@ export class QueueItemController implements IController {
     this.router.patch('/queue-items/:id/finish', this.finishQueueItem);
     this.router.patch('/queue-items/:id/absent', this.markQueueItemAsAbsent);
     this.router.patch('/queue-items/:id/call', this.callQueueItem);
+    this.router.patch(
+      '/queue-items/:id/check-in',
+      authMiddleware,
+      authorizeAdminOrExamProfessionalOrReceptionist,
+      this.checkInQueueItem,
+    );
     this.router.delete('/queue-items/:id', this.deleteQueueItem);
   }
 
@@ -172,6 +182,23 @@ export class QueueItemController implements IController {
       const { id } = req.params;
 
       const queueItem = await this.queueItemService.callQueueItem(id);
+
+      res.status(200).json(queueItem);
+    } catch (error) {
+      res.status(400).json({
+        message: (error as Error).message,
+      });
+    }
+  };
+
+  checkInQueueItem = async (
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> => {
+    try {
+      const queueItem = await this.queueItemService.checkInQueueItem(
+        req.params.id,
+      );
 
       res.status(200).json(queueItem);
     } catch (error) {
