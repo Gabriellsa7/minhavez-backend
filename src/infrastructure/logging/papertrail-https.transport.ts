@@ -19,11 +19,17 @@ const SYSLOG_SEVERITY_BY_LEVEL: Record<string, number> = {
 const SYSLOG_FACILITY_LOCAL0 = 16;
 const HOSTNAME = os.hostname();
 const APP_NAME = process.env.SERVICE_NAME || 'minhavez-backend';
+const MAX_BATCH_SIZE = 50;
+const FLUSH_INTERVAL_MS = 2000;
 
 export class PapertrailHttpsTransport extends Transport {
   private readonly endpoint: string;
 
   private readonly token: string;
+
+  private buffer: string[] = [];
+
+  private flushTimer: NodeJS.Timeout | null = null;
 
   constructor(opts: PapertrailHttpsTransportOptions) {
     super(opts);
@@ -34,7 +40,33 @@ export class PapertrailHttpsTransport extends Transport {
   log(info: Record<string | symbol, unknown>, callback: () => void): void {
     setImmediate(() => this.emit('logged', info));
 
-    const body = this.toSyslogLine(info);
+    this.buffer.push(this.toSyslogLine(info));
+
+    if (this.buffer.length >= MAX_BATCH_SIZE) {
+      this.flush();
+    } else if (!this.flushTimer) {
+      this.flushTimer = setTimeout(() => this.flush(), FLUSH_INTERVAL_MS).unref();
+    }
+
+    callback();
+  }
+
+  close(): void {
+    this.flush();
+  }
+
+  private flush(): void {
+    if (this.flushTimer) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+
+    if (this.buffer.length === 0) {
+      return;
+    }
+
+    const body = this.buffer.join('\n');
+    this.buffer = [];
 
     fetch(this.endpoint, {
       method: 'POST',
@@ -45,10 +77,8 @@ export class PapertrailHttpsTransport extends Transport {
       body,
       signal: AbortSignal.timeout(5000),
     }).catch((error) => {
-      console.error('[papertrail] failed to ship log:', error);
+      console.error('[papertrail] failed to ship log batch:', error);
     });
-
-    callback();
   }
 
   private toSyslogLine(info: Record<string | symbol, unknown>): string {
