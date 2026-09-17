@@ -10,9 +10,6 @@
 - Refactor the APP, especially the React Query request handling — _in progress_.
 - Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
-- considerar, na interface do aplicativo, critérios de acessibilidade das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2 aplicáveis a aplicativos móveis nativos — como tamanho mínimo de alvos de toque, suporte a múltiplas orientações de tela, alternativas a gestos multitoque e redução de entrada redundante de dados —, de modo a atender usuários idosos e com baixa familiaridade digital, mantendo a recepção presencial como canal alternativo para pacientes sem acesso ao aplicativo;
-
----
 
 ## 🔢 Versioning (semver)
 
@@ -205,7 +202,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (157)
+## ✅ Completed (160)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -397,3 +394,6 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 155. Recalculate the AN/AP interleaving (regular, priority, regular, priority) from the full time-sorted queue on every mutating event — new booking, walk-in insertion, call, finish, absence — instead of only interleaving once at insertion, so a newly inserted priority patient correctly reshuffles a run of consecutive regular patients.
 156. Hide a patient's queue position until the day of the appointment and until 2 hours (configurable) are left before it, since positions aren't meaningful before the queue is close to being reorganized; add a background scheduler that promotes items into that 2h window as time passes and fires a "position revealed" notification once it does.
 157. Let front-desk walk-in registrations book the patient into a specific available time slot (computed from the professional's appointment duration) instead of appending them to the end of the queue, so a walk-in given, say, 10:30 is correctly placed ahead of an existing 11:30 booking by the same time-based ordering used for app bookings.
+158. Apply WCAG 2.2 target-size guidance across the app for elderly and low-digital-literacy users: add `hitSlop` to the shared header's back/avatar buttons (used on 20+ screens), the home header avatar, the agenda calendar's month-navigation arrows and day cells, and the profile screen's avatar-edit button, since those icon-only touch targets had little to no forgiveness around them.
+159. Support both screen orientations per WCAG 2.2 instead of locking the app to portrait: unlock orientation in `app.json`, and swap the image viewer's and the home screen's queue-details carousel static `Dimensions.get("window")` reads for `useWindowDimensions()` so their layout reacts correctly when the device rotates.
+160. Reduce redundant data entry per WCAG 2.2: prefill the "forgot password" modal's email field with whatever the patient already typed into the login form's email field in the same session, instead of asking them to retype it from scratch.
