@@ -6,9 +6,6 @@
 
 ## 📋 Backlog
 
-- Polish the manager UI (doctor and admin) and the app too.
-- Refactor the APP, especially the React Query request handling — _in progress_.
-- Refactor the receptionist panel.
 - Set up Papertrail error alerts to be emailed to me.
 
 ## 🔢 Versioning (semver)
@@ -397,3 +394,6 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 158. Apply WCAG 2.2 target-size guidance across the app for elderly and low-digital-literacy users: add `hitSlop` to the shared header's back/avatar buttons (used on 20+ screens), the home header avatar, the agenda calendar's month-navigation arrows and day cells, and the profile screen's avatar-edit button, since those icon-only touch targets had little to no forgiveness around them.
 159. Support both screen orientations per WCAG 2.2 instead of locking the app to portrait: unlock orientation in `app.json`, and swap the image viewer's and the home screen's queue-details carousel static `Dimensions.get("window")` reads for `useWindowDimensions()` so their layout reacts correctly when the device rotates.
 160. Reduce redundant data entry per WCAG 2.2: prefill the "forgot password" modal's email field with whatever the patient already typed into the login form's email field in the same session, instead of asking them to retype it from scratch.
+161. Polish the manager UI (doctor and admin) and the app too.
+162. Refactor the APP, especially the React Query request handling — _in progress_.
+163. Refactor the receptionist panel.
