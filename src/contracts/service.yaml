@@ -1246,6 +1246,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Create a new queue
@@ -1258,6 +1260,18 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateQueue'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '201':
           description: Queue created successfully
           content:
@@ -1310,6 +1324,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Update a queue
@@ -1330,6 +1346,18 @@ paths:
               $ref: '#/components/schemas/UpdateQueue'
               description: The data to update the queue with
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue updated successfully
           content:
@@ -1359,6 +1387,8 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Delete a queue
@@ -1372,6 +1402,18 @@ paths:
             type: string
             description: The ID of the queue
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue deleted successfully
           content:
@@ -1547,6 +1589,8 @@ paths:
 
   /queues/{id}/open:
     patch:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Open queue by ID
@@ -1560,6 +1604,18 @@ paths:
             type: string
           description: The ID of the queue
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue opened successfully
           content:
@@ -1590,6 +1646,8 @@ paths:
 
   /queues/{id}/close:
     patch:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Close queue by ID
@@ -1603,6 +1661,18 @@ paths:
             type: string
           description: The ID of the queue
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue closed successfully
           content:
@@ -1893,6 +1963,8 @@ paths:
 
   /queue-items/{id}/finish:
     patch:
+      security:
+        - bearerAuth: []
       summary: Finish queue item
       description: Marks the current queue item as finished and automatically calls the next patient. If there are no more waiting patients, the queue is closed.
       tags:
@@ -1904,6 +1976,18 @@ paths:
           schema:
             type: string
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item finished successfully
           content:
@@ -1917,6 +2001,8 @@ paths:
 
   /queue-items/{id}/absent:
     patch:
+      security:
+        - bearerAuth: []
       summary: Mark queue item as absent
       description: >
         Marks the patient as absent. On the first absence the patient is moved
@@ -1931,6 +2017,18 @@ paths:
           schema:
             type: string
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item updated successfully
           content:
@@ -1944,6 +2042,8 @@ paths:
 
   /queue-items/{id}/call:
     patch:
+      security:
+        - bearerAuth: []
       tags:
         - Queue Items
       summary: Call a patient from the queue
@@ -1956,6 +2056,18 @@ paths:
             type: string
           description: Queue item ID
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin or the health professional who owns the queue)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item called successfully
           content:
@@ -2387,6 +2499,12 @@ paths:
                 $ref: '#/components/schemas/Appointment'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '409':
+          description: The professional's slot was taken by a concurrent booking
           content:
             application/json:
               schema:

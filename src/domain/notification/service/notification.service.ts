@@ -64,10 +64,13 @@ export class NotificationService implements INotificationService {
         status: notification.status,
       });
 
-      this.notificationSocketGateway?.broadcastNotification({
-        type: 'notification.created',
-        notification,
-      });
+      this.notificationSocketGateway?.broadcastNotification(
+        {
+          type: 'notification.created',
+          notification,
+        },
+        { patientIds: [notification.patientId] },
+      );
 
       if (this.notificationJobScheduler) {
         await this.notificationJobScheduler.enqueue({
@@ -204,10 +207,13 @@ export class NotificationService implements INotificationService {
             },
           });
         await this.notificationJobScheduler?.enqueueReceipt(id);
-        this.notificationSocketGateway?.broadcastNotification({
-          type: 'notification.delivered',
-          notification: updated,
-        });
+        this.notificationSocketGateway?.broadcastNotification(
+          {
+            type: 'notification.delivered',
+            notification: updated,
+          },
+          { patientIds: [notification.patientId] },
+        );
         return updated;
       } catch (postSendError) {
         Logger.error('Push was sent but post-send bookkeeping failed', {

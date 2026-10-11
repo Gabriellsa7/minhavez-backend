@@ -88,6 +88,7 @@ export class AppointmentService implements IAppointmentService {
   ): Promise<IAppointment> {
     let createdQueueId: string | null = null;
     let createdQueueItemId: string | null = null;
+    let createdQueueItemQueueId: string | null = null;
 
     try {
       if (params.queueItemId) {
@@ -270,13 +271,17 @@ export class AppointmentService implements IAppointmentService {
           isWalkIn: params.isWalkIn ?? false,
         });
         createdQueueItemId = queueItem._id;
+        createdQueueItemQueueId = queue._id;
 
-        this.notificationSocketGateway?.broadcastNotification({
-          type: 'queue-item.created',
-          queueId: queue._id,
-          queueItemId: queueItem._id,
-          professionalId: params.professionalId,
-        });
+        this.notificationSocketGateway?.broadcastNotification(
+          {
+            type: 'queue-item.created',
+            queueId: queue._id,
+            queueItemId: queueItem._id,
+            professionalId: params.professionalId,
+          },
+          { healthUnitId: queue.healthUnitId, patientIds: [params.patientId] },
+        );
 
         await this.queueOrderingService.recalculatePositions(queue._id);
       }
@@ -296,7 +301,11 @@ export class AppointmentService implements IAppointmentService {
 
       return appointment;
     } catch (error) {
-      await this.rollbackOrphanedQueueState(createdQueueItemId, createdQueueId);
+      await this.rollbackOrphanedQueueState(
+        createdQueueItemId,
+        createdQueueId,
+        createdQueueItemQueueId,
+      );
 
       if (error instanceof Error) {
         throw error;
@@ -326,6 +335,7 @@ export class AppointmentService implements IAppointmentService {
   private async rollbackOrphanedQueueState(
     queueItemId: string | null,
     queueId: string | null,
+    queueItemQueueId: string | null,
   ): Promise<void> {
     try {
       if (queueItemId) {
@@ -333,6 +343,9 @@ export class AppointmentService implements IAppointmentService {
       }
       if (queueId) {
         await this.queueRepository.deleteQueueById(queueId);
+      } else if (queueItemId && queueItemQueueId) {
+        // The removed item was already counted in the surviving queue's positions.
+        await this.queueOrderingService.recalculatePositions(queueItemQueueId);
       }
     } catch (cleanupError) {
       console.error('Error rolling back orphaned queue state:', cleanupError);

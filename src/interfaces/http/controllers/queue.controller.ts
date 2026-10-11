@@ -2,6 +2,11 @@ import { Request, Response, Router, NextFunction } from 'express';
 import { IController } from './IController';
 import { IQueueService } from '../../../domain/queue/interfaces/queue.service.interface';
 import { IParamsCreateQueue } from '../../../domain/queue/repository/queue.repository.interface';
+import {
+  authMiddleware,
+  authorizeAdminOrHealthProfessional,
+  authorizeQueueOwner,
+} from '../middlewary/auth.middleware';
 
 export class QueueController implements IController {
   router: Router;
@@ -33,19 +38,52 @@ export class QueueController implements IController {
       '/queue/professional/:professionalId/history',
       this.getQueueHistoryByProfessionalId,
     );
-    this.router.post('/queues', this.createQueue);
-    this.router.delete('/queues/:id', this.deleteQueueById);
-    this.router.patch('/queues/:id/open', this.openQueue);
-    this.router.patch('/queues/:id/close', this.closeQueue);
+    this.router.post(
+      '/queues',
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(async (req) => req.body?.professionalId),
+      this.createQueue,
+    );
+    this.router.delete(
+      '/queues/:id',
+      ...this.queueWriteGuards(),
+      this.deleteQueueById,
+    );
+    this.router.patch(
+      '/queues/:id/open',
+      ...this.queueWriteGuards(),
+      this.openQueue,
+    );
+    this.router.patch(
+      '/queues/:id/close',
+      ...this.queueWriteGuards(),
+      this.closeQueue,
+    );
     this.router.get(
       '/queues/professional/:professionalId',
       this.getQueuesByProfessionalId,
     );
-    this.router.put('/queues/:id', this.updateQueueById);
+    this.router.put(
+      '/queues/:id',
+      ...this.queueWriteGuards(),
+      this.updateQueueById,
+    );
     this.router.get(
       '/health-units/:id/queue-summary',
       this.getHealthUnitQueueSummary,
     );
+  }
+
+  private queueWriteGuards() {
+    return [
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(async (req) => {
+        const queue = await this.queueService.getQueueById(req.params.id);
+        return queue?.professionalId;
+      }),
+    ];
   }
 
   getQueue = async (req: Request, res: Response): Promise<void> => {

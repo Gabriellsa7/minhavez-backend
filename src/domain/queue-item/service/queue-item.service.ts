@@ -290,12 +290,15 @@ export class QueueItemService implements IQueueItemService {
 
     await this.mirrorCheckInToAppointment(queueItemId, checkInTime);
 
-    this.notificationSocketGateway?.broadcastNotification({
-      type: 'queue-item.checked-in',
-      queueId: queueItem.queueId,
-      queueItemId: queueItem._id,
-      patientId: queueItem.patientId,
-    });
+    this.notificationSocketGateway?.broadcastNotification(
+      {
+        type: 'queue-item.checked-in',
+        queueId: queueItem.queueId,
+        queueItemId: queueItem._id,
+        patientId: queueItem.patientId,
+      },
+      { queueId: queueItem.queueId, patientIds: [queueItem.patientId] },
+    );
 
     return updated!;
   }

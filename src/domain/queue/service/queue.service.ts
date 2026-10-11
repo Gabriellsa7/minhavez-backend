@@ -379,19 +379,25 @@ export class QueueService implements IQueueService {
         throw new Error('Queue not found');
       }
 
-      const closedQueueItemIds = await this.closeUnattendedQueueItems(
+      const closedQueueItems = await this.closeUnattendedQueueItems(
         queueId,
         queue.healthUnitId,
         reason,
       );
 
-      this.notificationSocketGateway?.broadcastNotification({
-        type: 'queue.closed',
-        queueId,
-        closedQueueItemIds,
-        closedAt: updatedQueue.closedAt?.toISOString(),
-        reason: reason ?? null,
-      });
+      this.notificationSocketGateway?.broadcastNotification(
+        {
+          type: 'queue.closed',
+          queueId,
+          closedQueueItemIds: closedQueueItems.map((item) => item._id),
+          closedAt: updatedQueue.closedAt?.toISOString(),
+          reason: reason ?? null,
+        },
+        {
+          healthUnitId: queue.healthUnitId,
+          patientIds: closedQueueItems.map((item) => item.patientId),
+        },
+      );
 
       return updatedQueue;
     } catch (error) {
@@ -403,7 +409,7 @@ export class QueueService implements IQueueService {
     queueId: string,
     healthUnitId: string,
     reason?: string,
-  ): Promise<string[]> {
+  ): Promise<IQueueItem[]> {
     const queueItems = await this.queueItemRepository.listQueueItems({
       queueId,
     });
@@ -445,7 +451,7 @@ export class QueueService implements IQueueService {
       });
     }
 
-    return pendingItems.map((item) => item._id);
+    return pendingItems;
   }
 
   async autoCloseQueuesForShift(shift: EQueueShift): Promise<void> {

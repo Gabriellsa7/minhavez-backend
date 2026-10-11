@@ -5,17 +5,25 @@ import {
   IParamsCreateQueueItem,
   IParamsUpdateQueueItem,
 } from '../../../domain/queue-item/repository/queue-item.repository.interface';
+import { IQueueService } from '../../../domain/queue/interfaces/queue.service.interface';
 import {
   authMiddleware,
   authorizeAdminOrExamProfessionalOrReceptionist,
+  authorizeAdminOrHealthProfessional,
+  authorizeQueueOwner,
 } from '../middlewary/auth.middleware';
 
 export class QueueItemController implements IController {
   router: Router;
   private readonly queueItemService: IQueueItemService;
+  private readonly queueService: Pick<IQueueService, 'getQueueById'>;
 
-  constructor(queueItemService: IQueueItemService) {
+  constructor(
+    queueItemService: IQueueItemService,
+    queueService: Pick<IQueueService, 'getQueueById'>,
+  ) {
     this.queueItemService = queueItemService;
+    this.queueService = queueService;
     this.router = Router();
     this.initRoutes();
   }
@@ -34,9 +42,21 @@ export class QueueItemController implements IController {
     this.router.get('/queue-items/queues/:queueId', this.getQueueItemByQueueId);
     this.router.post('/queue-items', this.createQueueItem);
     this.router.put('/queue-items/:id', this.updateQueueItem);
-    this.router.patch('/queue-items/:id/finish', this.finishQueueItem);
-    this.router.patch('/queue-items/:id/absent', this.markQueueItemAsAbsent);
-    this.router.patch('/queue-items/:id/call', this.callQueueItem);
+    this.router.patch(
+      '/queue-items/:id/finish',
+      ...this.queueOperatorGuards(),
+      this.finishQueueItem,
+    );
+    this.router.patch(
+      '/queue-items/:id/absent',
+      ...this.queueOperatorGuards(),
+      this.markQueueItemAsAbsent,
+    );
+    this.router.patch(
+      '/queue-items/:id/call',
+      ...this.queueOperatorGuards(),
+      this.callQueueItem,
+    );
     this.router.patch(
       '/queue-items/:id/check-in',
       authMiddleware,
@@ -44,6 +64,21 @@ export class QueueItemController implements IController {
       this.checkInQueueItem,
     );
     this.router.delete('/queue-items/:id', this.deleteQueueItem);
+  }
+
+  private queueOperatorGuards() {
+    return [
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(async (req) => {
+        const queueItem = await this.queueItemService.getQueueItemById(
+          req.params.id,
+        );
+        if (!queueItem) return null;
+        const queue = await this.queueService.getQueueById(queueItem.queueId);
+        return queue?.professionalId;
+      }),
+    ];
   }
 
   getQueueItems = async (req: Request, res: Response): Promise<void> => {

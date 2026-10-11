@@ -63,6 +63,22 @@ export const appointmentSchema = new mongoose.Schema(
   },
 );
 
+// Atomic guard against double-booking: only one active appointment per
+// professional and slot. Canceled/finished appointments free the slot.
+export const ACTIVE_APPOINTMENT_STATUSES = [
+  EAppointmentStatus.SCHEDULED,
+  EAppointmentStatus.IN_PROGRESS,
+];
+
+appointmentSchema.index(
+  { professionalId: 1, dateTime: 1 },
+  {
+    unique: true,
+    name: 'uniq_active_professional_slot',
+    partialFilterExpression: { status: { $in: ACTIVE_APPOINTMENT_STATUSES } },
+  },
+);
+
 export interface IAppointmentSchema {
   patientId: mongoose.Types.ObjectId;
   professionalId: mongoose.Types.ObjectId;

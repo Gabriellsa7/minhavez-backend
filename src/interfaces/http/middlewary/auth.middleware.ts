@@ -225,3 +225,39 @@ export const authorizePrincipalTypes =
 
     next();
   };
+
+export const authorizeQueueOwner =
+  (
+    resolveProfessionalId: (
+      req: Request,
+    ) => Promise<string | null | undefined>,
+  ) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      sendError(req, res, 401, 'Unauthorized');
+      return;
+    }
+
+    const isAdmin =
+      req.user.principalType === EPrincipalType.USER &&
+      req.user.role === EUserRole.ADMIN;
+
+    if (isAdmin) {
+      next();
+      return;
+    }
+
+    try {
+      const professionalId = await resolveProfessionalId(req);
+
+      // Missing resources fall through so the handler answers with its own 404/400.
+      if (professionalId && professionalId !== req.user.sub) {
+        sendError(req, res, 403, 'Forbidden');
+        return;
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };

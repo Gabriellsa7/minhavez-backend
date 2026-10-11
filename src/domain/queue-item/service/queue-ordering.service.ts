@@ -170,13 +170,19 @@ export class QueueOrderingService {
     }
 
     if (changed.length > 0) {
-      this.notificationSocketGateway?.broadcastNotification({
-        type: 'queue.updated',
-        queueId,
-        changedQueueItemIds: changed.map((item) => item._id),
-        promotedQueueItemIds: revealed.map((item) => item._id),
-        connectedAt: new Date().toISOString(),
-      });
+      this.notificationSocketGateway?.broadcastNotification(
+        {
+          type: 'queue.updated',
+          queueId,
+          changedQueueItemIds: changed.map((item) => item._id),
+          promotedQueueItemIds: revealed.map((item) => item._id),
+          connectedAt: new Date().toISOString(),
+        },
+        {
+          queueId,
+          patientIds: [...changed, ...revealed].map((item) => item.patientId),
+        },
+      );
     }
   }
 

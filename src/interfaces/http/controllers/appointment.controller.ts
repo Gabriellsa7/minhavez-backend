@@ -221,9 +221,10 @@ export class AppointmentController implements IController {
         '[AppointmentController] Error creating appointment:',
         error,
       );
-      res.status(400).json({
+      const status = error instanceof AppError ? error.status : 400;
+      res.status(status).json({
         message: (error as Error).message,
-        status: 400,
+        status,
         timestamp: new Date().toISOString(),
         path: req.path,
         errors: [

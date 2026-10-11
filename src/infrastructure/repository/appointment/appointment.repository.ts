@@ -12,6 +12,13 @@ import {
 } from '../../../domain/appointment/repository/appointment.repository.interface';
 import { MAppointment } from '../../db/mongo/models/appointment.model';
 import { IPaginationParams } from '../../../shared/utils/pagination';
+import { AppError } from '../../../shared/errors/AppError';
+
+const SLOT_TAKEN_MESSAGE =
+  'This professional already has an appointment at this time';
+
+const isDuplicateKeyError = (error: unknown): boolean =>
+  (error as { code?: number }).code === 11000;
 
 export class AppointmentRepository implements IAppointmentRepository {
   private mapToDomain(
@@ -55,11 +62,15 @@ export class AppointmentRepository implements IAppointmentRepository {
         const appointmentDoc = await MAppointment.create(appointmentToCreate);
         return this.mapToDomain(appointmentDoc);
       } catch (conversionError) {
+        if (isDuplicateKeyError(conversionError)) {
+          throw new AppError(409, SLOT_TAKEN_MESSAGE);
+        }
         throw new Error(
           `Invalid ID format: ${(conversionError as Error).message}`,
         );
       }
     } catch (error) {
+      if (error instanceof AppError) throw error;
       console.error(
         '[AppointmentRepository] Error creating appointment:',
         error,
@@ -83,6 +94,9 @@ export class AppointmentRepository implements IAppointmentRepository {
 
       return this.mapToDomain(appointmentDoc);
     } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        throw new AppError(409, SLOT_TAKEN_MESSAGE);
+      }
       throw new Error(
         `Error updating appointment by ID: ${(error as Error).message}`,
       );

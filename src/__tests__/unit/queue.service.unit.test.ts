@@ -186,6 +186,10 @@ describe('QueueService.closeQueue', () => {
         closedQueueItemIds: expect.arrayContaining(['qi-1', 'qi-2']),
         reason: 'Emergência médica',
       }),
+      {
+        healthUnitId: 'unit-1',
+        patientIds: ['patient-1', 'patient-2'],
+      },
     );
 
     expect(createNotification).toHaveBeenCalledWith(
@@ -382,6 +386,7 @@ describe('QueueService.closeQueue', () => {
     );
     expect(broadcastNotification).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'queue.closed', queueId: 'queue-1' }),
+      expect.objectContaining({ healthUnitId: 'unit-1' }),
     );
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -485,9 +490,11 @@ describe('QueueService.autoCloseQueuesForShift', () => {
         queueId: 'queue-morning-open',
         reason: 'Fila encerrada automaticamente pelo horário de expediente.',
       }),
+      expect.anything(),
     );
     expect(broadcastNotification).not.toHaveBeenCalledWith(
       expect.objectContaining({ queueId: 'queue-afternoon-open' }),
+      expect.anything(),
     );
   });
 });

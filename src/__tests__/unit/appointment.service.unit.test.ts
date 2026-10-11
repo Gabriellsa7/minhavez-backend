@@ -221,12 +221,15 @@ describe('AppointmentService', () => {
       dateTime: new Date('2026-07-06T13:00:00.000Z'),
     });
 
-    expect(broadcastNotification).toHaveBeenCalledWith({
-      type: 'queue-item.created',
-      queueId: 'queue-1',
-      queueItemId: 'queue-item-1',
-      professionalId: 'professional-1',
-    });
+    expect(broadcastNotification).toHaveBeenCalledWith(
+      {
+        type: 'queue-item.created',
+        queueId: 'queue-1',
+        queueItemId: 'queue-item-1',
+        professionalId: 'professional-1',
+      },
+      { healthUnitId: 'unit-1', patientIds: ['patient-2'] },
+    );
   });
 
   it('creates the queue item with HIGH priority for a non-NORMAL patient, so it joins the AP line', async () => {
