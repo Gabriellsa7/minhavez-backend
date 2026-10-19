@@ -5934,7 +5934,6 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
-            - CHRONIC_CONDITION
           description: The priority level of the patient (1-5)
         bloodType:
           type: string
@@ -6048,7 +6047,6 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
-            - CHRONIC_CONDITION
           description: |
             Priority classification of the patient.
 
@@ -6056,7 +6054,6 @@ components:
             ELDERLY - Elderly patient
             PREGNANT - Pregnant patient
             DISABLED - Patient with disability
-            CHRONIC_CONDITION - Chronic condition/health issue
     UpdatePatient:
       type: object
       properties:
@@ -6080,7 +6077,6 @@ components:
             - ELDERLY
             - PREGNANT
             - DISABLED
-            - CHRONIC_CONDITION
           description: The priority level of the patient (1-5)
         bloodType:
           type: string

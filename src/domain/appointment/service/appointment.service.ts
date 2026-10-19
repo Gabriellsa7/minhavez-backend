@@ -30,7 +30,7 @@ import { QueueNotificationService } from '../../notification/service/queue-notif
 import { QueueOrderingService } from '../../queue-item/service/queue-ordering.service';
 import { INotificationJobScheduler } from '../../notification/interfaces/notification-job-scheduler.interface';
 import { IPatientRepository } from '../../patient/repository/patient.repository.interface';
-import { EPatientPriority } from '../../patient/interfaces/patient.interface';
+import { isPriorityCategory } from '../../patient/interfaces/patient.interface';
 import { AppError } from '../../../shared/errors/AppError';
 import {
   isSameBrazilDay,
@@ -257,10 +257,9 @@ export class AppointmentService implements IAppointmentService {
         const patient = await this.patientRepository?.getPatientById(
           params.patientId,
         );
-        const priority =
-          patient && patient.priority !== EPatientPriority.NORMAL
-            ? EQueueItemPriority.HIGH
-            : EQueueItemPriority.MEDIUM;
+        const priority = isPriorityCategory(patient?.priority)
+          ? EQueueItemPriority.HIGH
+          : EQueueItemPriority.MEDIUM;
 
         queueItem = await this.queueItemRepository.createQueueItem({
           queueId: queue._id,
