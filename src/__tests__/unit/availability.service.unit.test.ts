@@ -30,6 +30,15 @@ function buildAppointment(overrides: Partial<IAppointment>): IAppointment {
 }
 
 describe('AvailabilityService.getAvailableSlots', () => {
+  // Past slots are filtered out, so pin "now" to before the 2026-10-10 fixtures.
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-10-09T12:00:00-03:00'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('offers the free gaps between already-booked appointments (e.g. 10:00, 10:15, 11:30 booked with a 15-minute slot leaves 10:30 and 11:00 free)', async () => {
     const professionalRepository = {
       getHealthProfessionalById: jest.fn().mockResolvedValue({
