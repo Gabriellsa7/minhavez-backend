@@ -15,7 +15,6 @@ import {
   EAppointmentStatus,
   IAppointment,
 } from '../../appointment/interfaces/appointment.interface';
-import { IPrescriptionRepository } from '../../prescription/repository/prescription.repository.interface';
 import { QueueNotificationService } from '../../notification/service/queue-notification.service';
 import { NotificationService } from '../../notification/service/notification.service';
 import { ENotificationType } from '../../notification/interfaces/notification.interface';
@@ -39,7 +38,6 @@ export class QueueItemService implements IQueueItemService {
   private queueItemRepository: IQueueItemRepository;
   private queueRepository: IQueueRepository;
   private appointmentRepository: IAppointmentRepository;
-  private prescriptionRepository: IPrescriptionRepository;
   private queueNotificationService?: QueueNotificationService;
   private notificationService?: NotificationService;
   private queueOrderingService: QueueOrderingService;
@@ -48,7 +46,6 @@ export class QueueItemService implements IQueueItemService {
     queueItemRepository: IQueueItemRepository;
     queueRepository: IQueueRepository;
     appointmentRepository: IAppointmentRepository;
-    prescriptionRepository: IPrescriptionRepository;
     queueNotificationService?: QueueNotificationService;
     notificationService?: NotificationService;
     notificationSocketGateway?: INotificationSocketGateway;
@@ -57,7 +54,6 @@ export class QueueItemService implements IQueueItemService {
     this.queueItemRepository = params.queueItemRepository;
     this.queueRepository = params.queueRepository;
     this.appointmentRepository = params.appointmentRepository;
-    this.prescriptionRepository = params.prescriptionRepository;
     this.queueNotificationService = params.queueNotificationService;
     this.notificationService = params.notificationService;
     this.notificationSocketGateway = params.notificationSocketGateway;
@@ -189,13 +185,6 @@ export class QueueItemService implements IQueueItemService {
       throw new Error(
         'Marque o retorno do paciente antes de concluir o atendimento.',
       );
-    }
-
-    const hasPrescription =
-      await this.prescriptionRepository.existsForQueueItemId(queueItemId);
-
-    if (!hasPrescription) {
-      throw new Error('Registre uma receita antes de concluir o atendimento.');
     }
 
     const updated = await this.queueItemRepository.updateQueueItemById(

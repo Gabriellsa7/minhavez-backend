@@ -2927,6 +2927,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /health-professionals/{id}/available-slots:
+    get:
+      tags:
+        - Health Professionals
+      summary: List a professional's free appointment slots for a day
+      operationId: getAvailableSlots
+      description: Free slots of the professional's schedule on the given date, excluding booked and past times. Used by the return-scheduling modal and front-desk registration.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the health professional
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Day to list (YYYY-MM-DD)
+        - name: shift
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [MORNING, AFTERNOON]
+          description: Restrict the slots to one shift
+      responses:
+        '200':
+          description: Free slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [time, dateTime]
+                  properties:
+                    time:
+                      type: string
+                      example: '10:30'
+                    dateTime:
+                      type: string
+                      format: date-time
+        '400':
+          description: Missing or invalid date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Health professional not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
   /health-professionals/{id}/rating-summary:
     get:
       tags:
