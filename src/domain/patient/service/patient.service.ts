@@ -1,7 +1,9 @@
 import {
   ALLOWED_PATIENT_DOCUMENT_MIME_TYPES,
+  ELDERLY_MIN_AGE,
   EPatientPriority,
   IPatient,
+  isPriorityCategory,
   MAX_PATIENT_DOCUMENT_SIZE_BYTES,
   PATIENT_DOCUMENT_FORMAT_BY_MIME,
   TPatientDocumentMimeType,
@@ -28,7 +30,6 @@ import {
   uploadPatientDocumentToCloudinary,
 } from '../../../infrastructure/external/cloudinary/cloudinary-file-upload';
 
-const ELDERLY_AGE_THRESHOLD = 60;
 
 function isAllowedMimeType(
   mimeType: string,
@@ -57,10 +58,9 @@ export class PatientService implements IPatientService {
   ): Promise<void> {
     if (!this.queueItemRepository) return;
 
-    const queuePriority =
-      priority !== EPatientPriority.NORMAL
-        ? EQueueItemPriority.HIGH
-        : EQueueItemPriority.MEDIUM;
+    const queuePriority = isPriorityCategory(priority)
+      ? EQueueItemPriority.HIGH
+      : EQueueItemPriority.MEDIUM;
 
     const waitingItems = (
       await this.queueItemRepository.getQueueItemsByPatientId(patientId)
@@ -108,7 +108,7 @@ export class PatientService implements IPatientService {
         throw new AppError(400, 'A patient with this user ID already exists');
       }
 
-      const isElderly = calculateAge(params.birthDate) > ELDERLY_AGE_THRESHOLD;
+      const isElderly = calculateAge(params.birthDate) >= ELDERLY_MIN_AGE;
       const priority = isElderly ? EPatientPriority.ELDERLY : params.priority;
 
       const patient = await this.patientRepository.createPatient({
@@ -152,7 +152,7 @@ export class PatientService implements IPatientService {
           updateParams.birthDate ??
           (await this.patientRepository.getPatientById(_id))?.birthDate;
 
-        if (birthDate && calculateAge(birthDate) > ELDERLY_AGE_THRESHOLD) {
+        if (birthDate && calculateAge(birthDate) >= ELDERLY_MIN_AGE) {
           updateParams.priority = EPatientPriority.ELDERLY;
         }
       }

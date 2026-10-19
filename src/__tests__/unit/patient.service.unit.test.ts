@@ -30,7 +30,7 @@ describe('PatientService.createPatient', () => {
     jest.useRealTimers();
   });
 
-  it('forces ELDERLY priority when the patient is older than 60, overriding the selected reason', async () => {
+  it('forces ELDERLY priority when the patient is 60 or older, overriding the selected reason', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
     const { service, patientRepository } = buildService();
 
@@ -39,7 +39,7 @@ describe('PatientService.createPatient', () => {
       cpf: '529.982.247-25',
       birthDate: '1960-01-01',
       phone: '11999999999',
-      priority: EPatientPriority.CHRONIC_CONDITION,
+      priority: EPatientPriority.PREGNANT,
     });
 
     expect(patient.priority).toBe(EPatientPriority.ELDERLY);
@@ -48,7 +48,7 @@ describe('PatientService.createPatient', () => {
     );
   });
 
-  it('keeps the selected priority reason when the patient is 60 or younger', async () => {
+  it('keeps the selected priority reason when the patient is younger than 60', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
     const { service } = buildService();
 
@@ -57,10 +57,40 @@ describe('PatientService.createPatient', () => {
       cpf: '529.982.247-25',
       birthDate: '2000-01-01',
       phone: '11999999999',
-      priority: EPatientPriority.CHRONIC_CONDITION,
+      priority: EPatientPriority.DISABLED,
     });
 
-    expect(patient.priority).toBe(EPatientPriority.CHRONIC_CONDITION);
+    expect(patient.priority).toBe(EPatientPriority.DISABLED);
+  });
+
+  it('treats a patient who turns 60 today as ELDERLY', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
+    const { service } = buildService();
+
+    const patient = await service.createPatient({
+      userId: 'user-1',
+      cpf: '529.982.247-25',
+      birthDate: '1966-08-18',
+      phone: '11999999999',
+      priority: EPatientPriority.NORMAL,
+    });
+
+    expect(patient.priority).toBe(EPatientPriority.ELDERLY);
+  });
+
+  it('does not treat a patient who turns 60 tomorrow as ELDERLY', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
+    const { service } = buildService();
+
+    const patient = await service.createPatient({
+      userId: 'user-1',
+      cpf: '529.982.247-25',
+      birthDate: '1966-08-19',
+      phone: '11999999999',
+      priority: EPatientPriority.NORMAL,
+    });
+
+    expect(patient.priority).toBe(EPatientPriority.NORMAL);
   });
 
   it('rejects creating a second patient for the same user', async () => {
@@ -85,7 +115,7 @@ describe('PatientService.updatePatientById', () => {
     jest.useRealTimers();
   });
 
-  it('forces ELDERLY priority when the existing patient is older than 60', async () => {
+  it('forces ELDERLY priority when the existing patient is 60 or older', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
     const { service, patientRepository } = buildService({
       getPatientById: jest
@@ -99,7 +129,7 @@ describe('PatientService.updatePatientById', () => {
     });
 
     const patient = await service.updatePatientById('patient-1', {
-      priority: EPatientPriority.CHRONIC_CONDITION,
+      priority: EPatientPriority.PREGNANT,
     });
 
     expect(patient?.priority).toBe(EPatientPriority.ELDERLY);
@@ -109,7 +139,7 @@ describe('PatientService.updatePatientById', () => {
     );
   });
 
-  it('keeps the selected priority reason when the existing patient is 60 or younger', async () => {
+  it('keeps the selected priority reason when the existing patient is younger than 60', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-18T12:00:00.000Z'));
     const { service } = buildService({
       getPatientById: jest

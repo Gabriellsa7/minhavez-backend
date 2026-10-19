@@ -18,8 +18,21 @@ export enum EPatientPriority {
   ELDERLY = 'ELDERLY',
   PREGNANT = 'PREGNANT',
   DISABLED = 'DISABLED',
-  CHRONIC_CONDITION = 'CHRONIC_CONDITION',
 }
+
+// Legal priority categories (Lei 10.048/2000 and Estatuto da Pessoa Idosa): only these
+// patients get priority in the queue. There is no clinical criterion.
+export const PRIORITY_CATEGORIES: readonly EPatientPriority[] = [
+  EPatientPriority.ELDERLY,
+  EPatientPriority.PREGNANT,
+  EPatientPriority.DISABLED,
+];
+
+export const isPriorityCategory = (priority?: EPatientPriority | null) =>
+  !!priority && PRIORITY_CATEGORIES.includes(priority);
+
+// Elderly from 60 years old on (Estatuto da Pessoa Idosa).
+export const ELDERLY_MIN_AGE = 60;
 
 export enum EBloodType {
   A_POSITIVE = 'A+',
