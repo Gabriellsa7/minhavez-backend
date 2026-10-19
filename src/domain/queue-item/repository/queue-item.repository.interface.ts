@@ -23,6 +23,13 @@ export interface IQueueItemRepository {
     id: string,
     params: IParamsUpdateQueueItem,
   ): Promise<IQueueItem | null>;
+  // Applies the update only while the item is still in `expectedStatus`, in a single
+  // atomic operation, so concurrent requests cannot both perform the same transition.
+  updateQueueItemIfStatus(
+    id: string,
+    expectedStatus: EQueueItemStatus,
+    params: IParamsUpdateQueueItem,
+  ): Promise<IQueueItem | null>;
   deleteQueueItemById(id: string): Promise<IQueueItem | null>;
   getQueueItemById(id: string): Promise<IQueueItem | null>;
   getQueueItemsByPatientId(patientId: string): Promise<IQueueItem[]>;

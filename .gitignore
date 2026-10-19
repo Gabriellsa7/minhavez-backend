@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Roteiro e evidências dos testes do TCC (mantidos só localmente)
+testes/

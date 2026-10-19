@@ -1,6 +1,10 @@
 import { PatientService } from '../../domain/patient/service/patient.service';
 import { EPatientPriority } from '../../domain/patient/interfaces/patient.interface';
 import { IPatientRepository } from '../../domain/patient/repository/patient.repository.interface';
+import {
+  EQueueItemPriority,
+  EQueueItemStatus,
+} from '../../domain/queue-item/interfaces/queue-item.interface';
 
 function buildService(overrides: Partial<IPatientRepository> = {}) {
   const patientRepository: IPatientRepository = {
@@ -137,5 +141,58 @@ describe('PatientService.updatePatientById', () => {
     await service.updatePatientById('patient-1', { phone: '11988887777' });
 
     expect(patientRepository.getPatientById).not.toHaveBeenCalled();
+  });
+});
+
+describe('PatientService.updatePatientById — waiting queue priority', () => {
+  it('moves the waiting queue items to the new priority and reorders their queues', async () => {
+    const patientRepository = {
+      getPatientById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'patient-1', birthDate: '1997-05-20' }),
+      updatePatientById: jest
+        .fn()
+        .mockImplementation((_id, params) =>
+          Promise.resolve({ _id, medicalDocuments: [], ...params }),
+        ),
+    } as unknown as IPatientRepository;
+    const queueItemRepository = {
+      getQueueItemsByPatientId: jest.fn().mockResolvedValue([
+        {
+          _id: 'qi-waiting',
+          queueId: 'queue-1',
+          status: EQueueItemStatus.WAITING,
+          priority: EQueueItemPriority.MEDIUM,
+        },
+        {
+          _id: 'qi-finished',
+          queueId: 'queue-0',
+          status: EQueueItemStatus.FINISHED,
+          priority: EQueueItemPriority.MEDIUM,
+        },
+      ]),
+      updateQueueItemById: jest.fn().mockResolvedValue({}),
+    };
+    const queueOrderingService = {
+      recalculatePositions: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new PatientService({
+      patientRepository,
+      queueItemRepository,
+      queueOrderingService,
+    });
+
+    await service.updatePatientById('patient-1', {
+      priority: EPatientPriority.DISABLED,
+    });
+
+    expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledTimes(1);
+    expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledWith(
+      'qi-waiting',
+      { priority: EQueueItemPriority.HIGH },
+    );
+    expect(queueOrderingService.recalculatePositions).toHaveBeenCalledWith(
+      'queue-1',
+    );
   });
 });

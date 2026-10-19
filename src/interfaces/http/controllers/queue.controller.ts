@@ -5,15 +5,22 @@ import { IParamsCreateQueue } from '../../../domain/queue/repository/queue.repos
 import {
   authMiddleware,
   authorizeAdminOrHealthProfessional,
+  authorizePatientOwner,
   authorizeQueueOwner,
 } from '../middlewary/auth.middleware';
+import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 
 export class QueueController implements IController {
   router: Router;
   private readonly queueService: IQueueService;
+  private readonly patientService: Pick<IPatientService, 'getPatientById'>;
 
-  constructor(queueService: IQueueService) {
+  constructor(
+    queueService: IQueueService,
+    patientService: Pick<IPatientService, 'getPatientById'>,
+  ) {
     this.queueService = queueService;
+    this.patientService = patientService;
     this.router = Router();
     this.initRoutes();
   }
@@ -24,6 +31,12 @@ export class QueueController implements IController {
     this.router.get('/queues/patient/:patientId', this.getQueueByPatientId);
     this.router.get(
       '/queues/patient/:patientId/details',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.patientId))
+            ?.userId,
+      ),
       this.getQueuesWithDetailsByPatientId,
     );
     this.router.get(

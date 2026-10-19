@@ -20,6 +20,10 @@ import { calculateAge } from '../../../shared/utils/calculateAge';
 import { isValidCpf } from '../../../shared/utils/isValidCpf';
 import { AppError } from '../../../shared/errors/AppError';
 import {
+  EQueueItemPriority,
+  EQueueItemStatus,
+} from '../../queue-item/interfaces/queue-item.interface';
+import {
   generateSignedPatientDocumentUrl,
   uploadPatientDocumentToCloudinary,
 } from '../../../infrastructure/external/cloudinary/cloudinary-file-upload';
@@ -36,9 +40,42 @@ function isAllowedMimeType(
 
 export class PatientService implements IPatientService {
   private patientRepository: IPatientRepository;
+  private queueItemRepository?: IParamsPatientService['queueItemRepository'];
+  private queueOrderingService?: IParamsPatientService['queueOrderingService'];
 
   constructor(params: IParamsPatientService) {
     this.patientRepository = params.patientRepository;
+    this.queueItemRepository = params.queueItemRepository;
+    this.queueOrderingService = params.queueOrderingService;
+  }
+
+  // The queue item copies the patient's priority when it is created; a later change on the
+  // profile must also reach the queues the patient is still waiting in.
+  private async syncWaitingQueuePriority(
+    patientId: string,
+    priority: EPatientPriority,
+  ): Promise<void> {
+    if (!this.queueItemRepository) return;
+
+    const queuePriority =
+      priority !== EPatientPriority.NORMAL
+        ? EQueueItemPriority.HIGH
+        : EQueueItemPriority.MEDIUM;
+
+    const waitingItems = (
+      await this.queueItemRepository.getQueueItemsByPatientId(patientId)
+    ).filter(
+      (item) =>
+        item.status === EQueueItemStatus.WAITING &&
+        item.priority !== queuePriority,
+    );
+
+    for (const item of waitingItems) {
+      await this.queueItemRepository.updateQueueItemById(item._id, {
+        priority: queuePriority,
+      });
+      await this.queueOrderingService?.recalculatePositions(item.queueId);
+    }
   }
 
   private assertOwnsPatient(patient: IPatient, requesterId: string): void {
@@ -127,6 +164,10 @@ export class PatientService implements IPatientService {
 
       if (!patient) {
         throw new Error('Patient not found');
+      }
+
+      if (updateParams.priority !== undefined) {
+        await this.syncWaitingQueuePriority(_id, patient.priority);
       }
 
       return this.sanitizePatient(patient);

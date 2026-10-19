@@ -117,14 +117,24 @@ export class QueueOrderingService {
       }
     }
 
-    const apGroup = inWindow
+    // A patient who missed a call goes back to the end of the line: they are placed
+    // after everyone who has not missed a call, whatever their schedule or priority.
+    const onTime = inWindow.filter((item) => !item.missedCalls);
+    const requeued = inWindow
+      .filter((item) => item.missedCalls > 0)
+      .sort(compareByScheduleThenTieBreak);
+
+    const apGroup = onTime
       .filter((item) => item.priority === EQueueItemPriority.HIGH)
       .sort(compareByScheduleThenTieBreak);
-    const anGroup = inWindow
+    const anGroup = onTime
       .filter((item) => item.priority !== EQueueItemPriority.HIGH)
       .sort(compareByScheduleThenTieBreak);
 
-    const ordered = mergeInterleavedByPriority(apGroup, anGroup);
+    const ordered = [
+      ...mergeInterleavedByPriority(apGroup, anGroup),
+      ...requeued,
+    ];
 
     const changed: IQueueItem[] = [];
     const revealed: IQueueItem[] = [];

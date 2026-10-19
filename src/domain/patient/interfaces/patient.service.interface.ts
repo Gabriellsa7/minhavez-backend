@@ -4,9 +4,16 @@ import {
   IPatientRepository,
 } from '../repository/patient.repository.interface';
 import { IPatient } from './patient.interface';
+import { IQueueItemRepository } from '../../queue-item/repository/queue-item.repository.interface';
+import { QueueOrderingService } from '../../queue-item/service/queue-ordering.service';
 
 export interface IParamsPatientService {
   patientRepository: IPatientRepository;
+  queueItemRepository?: Pick<
+    IQueueItemRepository,
+    'getQueueItemsByPatientId' | 'updateQueueItemById'
+  >;
+  queueOrderingService?: Pick<QueueOrderingService, 'recalculatePositions'>;
 }
 
 export interface IParamsUploadMedicalDocument {

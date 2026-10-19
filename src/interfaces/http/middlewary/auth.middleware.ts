@@ -226,6 +226,61 @@ export const authorizePrincipalTypes =
     next();
   };
 
+const isStaff = (user: IAuthPayload): boolean =>
+  (user.principalType === EPrincipalType.USER &&
+    user.role === EUserRole.ADMIN) ||
+  user.principalType === EPrincipalType.HEALTH_PROFESSIONAL ||
+  user.principalType === EPrincipalType.RECEPTIONIST;
+
+export const authorizeStaff = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, 'Unauthorized');
+    return;
+  }
+
+  if (!isStaff(req.user)) {
+    sendError(req, res, 403, 'Forbidden');
+    return;
+  }
+
+  next();
+};
+
+// Patients may only reach their own records; admins and unit staff keep full access.
+export const authorizePatientOwner =
+  (
+    resolvePatientUserId: (req: Request) => Promise<string | null | undefined>,
+  ) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      sendError(req, res, 401, 'Unauthorized');
+      return;
+    }
+
+    if (isStaff(req.user)) {
+      next();
+      return;
+    }
+
+    try {
+      const patientUserId = await resolvePatientUserId(req);
+
+      // Missing resources fall through so the handler answers with its own 404.
+      if (patientUserId && patientUserId !== req.user.sub) {
+        sendError(req, res, 403, 'Forbidden');
+        return;
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
 export const authorizeQueueOwner =
   (
     resolveProfessionalId: (
