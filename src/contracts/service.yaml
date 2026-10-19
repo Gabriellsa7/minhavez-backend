@@ -575,12 +575,26 @@ paths:
                 $ref: '#/components/schemas/Error'
   /patients:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Patients
       summary: Get all patients
       operationId: getPatients
       description: Retrieve a list of all patients.
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin, health professional or receptionist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: A list of patients
           content:
@@ -628,6 +642,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /patients/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Patients
       summary: Get a patient by ID
@@ -641,6 +657,18 @@ paths:
             type: string
           description: The ID of the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own record)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Patient found
           content:
@@ -718,6 +746,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - Patients
       summary: Delete a patient
@@ -731,6 +761,18 @@ paths:
             type: string
           description: The ID of the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Patient deleted successfully
           content:
@@ -916,6 +958,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /patients/user/{userId}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Patients
       summary: Get a patient by user ID
@@ -929,6 +973,18 @@ paths:
             type: string
           description: The user ID associated with the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own record)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Patient found
           content:
@@ -1733,6 +1789,8 @@ paths:
 
   /queues/patient/{id}/details:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueuesByPatient
       summary: Get queues with details by patient ID
@@ -1746,6 +1804,18 @@ paths:
             type: string
           description: The ID of the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own queues)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queues with details found
           content:
@@ -1762,12 +1832,26 @@ paths:
                 $ref: '#/components/schemas/Error'
   /queue-items:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItems
       summary: Get all queue items
       operationId: getQueueItems
       description: Retrieve a list of all queue items.
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin, health professional or receptionist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: A list of queue items
           content:
@@ -1933,6 +2017,8 @@ paths:
 
   /queue-items/patient/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItemsByPatient
       summary: Get queue items by patient ID
@@ -1946,6 +2032,18 @@ paths:
             type: string
           description: The ID of the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own queue items)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue items found
           content:
@@ -1997,7 +2095,11 @@ paths:
         '404':
           description: Queue item not found
         '400':
-          description: Invalid request
+          description: Invalid request (business rule violated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /queue-items/{id}/absent:
     patch:
@@ -2038,7 +2140,11 @@ paths:
         '404':
           description: Queue item not found
         '400':
-          description: Invalid request
+          description: Invalid request (business rule violated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /queue-items/{id}/call:
     patch:
@@ -2075,7 +2181,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/QueueItem'
         '400':
-          description: Invalid request
+          description: Invalid request (business rule violated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Queue item not found
         '500':
@@ -2458,12 +2568,26 @@ paths:
                 $ref: '#/components/schemas/Error'
   /appointments:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Get all appointments
       operationId: getAppointments
       description: Retrieve a list of all appointments.
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin, health professional or receptionist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: A list of appointments
           content:
@@ -2479,6 +2603,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Create a new appointment
@@ -2491,6 +2617,12 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateAppointment'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '201':
           description: Appointment created successfully
           content:
@@ -2517,6 +2649,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /appointments/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Get an appointment by ID
@@ -2530,6 +2664,18 @@ paths:
             type: string
           description: The ID of the appointment
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own appointments)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointment found
           content:
@@ -2549,6 +2695,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Update an appointment
@@ -2569,6 +2717,18 @@ paths:
               $ref: '#/components/schemas/UpdateAppointment'
               description: The data to update the appointment with
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointment updated successfully
           content:
@@ -2598,6 +2758,8 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Delete an appointment
@@ -2611,6 +2773,18 @@ paths:
             type: string
             description: The ID of the appointment
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (requires admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointment deleted successfully
           content:
@@ -3058,6 +3232,8 @@ paths:
 
   /patients/{id}/appointments:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: List appointments for a patient
@@ -3097,6 +3273,18 @@ paths:
             maximum: 100
           description: Items per page (default 10 when page or limit is provided).
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only access their own appointments)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Paginated appointments belonging to the patient
           content:
@@ -3116,6 +3304,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: Clear a patient's finished appointment history
@@ -3129,6 +3319,18 @@ paths:
             type: string
           description: Patient ID
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized (patients can only clear their own history)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointment history cleared
           content:
@@ -6287,6 +6489,7 @@ components:
             - QUEUE_CLOSED
             - CHECK_IN_REMINDER
             - APPOINTMENT_AUTO_CANCELED
+            - QUEUE_WINDOW_OPENED
         message:
           type: string
           description: The content of the notification
@@ -6353,6 +6556,7 @@ components:
             - QUEUE_CLOSED
             - CHECK_IN_REMINDER
             - APPOINTMENT_AUTO_CANCELED
+            - QUEUE_WINDOW_OPENED
         message:
           type: string
           description: The content of the notification

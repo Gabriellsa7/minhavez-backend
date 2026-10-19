@@ -8,7 +8,13 @@ import {
   IParamsCreateAppointment,
   IParamsUpdateAppointment,
 } from '../../../domain/appointment/repository/appointment.repository.interface';
-import { authMiddleware } from '../middlewary/auth.middleware';
+import {
+  authMiddleware,
+  authorize,
+  authorizePatientOwner,
+  authorizeStaff,
+} from '../middlewary/auth.middleware';
+import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 import { AppError } from '../../../shared/errors/AppError';
@@ -21,40 +27,82 @@ import { EAppointmentStatus } from '../../../domain/appointment/interfaces/appoi
 export class AppointmentController implements IController {
   router: Router;
   private readonly appointmentService: IAppointmentService;
+  private readonly patientService: Pick<IPatientService, 'getPatientById'>;
 
-  constructor(appointmentService: IAppointmentService) {
+  constructor(
+    appointmentService: IAppointmentService,
+    patientService: Pick<IPatientService, 'getPatientById'>,
+  ) {
     this.appointmentService = appointmentService;
+    this.patientService = patientService;
     this.router = Router();
     this.initRoutes();
   }
 
   initRoutes() {
-    this.router.get('/appointments', this.getAppointments);
-    this.router.get('/appointments/:id', this.getAppointmentById);
+    this.router.get(
+      '/appointments',
+      authMiddleware,
+      authorizeStaff,
+      this.getAppointments,
+    );
+    this.router.get(
+      '/appointments/:id',
+      authMiddleware,
+      authorizePatientOwner(async (req) => {
+        const appointment = await this.appointmentService
+          .getAppointmentById(req.params.id)
+          .catch(() => null);
+        if (!appointment) return null;
+        return (await this.patientService.getPatientById(appointment.patientId))
+          ?.userId;
+      }),
+      this.getAppointmentById,
+    );
     this.router.get(
       '/health-units/:id/appointments',
       this.getAppointmentsByHealthUnit,
     );
     this.router.get(
       '/patients/:id/appointments',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.id))?.userId,
+      ),
       this.getAppointmentsByPatient,
     );
     this.router.delete(
       '/patients/:id/appointments',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.id))?.userId,
+      ),
       this.clearAppointmentHistory,
     );
     this.router.get(
       '/health-professionals/:id/appointments',
       this.getAppointmentsByProfessional,
     );
-    this.router.post('/appointments', this.createAppointment);
-    this.router.put('/appointments/:id', this.updateAppointment);
+    this.router.post('/appointments', authMiddleware, this.createAppointment);
+    this.router.put(
+      '/appointments/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.updateAppointment,
+    );
     this.router.patch(
       '/appointments/:id/cancel',
       authMiddleware,
       this.cancelAppointment,
     );
-    this.router.delete('/appointments/:id', this.deleteAppointment);
+    this.router.delete(
+      '/appointments/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.deleteAppointment,
+    );
   }
 
   private toRequester(req: Request): IAppointmentRequester {

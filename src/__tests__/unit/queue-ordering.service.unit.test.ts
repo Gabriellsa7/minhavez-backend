@@ -317,3 +317,37 @@ describe('QueueOrderingService.recalculatePositions', () => {
     ).not.toHaveBeenCalled();
   });
 });
+
+describe('QueueOrderingService.recalculatePositions — missed calls', () => {
+  it('sends a patient who missed a call to the end of the line, behind later appointments', async () => {
+    const items = [
+      buildItem({
+        _id: 'missed',
+        missedCalls: 1,
+        scheduledDateTime: new Date(NOW.getTime() + 15 * 60 * 1000),
+      }),
+      buildItem({
+        _id: 'priority',
+        priority: EQueueItemPriority.HIGH,
+        scheduledDateTime: new Date(NOW.getTime() + 30 * 60 * 1000),
+      }),
+      buildItem({
+        _id: 'regular',
+        scheduledDateTime: new Date(NOW.getTime() + 45 * 60 * 1000),
+      }),
+    ];
+    const repository = createFakeRepository(items);
+    const service = new QueueOrderingService({
+      queueItemRepository: repository,
+      queueNotificationService: createFakeNotificationService(),
+    });
+
+    await service.recalculatePositions('queue-1', NOW);
+
+    const positionOf = (id: string) =>
+      repository.items.find((item) => item._id === id)?.position;
+    expect(positionOf('priority')).toBe(1);
+    expect(positionOf('regular')).toBe(2);
+    expect(positionOf('missed')).toBe(3);
+  });
+});

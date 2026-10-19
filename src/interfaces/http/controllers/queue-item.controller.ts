@@ -10,29 +10,46 @@ import {
   authMiddleware,
   authorizeAdminOrExamProfessionalOrReceptionist,
   authorizeAdminOrHealthProfessional,
+  authorizePatientOwner,
   authorizeQueueOwner,
+  authorizeStaff,
 } from '../middlewary/auth.middleware';
+import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 
 export class QueueItemController implements IController {
   router: Router;
   private readonly queueItemService: IQueueItemService;
   private readonly queueService: Pick<IQueueService, 'getQueueById'>;
+  private readonly patientService: Pick<IPatientService, 'getPatientById'>;
 
   constructor(
     queueItemService: IQueueItemService,
     queueService: Pick<IQueueService, 'getQueueById'>,
+    patientService: Pick<IPatientService, 'getPatientById'>,
   ) {
     this.queueItemService = queueItemService;
     this.queueService = queueService;
+    this.patientService = patientService;
     this.router = Router();
     this.initRoutes();
   }
 
   initRoutes() {
-    this.router.get('/queue-items', this.getQueueItems);
+    this.router.get(
+      '/queue-items',
+      authMiddleware,
+      authorizeStaff,
+      this.getQueueItems,
+    );
     this.router.get('/queue-items/:id', this.getQueueItemById);
     this.router.get(
       '/queue-items/patient/:patientId',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.patientId))
+            ?.userId,
+      ),
       this.getQueueItemByPatientId,
     );
     this.router.get(
@@ -205,6 +222,7 @@ export class QueueItemController implements IController {
     } catch (error) {
       res.status(400).json({
         message: (error as Error).message,
+        status: 400,
       });
     }
   };
@@ -222,6 +240,7 @@ export class QueueItemController implements IController {
     } catch (error) {
       res.status(400).json({
         message: (error as Error).message,
+        status: 400,
       });
     }
   };
@@ -239,6 +258,7 @@ export class QueueItemController implements IController {
     } catch (error) {
       res.status(400).json({
         message: (error as Error).message,
+        status: 400,
       });
     }
   };
@@ -256,6 +276,7 @@ export class QueueItemController implements IController {
     } catch (error) {
       res.status(400).json({
         message: (error as Error).message,
+        status: 400,
       });
     }
   };

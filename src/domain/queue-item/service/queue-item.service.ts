@@ -29,6 +29,9 @@ const CHECK_IN_TOLERANCE_MINUTES = 5;
 const CHECK_IN_REMINDER_MESSAGE =
   'Sua consulta começou. Confirme sua presença na recepção da unidade em até 5 minutos para não perder sua vaga.';
 
+const QUEUE_CALLED_MESSAGE =
+  'Você foi chamado para o atendimento. Dirija-se ao consultório.';
+
 const APPOINTMENT_AUTO_CANCELED_MESSAGE =
   'Sua consulta foi cancelada automaticamente porque não identificamos seu check-in em até 5 minutos após o horário marcado.';
 
@@ -482,11 +485,13 @@ export class QueueItemService implements IQueueItemService {
       );
 
       if (next) {
-        await this.queueItemRepository.updateQueueItemById(next._id, {
-          status: EQueueItemStatus.IN_SERVICE,
+        const called = await this.queueItemRepository.updateQueueItemIfStatus(
+          next._id,
+          EQueueItemStatus.WAITING,
+          { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
+        );
 
-          calledAt: new Date(),
-        });
+        if (called) await this.notifyPatientCalled(called);
       }
     } catch (error) {
       throw new Error(`Error listing queue items: ${(error as Error).message}`);
@@ -501,20 +506,20 @@ export class QueueItemService implements IQueueItemService {
         throw new Error('Queue item not found');
       }
 
-      if (queueItem.status !== EQueueItemStatus.WAITING) {
+      // The status check and the transition happen in one atomic update, so a double
+      // click or two concurrent requests produce a single call.
+      const updatedQueueItem =
+        await this.queueItemRepository.updateQueueItemIfStatus(
+          id,
+          EQueueItemStatus.WAITING,
+          { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
+        );
+
+      if (!updatedQueueItem) {
         throw new Error('Only waiting patients can be called');
       }
 
-      const updatedQueueItem =
-        await this.queueItemRepository.updateQueueItemById(id, {
-          status: EQueueItemStatus.IN_SERVICE,
-          calledAt: new Date(),
-        });
-
-      if (!updatedQueueItem) {
-        throw new Error('Queue item not found');
-      }
-
+      await this.notifyPatientCalled(updatedQueueItem);
       await this.queueNotificationService?.handleQueuePositionChange(
         updatedQueueItem,
       );
@@ -525,6 +530,34 @@ export class QueueItemService implements IQueueItemService {
       return updatedQueueItem;
     } catch (error) {
       throw new Error(`Error calling queue item: ${(error as Error).message}`);
+    }
+  }
+
+  private async notifyPatientCalled(queueItem: IQueueItem): Promise<void> {
+    this.notificationSocketGateway?.broadcastNotification(
+      {
+        type: 'queue-item.called',
+        queueId: queueItem.queueId,
+        queueItemId: queueItem._id,
+        patientId: queueItem.patientId,
+      },
+      { queueId: queueItem.queueId, patientIds: [queueItem.patientId] },
+    );
+
+    try {
+      await this.notificationService?.createNotification({
+        patientId: queueItem.patientId,
+        type: ENotificationType.QUEUE_CALLED,
+        title: 'É a sua vez!',
+        message: QUEUE_CALLED_MESSAGE,
+        queueItemId: queueItem._id,
+        data: { queueId: queueItem.queueId, queueItemId: queueItem._id },
+      });
+    } catch (error) {
+      console.error(
+        `Error notifying patient called for queue item ${queueItem._id}:`,
+        error,
+      );
     }
   }
 

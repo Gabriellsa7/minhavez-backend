@@ -51,6 +51,18 @@ function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
         return { ...item };
       },
     ),
+    updateQueueItemIfStatus: jest.fn(
+      async (
+        id: string,
+        expectedStatus: EQueueItemStatus,
+        params: Partial<IQueueItem>,
+      ) => {
+        const item = items.find((candidate) => candidate._id === id);
+        if (!item || item.status !== expectedStatus) return null;
+        Object.assign(item, params);
+        return { ...item };
+      },
+    ),
     getNextWaitingQueueItem: jest.fn(async (queueId: string) => {
       const waiting = items
         .filter(
@@ -161,6 +173,50 @@ describe('QueueItemService position notifications', () => {
         _id: 'qi-3',
         patientId: 'patient-3',
         position: 1,
+      }),
+    );
+  });
+});
+
+describe('QueueItemService callQueueItem concurrency', () => {
+  it('lets only one of two simultaneous calls through and notifies the patient once', async () => {
+    const queueItemRepository = createFakeQueueItemRepository([
+      {
+        _id: 'qi-1',
+        queueId: 'queue-1',
+        patientId: 'patient-1',
+        code: 'A1',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.WAITING,
+        missedCalls: 0,
+        scheduledDateTime: new Date(Date.now() + 30 * 60 * 1000),
+        isWalkIn: false,
+      },
+    ]);
+    const createNotification = jest.fn().mockResolvedValue({});
+    const service = new QueueItemService({
+      queueItemRepository,
+      queueRepository: {} as unknown as IQueueRepository,
+      appointmentRepository: {} as unknown as IAppointmentRepository,
+      prescriptionRepository: createFakePrescriptionRepository(),
+      notificationService: {
+        createNotification,
+      } as unknown as NotificationService,
+    });
+
+    const results = await Promise.allSettled([
+      service.callQueueItem('qi-1'),
+      service.callQueueItem('qi-1'),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((r) => r.status === 'rejected')).toHaveLength(1);
+    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.QUEUE_CALLED,
       }),
     );
   });

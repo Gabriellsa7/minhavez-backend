@@ -112,6 +112,28 @@ export class QueueItemRepository implements IQueueItemRepository {
     }
   }
 
+  async updateQueueItemIfStatus(
+    id: string,
+    expectedStatus: EQueueItemStatus,
+    params: IParamsUpdateQueueItem,
+  ): Promise<IQueueItem | null> {
+    try {
+      const queueItemDoc = await MQueueItem.findOneAndUpdate(
+        { _id: id, status: expectedStatus },
+        params,
+        { new: true },
+      );
+
+      if (!queueItemDoc) return null;
+
+      return this.mapToDomain(queueItemDoc);
+    } catch (error) {
+      throw new Error(
+        `Error updating queue item by ID: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async deleteQueueItemById(id: string): Promise<IQueueItem | null> {
     try {
       const queueItemDoc = await MQueueItem.findByIdAndDelete(id);

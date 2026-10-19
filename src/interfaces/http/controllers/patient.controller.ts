@@ -3,8 +3,12 @@ import { PatientService } from '../../../domain/patient/service/patient.service'
 import { IController } from './IController';
 import {
   authMiddleware,
+  authorize,
   authorizeAdminOrExamProfessionalOrReceptionist,
+  authorizePatientOwner,
+  authorizeStaff,
 } from '../middlewary/auth.middleware';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
 import { normalizeCpf } from '../../../shared/utils/normalizeCpf';
 import { AppError } from '../../../shared/errors/AppError';
 
@@ -19,9 +23,27 @@ export class PatientController implements IController {
   }
 
   initRoutes() {
-    this.router.get('/patients', this.getPatients);
-    this.router.get('/patients/:id', this.getPatientById);
-    this.router.get('/patients/user/:userId', this.getPatientByUserId);
+    this.router.get(
+      '/patients',
+      authMiddleware,
+      authorizeStaff,
+      this.getPatients,
+    );
+    this.router.get(
+      '/patients/:id',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.id))?.userId,
+      ),
+      this.getPatientById,
+    );
+    this.router.get(
+      '/patients/user/:userId',
+      authMiddleware,
+      authorizePatientOwner(async (req) => req.params.userId),
+      this.getPatientByUserId,
+    );
     this.router.get(
       '/patients/cpf/:cpf',
       authMiddleware,
@@ -30,7 +52,12 @@ export class PatientController implements IController {
     );
     this.router.post('/patients', this.createPatient);
     this.router.put('/patients/:id', authMiddleware, this.updatePatient);
-    this.router.delete('/patients/:id', this.deletePatient);
+    this.router.delete(
+      '/patients/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.deletePatient,
+    );
     this.router.post(
       '/patients/:id/documents',
       authMiddleware,
