@@ -34,7 +34,7 @@ export class AvailabilityController implements IController {
     const shift = req.query.shift as EQueueShift | undefined;
 
     if (!date) {
-      res.status(400).json({ message: 'date query parameter is required' });
+      res.status(400).json({ message: 'Informe a data.' });
       return;
     }
 

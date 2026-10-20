@@ -63,9 +63,7 @@ export class NotificationController implements IController {
     );
   }
 
-  private resolvePatientId = async (
-    userId: string,
-  ): Promise<string | null> => {
+  private resolvePatientId = async (userId: string): Promise<string | null> => {
     try {
       const patient = await this.patientService.getPatientByUserId(userId);
       return patient?._id ?? null;
@@ -81,9 +79,9 @@ export class NotificationController implements IController {
         res.status(200).json([]);
         return;
       }
-      const notifications = await this.notificationService.listNotifications(
-        { patientId },
-      );
+      const notifications = await this.notificationService.listNotifications({
+        patientId,
+      });
       res.status(200).json(notifications);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -120,7 +118,7 @@ export class NotificationController implements IController {
       const notification =
         await this.notificationService.getNotificationById(id);
       if (!notification || !patientId || notification.patientId !== patientId) {
-        res.status(404).json({ message: 'Notification not found' });
+        res.status(404).json({ message: 'Notificação não encontrada.' });
         return;
       }
       res.status(200).json(notification);
@@ -152,7 +150,7 @@ export class NotificationController implements IController {
       const updatedNotification =
         await this.notificationService.updateNotificationById(id, updateData);
       if (!updatedNotification) {
-        res.status(404).json({ message: 'Notification not found' });
+        res.status(404).json({ message: 'Notificação não encontrada.' });
         return;
       }
       res.status(200).json(updatedNotification);
@@ -170,7 +168,7 @@ export class NotificationController implements IController {
       const deletedNotification =
         await this.notificationService.deleteNotificationById(id);
       if (!deletedNotification) {
-        res.status(404).json({ message: 'Notification not found' });
+        res.status(404).json({ message: 'Notificação não encontrada.' });
         return;
       }
       res.status(200).json(deletedNotification);
@@ -183,7 +181,7 @@ export class NotificationController implements IController {
     try {
       const patientId = await this.resolvePatientId(req.user!.sub);
       if (!patientId) {
-        res.status(200).json({ message: 'Notifications cleared' });
+        res.status(200).json({ message: 'Notificações apagadas.' });
         return;
       }
       const notifications = await this.notificationService.listNotifications({
@@ -194,7 +192,7 @@ export class NotificationController implements IController {
           this.notificationService.deleteNotificationById(notification._id),
         ),
       );
-      res.status(200).json({ message: 'Notifications cleared' });
+      res.status(200).json({ message: 'Notificações apagadas.' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -210,7 +208,7 @@ export class NotificationController implements IController {
       const notification =
         await this.notificationService.getNotificationById(id);
       if (!notification || !patientId || notification.patientId !== patientId) {
-        res.status(404).json({ message: 'Notification not found' });
+        res.status(404).json({ message: 'Notificação não encontrada.' });
         return;
       }
       const updatedNotification =
@@ -228,7 +226,7 @@ export class NotificationController implements IController {
     try {
       const patientId = await this.resolvePatientId(req.user!.sub);
       if (!patientId) {
-        res.status(200).json({ message: 'Notifications marked as read' });
+        res.status(200).json({ message: 'Notificações marcadas como lidas.' });
         return;
       }
       const unreadNotifications =
@@ -241,7 +239,7 @@ export class NotificationController implements IController {
           this.notificationService.markNotificationRead(notification._id),
         ),
       );
-      res.status(200).json({ message: 'Notifications marked as read' });
+      res.status(200).json({ message: 'Notificações marcadas como lidas.' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

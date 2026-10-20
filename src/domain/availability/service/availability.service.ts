@@ -4,7 +4,10 @@ import { IAppointmentRepository } from '../../appointment/repository/appointment
 import { EAppointmentStatus } from '../../appointment/interfaces/appointment.interface';
 import { EQueueShift } from '../../queue/interfaces/queue.interface';
 import { isHealthUnitOpenAt } from '../../health-unit/utils/opening-hours.util';
-import { generateTimeSlots, parseDateKey } from '../../../shared/utils/scheduleSlots';
+import {
+  generateTimeSlots,
+  parseDateKey,
+} from '../../../shared/utils/scheduleSlots';
 import {
   fromBrazilWallClock,
   isSameBrazilDay,
@@ -43,7 +46,7 @@ export class AvailabilityService {
       );
 
     if (!professional) {
-      throw new AppError(404, 'Health professional not found');
+      throw new AppError(404, 'Profissional de saúde não encontrado.');
     }
 
     const healthUnit = await this.healthUnitRepository.getHealthUnitById(
@@ -51,7 +54,7 @@ export class AvailabilityService {
     );
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     const { year, month, day } = parseDateKey(dateKey);

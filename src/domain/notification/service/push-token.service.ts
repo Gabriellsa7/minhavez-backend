@@ -18,11 +18,11 @@ export class PushTokenService {
     platform: string,
   ): Promise<void> {
     if (!/^(ExponentPushToken|ExpoPushToken)\[[^\]]+\]$/.test(token)) {
-      throw new Error('Invalid Expo push token format');
+      throw new Error('Token de notificação inválido.');
     }
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Usuário não encontrado.');
     }
 
     const existing = user.devices?.find((device) => device.token === token);

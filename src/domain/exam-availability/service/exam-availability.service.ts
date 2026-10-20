@@ -32,13 +32,13 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
       await this.healthUnitRepository.getHealthUnitById(healthUnitId);
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     if (healthUnit.userId !== requestingAdminUserId) {
       throw new AppError(
         403,
-        'You can only manage availability for a health unit you own',
+        'Você só pode gerenciar a disponibilidade da sua própria unidade.',
       );
     }
   }
@@ -52,13 +52,19 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
 
     for (const rule of rules) {
       if (!TIME_REGEX.test(rule.startTime) || !TIME_REGEX.test(rule.endTime)) {
-        throw new AppError(400, 'startTime/endTime must be in HH:mm format');
+        throw new AppError(400, 'Os horários devem estar no formato HH:mm.');
       }
       if (rule.startTime >= rule.endTime) {
-        throw new AppError(400, 'startTime must be before endTime');
+        throw new AppError(
+          400,
+          'O horário de início deve ser antes do horário de fim.',
+        );
       }
       if (!rule.slotDurationMinutes || rule.slotDurationMinutes <= 0) {
-        throw new AppError(400, 'slotDurationMinutes must be greater than 0');
+        throw new AppError(
+          400,
+          'A duração do horário deve ser maior que zero.',
+        );
       }
     }
 
@@ -98,7 +104,7 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
     } catch (error) {
       const mongoError = error as { code?: number };
       if (mongoError.code === 11000) {
-        throw new AppError(409, 'This date is already blacked out');
+        throw new AppError(409, 'Esta data já está bloqueada.');
       }
       throw error;
     }
@@ -111,7 +117,7 @@ export class ExamAvailabilityService implements IExamAvailabilityService {
     const blackout = await this.examAvailabilityRepository.getBlackoutById(id);
 
     if (!blackout) {
-      throw new AppError(404, 'Blackout not found');
+      throw new AppError(404, 'Bloqueio de data não encontrado.');
     }
 
     await this.assertOwnsHealthUnit(

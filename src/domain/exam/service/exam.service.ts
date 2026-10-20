@@ -58,15 +58,15 @@ export class ExamService implements IExamService {
     uploader: IExamUploader,
   ): Promise<IExamWithContext> {
     if (params.mimeType !== ALLOWED_EXAM_MIME_TYPE) {
-      throw new AppError(400, 'Only PDF files are allowed for exam results');
+      throw new AppError(400, 'O resultado do exame deve ser um arquivo PDF.');
     }
 
     if (!params.fileBase64) {
-      throw new AppError(400, 'Exam file is required');
+      throw new AppError(400, 'Envie o arquivo do exame.');
     }
 
     if (!params.examType) {
-      throw new AppError(400, 'Exam type is required');
+      throw new AppError(400, 'Informe o tipo de exame.');
     }
 
     const patient = await this.patientRepository.getPatientByCpf(
@@ -74,7 +74,7 @@ export class ExamService implements IExamService {
     );
 
     if (!patient) {
-      throw new AppError(400, 'No patient found for the given CPF');
+      throw new AppError(400, 'Nenhum paciente encontrado com este CPF.');
     }
 
     const healthUnit = await this.healthUnitRepository.getHealthUnitById(
@@ -82,20 +82,20 @@ export class ExamService implements IExamService {
     );
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     if (uploader.isExamProfessional) {
       if (healthUnit._id !== uploader.healthUnitId) {
         throw new AppError(
           403,
-          'You can only register exams for your own health unit',
+          'Você só pode cadastrar exames da sua própria unidade.',
         );
       }
     } else if (healthUnit.userId !== uploader.sub) {
       throw new AppError(
         403,
-        'You can only register exams for a health unit you own',
+        'Você só pode cadastrar exames da sua própria unidade.',
       );
     }
 
@@ -105,7 +105,7 @@ export class ExamService implements IExamService {
       );
 
       if (!booking) {
-        throw new AppError(400, 'Exam booking not found');
+        throw new AppError(400, 'Agendamento de exame não encontrado.');
       }
 
       if (
@@ -114,19 +114,19 @@ export class ExamService implements IExamService {
       ) {
         throw new AppError(
           400,
-          'This booking does not belong to the same patient/clinic',
+          'Este agendamento não pertence ao mesmo paciente ou clínica.',
         );
       }
 
       if (booking.status !== EExamBookingStatus.COMPLETED) {
         throw new AppError(
           400,
-          'Only completed bookings can be linked to a result',
+          'Só é possível vincular resultado a um exame já realizado.',
         );
       }
 
       if (booking.resultExamId) {
-        throw new AppError(400, 'This booking already has a linked result');
+        throw new AppError(400, 'Este exame já tem um resultado vinculado.');
       }
     }
 
@@ -254,7 +254,7 @@ export class ExamService implements IExamService {
     const exam = await this.examRepository.getExamById(id);
 
     if (!exam) {
-      throw new AppError(404, 'Exam not found');
+      throw new AppError(404, 'Exame não encontrado.');
     }
 
     await this.assertCanAccessExam(exam, requester);
@@ -274,7 +274,7 @@ export class ExamService implements IExamService {
     const exam = await this.examRepository.getExamById(id);
 
     if (!exam) {
-      throw new AppError(404, 'Exam not found');
+      throw new AppError(404, 'Exame não encontrado.');
     }
 
     await this.assertCanAccessExam(exam, requester);
@@ -282,7 +282,7 @@ export class ExamService implements IExamService {
     const updatedExam = await this.examRepository.incrementDownloadCount(id);
 
     if (!updatedExam) {
-      throw new AppError(404, 'Exam not found');
+      throw new AppError(404, 'Exame não encontrado.');
     }
 
     const enriched = await this.enrichExam(updatedExam);
@@ -301,7 +301,7 @@ export class ExamService implements IExamService {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     await this.assertCanAccessPatientExams(patient, requester);
@@ -321,24 +321,32 @@ export class ExamService implements IExamService {
     requester: IRequestingUser,
   ): Promise<IExamWithContext[]> {
     if (!requester.isAdmin) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const healthUnit =
       await this.healthUnitRepository.getHealthUnitById(healthUnitId);
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     if (healthUnit.userId !== requester.sub) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const exams =
       await this.examRepository.listExamsByHealthUnitId(healthUnitId);
 
-    return Promise.all(exams.map((exam) => this.enrichExam(exam, undefined, healthUnit)));
+    return Promise.all(
+      exams.map((exam) => this.enrichExam(exam, undefined, healthUnit)),
+    );
   }
 
   async listExamsByProfessionalId(
@@ -346,7 +354,10 @@ export class ExamService implements IExamService {
     requester: IRequestingUser,
   ): Promise<IExamWithContext[]> {
     if (!requester.isHealthProfessional || requester.sub !== professionalId) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const authorizedPatientIds =
@@ -370,7 +381,9 @@ export class ExamService implements IExamService {
         professionalId,
       );
 
-    return [...new Set(appointments.map((appointment) => appointment.patientId))];
+    return [
+      ...new Set(appointments.map((appointment) => appointment.patientId)),
+    ];
   }
 
   private async assertCanAccessExam(
@@ -382,21 +395,25 @@ export class ExamService implements IExamService {
         exam.healthUnitId,
       );
       if (healthUnit?.userId === requester.sub) return;
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     if (requester.isHealthProfessional) {
       const authorizedPatientIds =
         await this.getAuthorizedPatientIdsForProfessional(requester.sub);
       if (authorizedPatientIds.includes(exam.patientId)) return;
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
-    const patient = await this.patientRepository.getPatientById(
-      exam.patientId,
-    );
+    const patient = await this.patientRepository.getPatientById(exam.patientId);
     if (patient?.userId === requester.sub) return;
-    throw new AppError(403, 'Forbidden');
+    throw new AppError(403, 'Você não tem permissão para realizar esta ação.');
   }
 
   private async assertCanAccessPatientExams(
@@ -404,18 +421,24 @@ export class ExamService implements IExamService {
     requester: IRequestingUser,
   ): Promise<void> {
     if (requester.isAdmin) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     if (requester.isHealthProfessional) {
       const authorizedPatientIds =
         await this.getAuthorizedPatientIdsForProfessional(requester.sub);
       if (authorizedPatientIds.includes(patient._id)) return;
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     if (patient.userId === requester.sub) return;
-    throw new AppError(403, 'Forbidden');
+    throw new AppError(403, 'Você não tem permissão para realizar esta ação.');
   }
 
   private async enrichExam(

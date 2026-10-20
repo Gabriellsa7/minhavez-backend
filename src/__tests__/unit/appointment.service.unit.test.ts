@@ -276,12 +276,10 @@ describe('AppointmentService', () => {
     } as unknown as IHealthProfessionalRepository;
 
     const patientRepository = {
-      getPatientById: jest
-        .fn()
-        .mockResolvedValue({
-          _id: 'patient-3',
-          priority: EPatientPriority.ELDERLY,
-        }),
+      getPatientById: jest.fn().mockResolvedValue({
+        _id: 'patient-3',
+        priority: EPatientPriority.ELDERLY,
+      }),
     } as unknown as IPatientRepository;
 
     const service = new AppointmentService({
@@ -349,12 +347,10 @@ describe('AppointmentService', () => {
     } as unknown as IHealthProfessionalRepository;
 
     const patientRepository = {
-      getPatientById: jest
-        .fn()
-        .mockResolvedValue({
-          _id: 'patient-4',
-          priority: EPatientPriority.NORMAL,
-        }),
+      getPatientById: jest.fn().mockResolvedValue({
+        _id: 'patient-4',
+        priority: EPatientPriority.NORMAL,
+      }),
     } as unknown as IPatientRepository;
 
     const service = new AppointmentService({
@@ -912,7 +908,7 @@ describe('AppointmentService', () => {
       ]);
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'This health unit is closed at the selected date and time',
+        'A unidade de saúde não funciona no dia e horário escolhidos.',
       );
     });
 
@@ -922,7 +918,7 @@ describe('AppointmentService', () => {
       ]);
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'This health unit is closed at the selected date and time',
+        'A unidade de saúde não funciona no dia e horário escolhidos.',
       );
     });
 
@@ -932,7 +928,7 @@ describe('AppointmentService', () => {
       ]);
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'This health unit is closed at the selected date and time',
+        'A unidade de saúde não funciona no dia e horário escolhidos.',
       );
     });
 
@@ -973,7 +969,7 @@ describe('AppointmentService', () => {
       });
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'Health unit not found',
+        'Unidade de saúde não encontrada.',
       );
     });
   });
@@ -1053,7 +1049,7 @@ describe('AppointmentService', () => {
       ]);
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'Você só pode marcar uma consulta por dia',
+        'Você já tem uma consulta ativa neste dia. Só é possível marcar uma consulta por dia.',
       );
     });
 
@@ -1075,7 +1071,7 @@ describe('AppointmentService', () => {
       ]);
 
       await expect(service.createAppointment(params)).rejects.toThrow(
-        'Você só pode marcar uma consulta por dia',
+        'Você já tem uma consulta ativa neste dia. Só é possível marcar uma consulta por dia.',
       );
     });
 

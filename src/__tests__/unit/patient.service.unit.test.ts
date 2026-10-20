@@ -8,9 +8,11 @@ import {
 
 function buildService(overrides: Partial<IPatientRepository> = {}) {
   const patientRepository: IPatientRepository = {
-    createPatient: jest.fn().mockImplementation((params) =>
-      Promise.resolve({ _id: 'patient-1', medicalDocuments: [], ...params }),
-    ),
+    createPatient: jest
+      .fn()
+      .mockImplementation((params) =>
+        Promise.resolve({ _id: 'patient-1', medicalDocuments: [], ...params }),
+      ),
     updatePatientById: jest.fn(),
     deletePatientById: jest.fn(),
     getPatientById: jest.fn(),
@@ -22,7 +24,10 @@ function buildService(overrides: Partial<IPatientRepository> = {}) {
     ...overrides,
   };
 
-  return { service: new PatientService({ patientRepository }), patientRepository };
+  return {
+    service: new PatientService({ patientRepository }),
+    patientRepository,
+  };
 }
 
 describe('PatientService.createPatient', () => {
@@ -106,7 +111,7 @@ describe('PatientService.createPatient', () => {
         phone: '11999999999',
         priority: EPatientPriority.NORMAL,
       }),
-    ).rejects.toThrow('A patient with this user ID already exists');
+    ).rejects.toThrow('Este usuário já tem um cadastro de paciente.');
   });
 });
 

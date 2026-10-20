@@ -23,7 +23,7 @@ export class RatingService implements IRatingService {
 
   private validateStars(stars: number): void {
     if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
-      throw new Error('Rating stars must be an integer between 1 and 5');
+      throw new Error('A avaliação deve ser de 1 a 5 estrelas.');
     }
   }
 
@@ -48,13 +48,12 @@ export class RatingService implements IRatingService {
           status: EAppointmentStatus.COMPLETED,
         });
 
-      const completedAtClinic = await this.appointmentRepository.listAppointments(
-        {
+      const completedAtClinic =
+        await this.appointmentRepository.listAppointments({
           patientId: appointment.patientId,
           healthUnitId: appointment.healthUnitId,
           status: EAppointmentStatus.COMPLETED,
-        },
-      );
+        });
 
       const canRateProfessional =
         completedWithProfessional.length === 1 &&
@@ -80,55 +79,51 @@ export class RatingService implements IRatingService {
     appointmentId: string,
     params: IParamsSubmitRating,
   ): Promise<IRating> {
-    try {
-      const appointment =
-        await this.appointmentRepository.getAppointmentById(appointmentId);
+    const appointment =
+      await this.appointmentRepository.getAppointmentById(appointmentId);
 
-      if (!appointment) {
-        throw new Error('Appointment not found');
-      }
-
-      const eligibility = await this.getRatingEligibility(appointmentId);
-
-      const fields: {
-        professionalStars?: number;
-        professionalComment?: string;
-        clinicStars?: number;
-        clinicComment?: string;
-      } = {};
-
-      if (eligibility.canRateProfessional && params.professionalStars !== undefined) {
-        this.validateStars(params.professionalStars);
-        fields.professionalStars = params.professionalStars;
-        fields.professionalComment = params.professionalComment;
-      }
-
-      if (eligibility.canRateClinic && params.clinicStars !== undefined) {
-        this.validateStars(params.clinicStars);
-        fields.clinicStars = params.clinicStars;
-        fields.clinicComment = params.clinicComment;
-      }
-
-      if (
-        fields.professionalStars === undefined &&
-        fields.clinicStars === undefined
-      ) {
-        throw new Error('Nothing eligible to rate for this appointment');
-      }
-
-      return await this.ratingRepository.upsertRating({
-        appointmentId,
-        patientId: appointment.patientId,
-        professionalId: appointment.professionalId,
-        healthUnitId: appointment.healthUnitId,
-        ...fields,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error(`Error submitting rating: ${(error as Error).message}`);
+    if (!appointment) {
+      throw new Error('Consulta não encontrada.');
     }
+
+    const eligibility = await this.getRatingEligibility(appointmentId);
+
+    const fields: {
+      professionalStars?: number;
+      professionalComment?: string;
+      clinicStars?: number;
+      clinicComment?: string;
+    } = {};
+
+    if (
+      eligibility.canRateProfessional &&
+      params.professionalStars !== undefined
+    ) {
+      this.validateStars(params.professionalStars);
+      fields.professionalStars = params.professionalStars;
+      fields.professionalComment = params.professionalComment;
+    }
+
+    if (eligibility.canRateClinic && params.clinicStars !== undefined) {
+      this.validateStars(params.clinicStars);
+      fields.clinicStars = params.clinicStars;
+      fields.clinicComment = params.clinicComment;
+    }
+
+    if (
+      fields.professionalStars === undefined &&
+      fields.clinicStars === undefined
+    ) {
+      throw new Error('Não há nada para avaliar nesta consulta.');
+    }
+
+    return await this.ratingRepository.upsertRating({
+      appointmentId,
+      patientId: appointment.patientId,
+      professionalId: appointment.professionalId,
+      healthUnitId: appointment.healthUnitId,
+      ...fields,
+    });
   }
 
   async getProfessionalRatingSummary(

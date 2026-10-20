@@ -57,12 +57,11 @@ export class HealthUnitController implements IController {
         page: req.query.page as string | undefined,
         limit: req.query.limit as string | undefined,
       });
-      const { items, totalItems } = await this.healthUnitService.listHealthUnits(
-        {},
-        search,
-        pagination,
-      );
-      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
+      const { items, totalItems } =
+        await this.healthUnitService.listHealthUnits({}, search, pagination);
+      res
+        .status(200)
+        .json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -144,7 +143,7 @@ export class HealthUnitController implements IController {
       const updatedHealthUnit =
         await this.healthUnitService.updateHealthUnitById(id, updateData);
       if (!updatedHealthUnit) {
-        res.status(404).json({ message: 'Health unit not found' });
+        res.status(404).json({ message: 'Unidade de saúde não encontrada.' });
         return;
       }
       res.status(200).json(updatedHealthUnit);
@@ -169,7 +168,7 @@ export class HealthUnitController implements IController {
         });
 
       if (!updatedHealthUnit) {
-        res.status(404).json({ message: 'Health unit not found' });
+        res.status(404).json({ message: 'Unidade de saúde não encontrada.' });
         return;
       }
 
@@ -188,7 +187,7 @@ export class HealthUnitController implements IController {
       const deletedHealthUnit =
         await this.healthUnitService.deleteHealthUnitById(id);
       if (!deletedHealthUnit) {
-        res.status(404).json({ message: 'Health unit not found' });
+        res.status(404).json({ message: 'Unidade de saúde não encontrada.' });
         return;
       }
       res.status(200).json(deletedHealthUnit);

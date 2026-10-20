@@ -115,7 +115,7 @@ export class QueueItemController implements IController {
     try {
       const queueItem = await this.queueItemService.getQueueItemById(id);
       if (!queueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(queueItem);
@@ -147,7 +147,7 @@ export class QueueItemController implements IController {
       const queueItem =
         await this.queueItemService.getQueueItemByQueueId(queueId);
       if (!queueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(queueItem);
@@ -168,7 +168,7 @@ export class QueueItemController implements IController {
         );
 
       if (!queueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
 
@@ -200,7 +200,7 @@ export class QueueItemController implements IController {
         updateData,
       );
       if (!updatedQueueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(updatedQueueItem);
@@ -290,7 +290,7 @@ export class QueueItemController implements IController {
       const deletedQueueItem =
         await this.queueItemService.deleteQueueItemById(id);
       if (!deletedQueueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(deletedQueueItem);

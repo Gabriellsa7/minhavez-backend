@@ -50,7 +50,7 @@ export class ReceptionistService implements IReceptionistService {
         await this.receptionistRepository.getReceptionistById(_id);
 
       if (!receptionist) {
-        throw new AppError(404, 'Receptionist not found');
+        throw new AppError(404, 'Recepcionista não encontrada.');
       }
 
       return this.sanitize(receptionist);
@@ -90,7 +90,7 @@ export class ReceptionistService implements IReceptionistService {
         await this.receptionistRepository.getReceptionistById(_id);
 
       if (!receptionist) {
-        throw new AppError(404, 'Receptionist not found');
+        throw new AppError(404, 'Recepcionista não encontrada.');
       }
 
       const updated = await this.receptionistRepository.updateReceptionistById(
@@ -115,7 +115,7 @@ export class ReceptionistService implements IReceptionistService {
         await this.receptionistRepository.getReceptionistById(_id);
 
       if (!receptionist) {
-        throw new AppError(404, 'Receptionist not found');
+        throw new AppError(404, 'Recepcionista não encontrada.');
       }
 
       const deleted =

@@ -98,7 +98,9 @@ export class AppointmentService implements IAppointmentService {
           });
 
         if (existingAppointmentWithQueueItemId.length > 0) {
-          throw new Error('Already exist an appointment with de queueItemId');
+          throw new Error(
+            'Já existe uma consulta vinculada a este item da fila.',
+          );
         }
       }
       const appointmentDateTime = new Date(params.dateTime);
@@ -153,7 +155,7 @@ export class AppointmentService implements IAppointmentService {
       );
 
       if (hasAppointmentOnSameDay) {
-        throw new Error('Você só pode marcar uma consulta por dia');
+        throw new Error('Você já tem uma consulta ativa neste dia. Só é possível marcar uma consulta por dia.');
       }
 
       const existingAppointmentAtSameTime =
@@ -167,7 +169,7 @@ export class AppointmentService implements IAppointmentService {
         );
 
       if (!professional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       const healthUnit = await this.healthUnitRepository.getHealthUnitById(
@@ -175,12 +177,12 @@ export class AppointmentService implements IAppointmentService {
       );
 
       if (!healthUnit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       if (!isHealthUnitOpenAt(healthUnit.openingHours, appointmentDateTime)) {
         throw new Error(
-          'This health unit is closed at the selected date and time',
+          'A unidade de saúde não funciona no dia e horário escolhidos.',
         );
       }
 
@@ -207,7 +209,7 @@ export class AppointmentService implements IAppointmentService {
 
       if (hasConflict) {
         throw new Error(
-          'This professional already has an appointment at this time',
+          'Este horário acabou de ser ocupado. Escolha outro horário.',
         );
       }
 
@@ -356,7 +358,7 @@ export class AppointmentService implements IAppointmentService {
       const appointment =
         await this.appointmentRepository.getAppointmentById(id);
       if (!appointment) {
-        throw new Error('Appointment not found');
+        throw new Error('Consulta não encontrada.');
       }
       return appointment;
     } catch (error) {
@@ -441,7 +443,7 @@ export class AppointmentService implements IAppointmentService {
         await this.notificationJobScheduler?.cancelJobsForAppointment(id);
       }
       if (!updated) {
-        throw new Error('Appointment not found');
+        throw new Error('Consulta não encontrada.');
       }
       return updated;
     } catch (error) {
@@ -458,7 +460,7 @@ export class AppointmentService implements IAppointmentService {
     const appointment = await this.appointmentRepository.getAppointmentById(id);
 
     if (!appointment) {
-      throw new AppError(404, 'Appointment not found');
+      throw new AppError(404, 'Consulta não encontrada.');
     }
 
     if (!requester.isAdmin) {
@@ -467,7 +469,10 @@ export class AppointmentService implements IAppointmentService {
       );
 
       if (!patient || patient._id !== appointment.patientId) {
-        throw new AppError(403, 'Forbidden');
+        throw new AppError(
+          403,
+          'Você não tem permissão para realizar esta ação.',
+        );
       }
     }
 
@@ -544,7 +549,7 @@ export class AppointmentService implements IAppointmentService {
         await this.notificationJobScheduler?.cancelJobsForAppointment(id);
       }
       if (!deleted) {
-        throw new Error('Appointment not found');
+        throw new Error('Consulta não encontrada.');
       }
       return deleted;
     } catch (error) {

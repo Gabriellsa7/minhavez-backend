@@ -143,7 +143,7 @@ export class QueueController implements IController {
     try {
       const queueItem = await this.queueService.getQueueById(id);
       if (!queueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(queueItem);
@@ -182,12 +182,12 @@ export class QueueController implements IController {
       const deletedQueueItem = await this.queueService.deleteQueueById(id);
 
       if (!deletedQueueItem) {
-        res.status(404).json({ message: 'Queue not found' });
+        res.status(404).json({ message: 'Fila não encontrada.' });
         return;
       }
 
       res.status(200).json({
-        message: 'Queue deleted successfully',
+        message: 'Fila excluída com sucesso.',
       });
     } catch (error) {
       res.status(500).json({
@@ -207,7 +207,7 @@ export class QueueController implements IController {
         await this.queueService.getQueueByProfessionalId(professionalId);
 
       if (!queue) {
-        res.status(404).json({ message: 'Queue not found' });
+        res.status(404).json({ message: 'Fila não encontrada.' });
         return;
       }
 
@@ -280,7 +280,7 @@ export class QueueController implements IController {
         updateData,
       );
       if (!updatedQueueItem) {
-        res.status(404).json({ message: 'Queue item not found' });
+        res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
       res.status(200).json(updatedQueueItem);

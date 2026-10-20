@@ -29,13 +29,13 @@ export class ExamOfferingService implements IExamOfferingService {
       await this.healthUnitRepository.getHealthUnitById(healthUnitId);
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     if (healthUnit.userId !== requestingAdminUserId) {
       throw new AppError(
         403,
-        'You can only manage exams for a health unit you own',
+        'Você só pode gerenciar os exames da sua própria unidade.',
       );
     }
 
@@ -49,7 +49,7 @@ export class ExamOfferingService implements IExamOfferingService {
     if (params.requiresPreparation && !params.preparationInstructions) {
       throw new AppError(
         400,
-        'preparationInstructions is required when requiresPreparation is true',
+        'Informe as instruções de preparo, já que o exame exige preparo.',
       );
     }
   }
@@ -59,19 +59,16 @@ export class ExamOfferingService implements IExamOfferingService {
     requestingAdminUserId: string,
   ): Promise<IExamOffering> {
     if (!params.name) {
-      throw new AppError(400, 'Exam name is required');
+      throw new AppError(400, 'Informe o nome do exame.');
     }
 
     if (!params.durationMinutes || params.durationMinutes <= 0) {
-      throw new AppError(400, 'durationMinutes must be greater than 0');
+      throw new AppError(400, 'A duração deve ser maior que zero.');
     }
 
     this.assertPreparationConsistency(params);
 
-    await this.assertOwnsHealthUnit(
-      params.healthUnitId,
-      requestingAdminUserId,
-    );
+    await this.assertOwnsHealthUnit(params.healthUnitId, requestingAdminUserId);
 
     return this.examOfferingRepository.createExamOffering({
       healthUnitId: params.healthUnitId,
@@ -96,12 +93,10 @@ export class ExamOfferingService implements IExamOfferingService {
     params: IParamsUpdateExamOffering,
     requestingAdminUserId: string,
   ): Promise<IExamOffering> {
-    const offering = await this.examOfferingRepository.getExamOfferingById(
-      id,
-    );
+    const offering = await this.examOfferingRepository.getExamOfferingById(id);
 
     if (!offering) {
-      throw new AppError(404, 'Exam offering not found');
+      throw new AppError(404, 'Exame não oferecido por esta unidade.');
     }
 
     await this.assertOwnsHealthUnit(
@@ -110,16 +105,14 @@ export class ExamOfferingService implements IExamOfferingService {
     );
 
     this.assertPreparationConsistency({
-      requiresPreparation: params.requiresPreparation ?? offering.requiresPreparation,
+      requiresPreparation:
+        params.requiresPreparation ?? offering.requiresPreparation,
       preparationInstructions:
         params.preparationInstructions ?? offering.preparationInstructions,
     });
 
-    if (
-      params.durationMinutes !== undefined &&
-      params.durationMinutes <= 0
-    ) {
-      throw new AppError(400, 'durationMinutes must be greater than 0');
+    if (params.durationMinutes !== undefined && params.durationMinutes <= 0) {
+      throw new AppError(400, 'A duração deve ser maior que zero.');
     }
 
     const updated = await this.examOfferingRepository.updateExamOfferingById(
@@ -128,19 +121,17 @@ export class ExamOfferingService implements IExamOfferingService {
     );
 
     if (!updated) {
-      throw new AppError(404, 'Exam offering not found');
+      throw new AppError(404, 'Exame não oferecido por esta unidade.');
     }
 
     return updated;
   }
 
   async getExamOfferingById(id: string): Promise<IExamOffering> {
-    const offering = await this.examOfferingRepository.getExamOfferingById(
-      id,
-    );
+    const offering = await this.examOfferingRepository.getExamOfferingById(id);
 
     if (!offering) {
-      throw new AppError(404, 'Exam offering not found');
+      throw new AppError(404, 'Exame não oferecido por esta unidade.');
     }
 
     return offering;
@@ -169,12 +160,13 @@ export class ExamOfferingService implements IExamOfferingService {
     examName: string,
   ): Promise<IExamOfferingWithHealthUnit[]> {
     if (!examName?.trim()) {
-      throw new AppError(400, 'name is required');
+      throw new AppError(400, 'Informe o nome.');
     }
 
-    const offerings = await this.examOfferingRepository.listActiveExamOfferingsByName(
-      examName.trim(),
-    );
+    const offerings =
+      await this.examOfferingRepository.listActiveExamOfferingsByName(
+        examName.trim(),
+      );
 
     const healthUnits = await Promise.all(
       offerings.map((offering) =>

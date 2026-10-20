@@ -27,7 +27,7 @@ export class HealthUnitService implements IHealthUnitService {
       );
 
       if (existingUnit) {
-        throw new Error('A health unit with this email already exists');
+        throw new Error('Já existe uma unidade de saúde com este e-mail.');
       }
 
       return await this.healthUnitRepository.createHealthUnit(params);
@@ -43,7 +43,7 @@ export class HealthUnitService implements IHealthUnitService {
       const unit = await this.healthUnitRepository.getHealthUnitById(_id);
 
       if (!unit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       return unit;
@@ -59,7 +59,7 @@ export class HealthUnitService implements IHealthUnitService {
       const unit = await this.healthUnitRepository.getHealthUnitByEmail(email);
 
       if (!unit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       return unit;
@@ -88,7 +88,7 @@ export class HealthUnitService implements IHealthUnitService {
       const existingUnit = await this.getHealthUnitById(_id);
 
       if (!existingUnit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       return await this.healthUnitRepository.updateHealthUnitById(_id, params);
@@ -108,7 +108,7 @@ export class HealthUnitService implements IHealthUnitService {
         await this.healthUnitRepository.getHealthUnitById(_id);
 
       if (!existingUnit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       const uploadedImage = await uploadImageToCloudinary({
@@ -132,7 +132,7 @@ export class HealthUnitService implements IHealthUnitService {
       const existingUnit = await this.getHealthUnitById(_id);
 
       if (!existingUnit) {
-        throw new Error('Health unit not found');
+        throw new Error('Unidade de saúde não encontrada.');
       }
 
       return await this.healthUnitRepository.deleteHealthUnitById(_id);

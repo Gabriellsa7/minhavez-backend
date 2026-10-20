@@ -15,7 +15,7 @@ import { IPaginationParams } from '../../../shared/utils/pagination';
 import { AppError } from '../../../shared/errors/AppError';
 
 const SLOT_TAKEN_MESSAGE =
-  'This professional already has an appointment at this time';
+  'Este horário acabou de ser ocupado. Escolha outro horário.';
 
 const isDuplicateKeyError = (error: unknown): boolean =>
   (error as { code?: number }).code === 11000;

@@ -49,7 +49,9 @@ export class ReceptionistController implements IController {
 
   private handleError(res: Response, error: unknown): void {
     if (error instanceof AppError) {
-      res.status(error.status).json({ status: error.status, message: error.message });
+      res
+        .status(error.status)
+        .json({ status: error.status, message: error.message });
       return;
     }
     res.status(500).json({ status: 500, message: (error as Error).message });
@@ -100,10 +102,11 @@ export class ReceptionistController implements IController {
     res: Response,
   ): Promise<void> => {
     try {
-      const receptionist = await this.receptionistService.updateReceptionistById(
-        req.params.id,
-        req.body,
-      );
+      const receptionist =
+        await this.receptionistService.updateReceptionistById(
+          req.params.id,
+          req.body,
+        );
       res.status(200).json(receptionist);
     } catch (error) {
       this.handleError(res, error);
@@ -116,7 +119,7 @@ export class ReceptionistController implements IController {
   ): Promise<void> => {
     try {
       await this.receptionistService.deleteReceptionistById(req.params.id);
-      res.status(200).json({ message: 'Receptionist deleted successfully' });
+      res.status(200).json({ message: 'Recepcionista excluída com sucesso.' });
     } catch (error) {
       this.handleError(res, error);
     }

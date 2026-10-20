@@ -112,30 +112,26 @@ export class QueueService implements IQueueService {
   }
 
   async createQueue(params: IParamsCreateQueue): Promise<IQueue> {
-    try {
-      if (params.status === EQueueStatus.OPEN) {
-        const existingOpenQueues = await this.queueRepository.listQueues({
-          professionalId: params.professionalId,
-          status: EQueueStatus.OPEN,
-        });
+    if (params.status === EQueueStatus.OPEN) {
+      const existingOpenQueues = await this.queueRepository.listQueues({
+        professionalId: params.professionalId,
+        status: EQueueStatus.OPEN,
+      });
 
-        const alreadyHasQueueForShift = existingOpenQueues.some((queue) => {
-          return (
-            queue.queueDate.getFullYear() === params.queueDate?.getFullYear() &&
-            queue.queueDate.getMonth() === params.queueDate?.getMonth() &&
-            queue.queueDate.getDate() === params.queueDate?.getDate() &&
-            queue.shift === params.shift
-          );
-        });
+      const alreadyHasQueueForShift = existingOpenQueues.some((queue) => {
+        return (
+          queue.queueDate.getFullYear() === params.queueDate?.getFullYear() &&
+          queue.queueDate.getMonth() === params.queueDate?.getMonth() &&
+          queue.queueDate.getDate() === params.queueDate?.getDate() &&
+          queue.shift === params.shift
+        );
+      });
 
-        if (alreadyHasQueueForShift) {
-          throw new Error('Already has an open queue for this day');
-        }
+      if (alreadyHasQueueForShift) {
+        throw new Error('Já existe uma fila aberta para este dia.');
       }
-      return await this.queueRepository.createQueue(params);
-    } catch (error) {
-      throw new Error(`Error creating queue: ${(error as Error).message}`);
     }
+    return await this.queueRepository.createQueue(params);
   }
 
   async getQueueById(id: string): Promise<IQueue | null> {
@@ -143,7 +139,7 @@ export class QueueService implements IQueueService {
       const queue = await this.queueRepository.getQueueById(id);
 
       if (!queue) {
-        throw new Error('Queue not found');
+        throw new Error('Fila não encontrada.');
       }
 
       return queue;
@@ -221,34 +217,26 @@ export class QueueService implements IQueueService {
     _id: string,
     params: IParamsUpdateQueue,
   ): Promise<IQueue | null> {
-    try {
-      const updatedQueue = await this.queueRepository.updateQueueById(
-        _id,
-        params,
-      );
+    const updatedQueue = await this.queueRepository.updateQueueById(
+      _id,
+      params,
+    );
 
-      if (!updatedQueue) {
-        throw new Error('Queue not found');
-      }
-
-      return updatedQueue;
-    } catch (error) {
-      throw new Error(`Error updating queue: ${(error as Error).message}`);
+    if (!updatedQueue) {
+      throw new Error('Fila não encontrada.');
     }
+
+    return updatedQueue;
   }
 
   async deleteQueueById(id: string): Promise<IQueue | null> {
-    try {
-      const deletedQueue = await this.queueRepository.deleteQueueById(id);
+    const deletedQueue = await this.queueRepository.deleteQueueById(id);
 
-      if (!deletedQueue) {
-        throw new Error('Queue not found');
-      }
-
-      return deletedQueue;
-    } catch (error) {
-      throw new Error(`Error deleting queue: ${(error as Error).message}`);
+    if (!deletedQueue) {
+      throw new Error('Fila não encontrada.');
     }
+
+    return deletedQueue;
   }
 
   async getQueueByProfessionalId(
@@ -259,7 +247,7 @@ export class QueueService implements IQueueService {
         await this.queueRepository.getQueueByProfessionalId(professionalId);
 
       if (!queue) {
-        throw new Error('Queue not found');
+        throw new Error('Fila não encontrada.');
       }
 
       return queue;
@@ -280,7 +268,7 @@ export class QueueService implements IQueueService {
         );
 
       if (!queueManagement) {
-        throw new AppError(404, 'Queue not found');
+        throw new AppError(404, 'Fila não encontrada.');
       }
 
       const nextItem = await this.queueItemRepository.getNextWaitingQueueItem(
@@ -300,109 +288,101 @@ export class QueueService implements IQueueService {
   }
 
   async openQueue(queueId: string): Promise<IQueue> {
-    try {
-      const queue = await this.queueRepository.getQueueById(queueId);
+    const queue = await this.queueRepository.getQueueById(queueId);
 
-      if (!queue) {
-        throw new Error('Queue not found');
-      }
-
-      if (queue.status === EQueueStatus.OPEN) {
-        throw new Error('Queue is already open');
-      }
-
-      const openedQueue =
-        await this.queueRepository.findOpenQueueByProfessionalIdAndShift(
-          queue.professionalId,
-          queue.shift,
-        );
-
-      if (openedQueue) {
-        throw new Error('Professional already has an open queue');
-      }
-
-      const today = new Date();
-
-      const isToday =
-        queue.queueDate.getFullYear() === today.getFullYear() &&
-        queue.queueDate.getMonth() === today.getMonth() &&
-        queue.queueDate.getDate() === today.getDate();
-
-      if (!isToday) {
-        throw new Error('Only today queue can be opened');
-      }
-
-      if (!this.hasShiftStarted(queue.shift, today)) {
-        throw new Error(
-          `Queue can only be opened after ${AFTERNOON_SHIFT_START_LABEL}`,
-        );
-      }
-
-      const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
-        status: EQueueStatus.OPEN,
-        openedAt: new Date(),
-        closedAt: null,
-      });
-
-      if (!updatedQueue) {
-        throw new Error('Queue not found');
-      }
-
-      return updatedQueue;
-    } catch (error) {
-      throw new Error(`Error opening queue: ${(error as Error).message}`);
+    if (!queue) {
+      throw new Error('Fila não encontrada.');
     }
+
+    if (queue.status === EQueueStatus.OPEN) {
+      throw new Error('A fila já está aberta.');
+    }
+
+    const openedQueue =
+      await this.queueRepository.findOpenQueueByProfessionalIdAndShift(
+        queue.professionalId,
+        queue.shift,
+      );
+
+    if (openedQueue) {
+      throw new Error('Você já tem uma fila aberta.');
+    }
+
+    const today = new Date();
+
+    const isToday =
+      queue.queueDate.getFullYear() === today.getFullYear() &&
+      queue.queueDate.getMonth() === today.getMonth() &&
+      queue.queueDate.getDate() === today.getDate();
+
+    if (!isToday) {
+      throw new Error('Só é possível abrir a fila do dia de hoje.');
+    }
+
+    if (!this.hasShiftStarted(queue.shift, today)) {
+      throw new Error(
+        `Queue can only be opened after ${AFTERNOON_SHIFT_START_LABEL}`,
+      );
+    }
+
+    const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
+      status: EQueueStatus.OPEN,
+      openedAt: new Date(),
+      closedAt: null,
+    });
+
+    if (!updatedQueue) {
+      throw new Error('Fila não encontrada.');
+    }
+
+    return updatedQueue;
   }
 
   async closeQueue(queueId: string, reason?: string): Promise<IQueue> {
-    try {
-      const queue = await this.queueRepository.getQueueById(queueId);
+    const queue = await this.queueRepository.getQueueById(queueId);
 
-      if (!queue) {
-        throw new Error('Queue not found');
-      }
-
-      const alreadyClosedAfterOpening =
-        queue.status === EQueueStatus.CLOSED && Boolean(queue.openedAt);
-
-      if (alreadyClosedAfterOpening) {
-        return queue;
-      }
-
-      const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
-        status: EQueueStatus.CLOSED,
-        closedAt: new Date(),
-        closeReason: reason ?? null,
-      });
-
-      if (!updatedQueue) {
-        throw new Error('Queue not found');
-      }
-
-      const closedQueueItems = await this.closeUnattendedQueueItems(
-        queueId,
-        queue.healthUnitId,
-        reason,
-      );
-
-      this.notificationSocketGateway?.broadcastNotification(
-        {
-          type: 'queue.closed',
-          queueId,
-          closedQueueItemIds: closedQueueItems.map((item) => item._id),
-          closedAt: updatedQueue.closedAt?.toISOString(),
-          reason: reason ?? null,
-        },
-        {
-          healthUnitId: queue.healthUnitId,
-          patientIds: closedQueueItems.map((item) => item.patientId),
-        },
-      );
-
-      return updatedQueue;
-    } catch (error) {
-      throw new Error(`Error closing queue: ${(error as Error).message}`);
+    if (!queue) {
+      throw new Error('Fila não encontrada.');
     }
+
+    const alreadyClosedAfterOpening =
+      queue.status === EQueueStatus.CLOSED && Boolean(queue.openedAt);
+
+    if (alreadyClosedAfterOpening) {
+      return queue;
+    }
+
+    const updatedQueue = await this.queueRepository.updateQueueById(queueId, {
+      status: EQueueStatus.CLOSED,
+      closedAt: new Date(),
+      closeReason: reason ?? null,
+    });
+
+    if (!updatedQueue) {
+      throw new Error('Fila não encontrada.');
+    }
+
+    const closedQueueItems = await this.closeUnattendedQueueItems(
+      queueId,
+      queue.healthUnitId,
+      reason,
+    );
+
+    this.notificationSocketGateway?.broadcastNotification(
+      {
+        type: 'queue.closed',
+        queueId,
+        closedQueueItemIds: closedQueueItems.map((item) => item._id),
+        closedAt: updatedQueue.closedAt?.toISOString(),
+        reason: reason ?? null,
+      },
+      {
+        healthUnitId: queue.healthUnitId,
+        patientIds: closedQueueItems.map((item) => item.patientId),
+      },
+    );
+
+    return updatedQueue;
   }
 
   private async closeUnattendedQueueItems(
@@ -520,11 +500,7 @@ export class QueueService implements IQueueService {
   }
 
   async listQueues(filter: Partial<IQueue>): Promise<IQueue[]> {
-    try {
-      return await this.queueRepository.listQueues(filter);
-    } catch (error) {
-      throw new Error(`Error listing queues: ${(error as Error).message}`);
-    }
+    return await this.queueRepository.listQueues(filter);
   }
 
   async getQueueHistoryByProfessionalId(

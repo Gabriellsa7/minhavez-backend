@@ -31,6 +31,9 @@ const CHECK_IN_REMINDER_MESSAGE =
 const QUEUE_CALLED_MESSAGE =
   'Você foi chamado para o atendimento. Dirija-se ao consultório.';
 
+const APPOINTMENT_CANCELED_FOR_ABSENCE_MESSAGE =
+  'Você não compareceu às duas chamadas para o atendimento, então sua consulta foi cancelada. Se ainda precisar, já pode marcar uma nova consulta.';
+
 const APPOINTMENT_AUTO_CANCELED_MESSAGE =
   'Sua consulta foi cancelada automaticamente porque não identificamos seu check-in em até 5 minutos após o horário marcado.';
 
@@ -68,18 +71,14 @@ export class QueueItemService implements IQueueItemService {
   private notificationSocketGateway?: INotificationSocketGateway;
 
   async createQueueItem(params: IParamsCreateQueueItem): Promise<IQueueItem> {
-    try {
-      return await this.queueItemRepository.createQueueItem(params);
-    } catch (error) {
-      throw new Error(`Error creating queue item: ${(error as Error).message}`);
-    }
+    return await this.queueItemRepository.createQueueItem(params);
   }
 
   async getQueueItemById(_id: string): Promise<IQueueItem | null> {
     try {
       const queueItem = await this.queueItemRepository.getQueueItemById(_id);
       if (!queueItem) {
-        throw new Error('Queue item not found');
+        throw new Error('Paciente não encontrado na fila.');
       }
 
       return queueItem;
@@ -124,7 +123,7 @@ export class QueueItemService implements IQueueItemService {
       const queueItems =
         await this.queueItemRepository.getQueueItemByQueueId(queueId);
       if (!queueItems) {
-        throw new Error('Queue item not found');
+        throw new Error('Paciente não encontrado na fila.');
       }
 
       return queueItems;
@@ -139,43 +138,37 @@ export class QueueItemService implements IQueueItemService {
     _id: string,
     params: IParamsUpdateQueueItem,
   ): Promise<IQueueItem | null> {
-    try {
-      const updatedQueueItem =
-        await this.queueItemRepository.updateQueueItemById(_id, params);
+    const updatedQueueItem = await this.queueItemRepository.updateQueueItemById(
+      _id,
+      params,
+    );
 
-      if (!updatedQueueItem) {
-        throw new Error('Queue item not found');
-      }
-
-      return updatedQueueItem;
-    } catch (error) {
-      throw new Error(`Error updating queue item: ${(error as Error).message}`);
+    if (!updatedQueueItem) {
+      throw new Error('Paciente não encontrado na fila.');
     }
+
+    return updatedQueueItem;
   }
 
   async deleteQueueItemById(_id: string): Promise<IQueueItem | null> {
-    try {
-      const deletedQueueItem =
-        await this.queueItemRepository.deleteQueueItemById(_id);
+    const deletedQueueItem =
+      await this.queueItemRepository.deleteQueueItemById(_id);
 
-      if (!deletedQueueItem) {
-        throw new Error('Queue item not found');
-      }
-
-      return deletedQueueItem;
-    } catch (error) {
-      throw new Error(`Error deleting queue item: ${(error as Error).message}`);
+    if (!deletedQueueItem) {
+      throw new Error('Paciente não encontrado na fila.');
     }
+
+    return deletedQueueItem;
   }
 
   async finishQueueItem(queueItemId: string): Promise<IQueueItem> {
     const queueItem =
       await this.queueItemRepository.getQueueItemById(queueItemId);
 
-    if (!queueItem) throw new Error('Queue item not found');
+    if (!queueItem) throw new Error('Paciente não encontrado na fila.');
 
     if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
-      throw new Error('Patient is not in service');
+      throw new Error('Este paciente não está em atendimento.');
 
     const [appointment] = await this.appointmentRepository.listAppointments({
       queueItemId,
@@ -205,48 +198,29 @@ export class QueueItemService implements IQueueItemService {
   }
 
   async markQueueItemAsAbsent(queueItemId: string): Promise<IQueueItem> {
-    try {
-      const queueItem =
-        await this.queueItemRepository.getQueueItemById(queueItemId);
+    const queueItem =
+      await this.queueItemRepository.getQueueItemById(queueItemId);
 
-      if (!queueItem) throw new Error('Queue item not found');
+    if (!queueItem) throw new Error('Paciente não encontrado na fila.');
 
-      if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
-        throw new Error('Patient is not in service');
+    if (queueItem.status !== EQueueItemStatus.IN_SERVICE)
+      throw new Error('Este paciente não está em atendimento.');
 
-      if (queueItem.missedCalls === 0) {
-        const lastPosition =
-          await this.queueItemRepository.getLastQueuePosition(
-            queueItem.queueId,
-          );
-
-        const updated = await this.queueItemRepository.updateQueueItemById(
-          queueItemId,
-          {
-            missedCalls: 1,
-
-            position: lastPosition + 1,
-
-            status: EQueueItemStatus.WAITING,
-
-            calledAt: undefined,
-          },
-        );
-
-        await this.advanceQueue(queueItem.queueId);
-        await this.queueOrderingService.recalculatePositions(queueItem.queueId);
-
-        return updated!;
-      }
+    if (queueItem.missedCalls === 0) {
+      const lastPosition = await this.queueItemRepository.getLastQueuePosition(
+        queueItem.queueId,
+      );
 
       const updated = await this.queueItemRepository.updateQueueItemById(
         queueItemId,
         {
-          missedCalls: 2,
+          missedCalls: 1,
 
-          status: EQueueItemStatus.ABSENT,
+          position: lastPosition + 1,
 
-          finishedAt: new Date(),
+          status: EQueueItemStatus.WAITING,
+
+          calledAt: undefined,
         },
       );
 
@@ -254,25 +228,43 @@ export class QueueItemService implements IQueueItemService {
       await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 
       return updated!;
-    } catch (error) {
-      throw new Error(`Error listing queue items: ${(error as Error).message}`);
     }
+
+    const updated = await this.queueItemRepository.updateQueueItemById(
+      queueItemId,
+      {
+        missedCalls: 2,
+
+        status: EQueueItemStatus.ABSENT,
+
+        finishedAt: new Date(),
+      },
+    );
+
+    await this.cancelAppointmentForDefinitiveAbsence(queueItem);
+
+    await this.advanceQueue(queueItem.queueId);
+    await this.queueOrderingService.recalculatePositions(queueItem.queueId);
+
+    return updated!;
   }
 
   async checkInQueueItem(queueItemId: string): Promise<IQueueItem> {
     const queueItem =
       await this.queueItemRepository.getQueueItemById(queueItemId);
 
-    if (!queueItem) throw new Error('Queue item not found');
+    if (!queueItem) throw new Error('Paciente não encontrado na fila.');
 
     if (queueItem.status !== EQueueItemStatus.WAITING) {
-      throw new Error('Somente pacientes aguardando podem fazer check-in');
+      throw new Error('Somente pacientes aguardando podem fazer check-in.');
     }
 
     if (queueItem.checkInTime) {
-      throw new Error('Check-in já realizado para este paciente');
+      throw new Error('Check-in já realizado para este paciente.');
     }
 
+    // There is intentionally no earliest check-in time: a patient who arrives early
+    // can confirm presence at the front desk whenever they get there.
     const checkInTime = new Date();
 
     const updated = await this.queueItemRepository.updateQueueItemById(
@@ -468,58 +460,51 @@ export class QueueItemService implements IQueueItemService {
   }
 
   private async advanceQueue(queueId: string): Promise<void> {
-    try {
-      const next = await this.queueItemRepository.getNextWaitingQueueItem(
-        queueId,
+    const next =
+      await this.queueItemRepository.getNextWaitingQueueItem(queueId);
+
+    if (next) {
+      const called = await this.queueItemRepository.updateQueueItemIfStatus(
+        next._id,
+        EQueueItemStatus.WAITING,
+        { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
       );
 
-      if (next) {
-        const called = await this.queueItemRepository.updateQueueItemIfStatus(
-          next._id,
-          EQueueItemStatus.WAITING,
-          { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
-        );
-
-        if (called) await this.notifyPatientCalled(called);
-      }
-    } catch (error) {
-      throw new Error(`Error listing queue items: ${(error as Error).message}`);
+      if (called) await this.notifyPatientCalled(called);
     }
   }
 
   async callQueueItem(id: string): Promise<IQueueItem> {
-    try {
-      const queueItem = await this.queueItemRepository.getQueueItemById(id);
+    const queueItem = await this.queueItemRepository.getQueueItemById(id);
 
-      if (!queueItem) {
-        throw new Error('Queue item not found');
-      }
-
-      // The status check and the transition happen in one atomic update, so a double
-      // click or two concurrent requests produce a single call.
-      const updatedQueueItem =
-        await this.queueItemRepository.updateQueueItemIfStatus(
-          id,
-          EQueueItemStatus.WAITING,
-          { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
-        );
-
-      if (!updatedQueueItem) {
-        throw new Error('Only waiting patients can be called');
-      }
-
-      await this.notifyPatientCalled(updatedQueueItem);
-      await this.queueNotificationService?.handleQueuePositionChange(
-        updatedQueueItem,
-      );
-      await this.queueOrderingService.recalculatePositions(
-        updatedQueueItem.queueId,
-      );
-
-      return updatedQueueItem;
-    } catch (error) {
-      throw new Error(`Error calling queue item: ${(error as Error).message}`);
+    if (!queueItem) {
+      throw new Error('Paciente não encontrado na fila.');
     }
+
+    // The status check and the transition happen in one atomic update, so a double
+    // click or two concurrent requests produce a single call.
+    const updatedQueueItem =
+      await this.queueItemRepository.updateQueueItemIfStatus(
+        id,
+        EQueueItemStatus.WAITING,
+        { status: EQueueItemStatus.IN_SERVICE, calledAt: new Date() },
+      );
+
+    if (!updatedQueueItem) {
+      throw new Error(
+        'Só é possível chamar pacientes que estão aguardando. Este paciente já foi chamado ou saiu da fila.',
+      );
+    }
+
+    await this.notifyPatientCalled(updatedQueueItem);
+    await this.queueNotificationService?.handleQueuePositionChange(
+      updatedQueueItem,
+    );
+    await this.queueOrderingService.recalculatePositions(
+      updatedQueueItem.queueId,
+    );
+
+    return updatedQueueItem;
   }
 
   private async notifyPatientCalled(queueItem: IQueueItem): Promise<void> {
@@ -550,6 +535,44 @@ export class QueueItemService implements IQueueItemService {
     }
   }
 
+  private async cancelAppointmentForDefinitiveAbsence(
+    queueItem: IQueueItem,
+  ): Promise<void> {
+    const [appointment] = await this.appointmentRepository.listAppointments({
+      queueItemId: queueItem._id,
+    });
+
+    if (appointment) {
+      await this.appointmentRepository.updateAppointmentById(appointment._id, {
+        status: EAppointmentStatus.CANCELED,
+        finishedAt: new Date(),
+      });
+    }
+
+    try {
+      const queue = await this.queueRepository.getQueueById(queueItem.queueId);
+
+      await this.notificationService?.createNotification({
+        patientId: queueItem.patientId,
+        type: ENotificationType.APPOINTMENT_CANCELED_FOR_ABSENCE,
+        title: 'Consulta cancelada por ausência',
+        message: APPOINTMENT_CANCELED_FOR_ABSENCE_MESSAGE,
+        queueItemId: queueItem._id,
+        appointmentId: appointment?._id,
+        data: {
+          queueId: queueItem.queueId,
+          healthUnitId: queue?.healthUnitId ?? null,
+          appointmentId: appointment?._id ?? null,
+        },
+      });
+    } catch (error) {
+      console.error(
+        `Error notifying definitive absence for queue item ${queueItem._id}:`,
+        error,
+      );
+    }
+  }
+
   private async completeAppointment(queueItemId: string): Promise<void> {
     const appointments = await this.appointmentRepository.listAppointments({
       queueItemId,
@@ -569,10 +592,6 @@ export class QueueItemService implements IQueueItemService {
   }
 
   async listQueueItem(filter: Partial<IQueueItem>): Promise<IQueueItem[]> {
-    try {
-      return await this.queueItemRepository.listQueueItems(filter);
-    } catch (error) {
-      throw new Error(`Error listing queue items: ${(error as Error).message}`);
-    }
+    return await this.queueItemRepository.listQueueItems(filter);
   }
 }

@@ -25,7 +25,7 @@ export class PushTokenController implements IController {
     try {
       const { token, platform } = req.body;
       await this.pushTokenService.registerToken(req.user!.sub, token, platform);
-      res.status(200).json({ message: 'Token registered' });
+      res.status(200).json({ message: 'Token registrado.' });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message, status: 400 });
     }

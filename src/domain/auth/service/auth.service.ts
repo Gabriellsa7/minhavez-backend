@@ -83,7 +83,7 @@ export class AuthService implements IAuthService {
       const validPassword = await bcrypt.compare(password, user.password);
 
       if (!validPassword) {
-        throw new Error('Invalid credentials');
+        throw new Error('E-mail ou senha incorretos.');
       }
 
       const payload: IAuthPayload = {
@@ -125,7 +125,7 @@ export class AuthService implements IAuthService {
       );
 
       if (!validPassword) {
-        throw new Error('Invalid credentials');
+        throw new Error('E-mail ou senha incorretos.');
       }
 
       const payload: IAuthPayload = {
@@ -169,7 +169,7 @@ export class AuthService implements IAuthService {
       );
 
       if (!validPassword) {
-        throw new Error('Invalid credentials');
+        throw new Error('E-mail ou senha incorretos.');
       }
 
       const payload: IAuthPayload = {
@@ -199,7 +199,7 @@ export class AuthService implements IAuthService {
       };
     }
 
-    throw new Error('Invalid credentials');
+    throw new Error('E-mail ou senha incorretos.');
   }
 
   async refreshToken(
@@ -227,7 +227,7 @@ export class AuthService implements IAuthService {
           );
 
         if (!professional) {
-          throw new Error('Health professional not found');
+          throw new Error('Profissional de saúde não encontrado.');
         }
 
         principal = professional;
@@ -247,7 +247,7 @@ export class AuthService implements IAuthService {
           await this.receptionistRepository.getReceptionistById(decoded.sub);
 
         if (!receptionist) {
-          throw new Error('Receptionist not found');
+          throw new Error('Recepcionista não encontrada.');
         }
 
         principal = receptionist;
@@ -265,7 +265,7 @@ export class AuthService implements IAuthService {
         const user = await this.userRepository.findById(decoded.sub);
 
         if (!user) {
-          throw new Error('User not found');
+          throw new Error('Usuário não encontrado.');
         }
 
         principal = user;
@@ -301,7 +301,7 @@ export class AuthService implements IAuthService {
         },
       };
     } catch {
-      throw new Error('Invalid refresh token');
+      throw new Error('Sua sessão expirou. Faça login novamente.');
     }
   }
 
@@ -347,10 +347,7 @@ export class AuthService implements IAuthService {
 
     await this.passwordResetRepository.saveOtp(email, code, OTP_TTL_SECONDS);
     await this.passwordResetRepository.resetAttempts(email);
-    await this.passwordResetRepository.setCooldown(
-      email,
-      COOLDOWN_TTL_SECONDS,
-    );
+    await this.passwordResetRepository.setCooldown(email, COOLDOWN_TTL_SECONDS);
 
     try {
       const { subject, html, text } = buildPasswordResetEmail(code);

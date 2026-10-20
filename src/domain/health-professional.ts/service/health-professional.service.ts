@@ -45,7 +45,7 @@ export class HealthProfessionalService implements IHealthProfessionalService {
         await this.healthProfessionalRepository.getHealthProfessionalById(_id);
 
       if (!healthProfessional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       return healthProfessional;
@@ -80,7 +80,7 @@ export class HealthProfessionalService implements IHealthProfessionalService {
         );
 
       if (!healthProfessional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       return healthProfessional;
@@ -103,7 +103,7 @@ export class HealthProfessionalService implements IHealthProfessionalService {
         );
 
       if (!updatedHealthProfessional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       return updatedHealthProfessional;
@@ -123,7 +123,7 @@ export class HealthProfessionalService implements IHealthProfessionalService {
         await this.healthProfessionalRepository.getHealthProfessionalById(_id);
 
       if (!existingHealthProfessional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       const uploadedImage = await uploadImageToCloudinary({
@@ -155,7 +155,7 @@ export class HealthProfessionalService implements IHealthProfessionalService {
         );
 
       if (!healthProfessional) {
-        throw new Error('Health professional not found');
+        throw new Error('Profissional de saúde não encontrado.');
       }
 
       return healthProfessional;

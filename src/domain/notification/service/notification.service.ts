@@ -285,7 +285,7 @@ export class NotificationService implements INotificationService {
       const notification =
         await this.notificationRepository.getNotificationById(id);
       if (!notification) {
-        throw new Error('Notification not found');
+        throw new Error('Notificação não encontrada.');
       }
       return notification;
     } catch (error) {
@@ -317,7 +317,7 @@ export class NotificationService implements INotificationService {
         params,
       );
       if (!updated) {
-        throw new Error('Notification not found');
+        throw new Error('Notificação não encontrada.');
       }
       return updated;
     } catch (error) {
@@ -332,7 +332,7 @@ export class NotificationService implements INotificationService {
       const deleted =
         await this.notificationRepository.deleteNotificationById(id);
       if (!deleted) {
-        throw new Error('Notification not found');
+        throw new Error('Notificação não encontrada.');
       }
       return deleted;
     } catch (error) {
@@ -347,7 +347,7 @@ export class NotificationService implements INotificationService {
       const updated =
         await this.notificationRepository.markNotificationRead(id);
       if (!updated) {
-        throw new Error('Notification not found');
+        throw new Error('Notificação não encontrada.');
       }
       return updated;
     } catch (error) {

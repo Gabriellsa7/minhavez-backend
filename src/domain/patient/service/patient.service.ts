@@ -30,7 +30,6 @@ import {
   uploadPatientDocumentToCloudinary,
 } from '../../../infrastructure/external/cloudinary/cloudinary-file-upload';
 
-
 function isAllowedMimeType(
   mimeType: string,
 ): mimeType is TPatientDocumentMimeType {
@@ -80,7 +79,7 @@ export class PatientService implements IPatientService {
 
   private assertOwnsPatient(patient: IPatient, requesterId: string): void {
     if (patient.userId !== requesterId) {
-      throw new AppError(403, 'You do not have access to this patient');
+      throw new AppError(403, 'Você não tem acesso aos dados deste paciente.');
     }
   }
 
@@ -95,34 +94,27 @@ export class PatientService implements IPatientService {
   }
 
   async createPatient(params: IParamsCreatePatient): Promise<IPatient> {
-    try {
-      if (!isValidCpf(params.cpf)) {
-        throw new AppError(400, 'Invalid CPF');
-      }
-
-      const existingPatient = await this.patientRepository.getPatientByUserId(
-        params.userId,
-      );
-
-      if (existingPatient) {
-        throw new AppError(400, 'A patient with this user ID already exists');
-      }
-
-      const isElderly = calculateAge(params.birthDate) >= ELDERLY_MIN_AGE;
-      const priority = isElderly ? EPatientPriority.ELDERLY : params.priority;
-
-      const patient = await this.patientRepository.createPatient({
-        ...params,
-        priority,
-      });
-
-      return this.sanitizePatient(patient);
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new Error(`Error creating user: ${(error as Error).message}`);
+    if (!isValidCpf(params.cpf)) {
+      throw new AppError(400, 'CPF inválido.');
     }
+
+    const existingPatient = await this.patientRepository.getPatientByUserId(
+      params.userId,
+    );
+
+    if (existingPatient) {
+      throw new AppError(400, 'Este usuário já tem um cadastro de paciente.');
+    }
+
+    const isElderly = calculateAge(params.birthDate) >= ELDERLY_MIN_AGE;
+    const priority = isElderly ? EPatientPriority.ELDERLY : params.priority;
+
+    const patient = await this.patientRepository.createPatient({
+      ...params,
+      priority,
+    });
+
+    return this.sanitizePatient(patient);
   }
 
   async getPatientById(_id: string): Promise<IPatient | null> {
@@ -163,7 +155,7 @@ export class PatientService implements IPatientService {
       );
 
       if (!patient) {
-        throw new Error('Patient not found');
+        throw new Error('Paciente não encontrado.');
       }
 
       if (updateParams.priority !== undefined) {
@@ -183,7 +175,7 @@ export class PatientService implements IPatientService {
       const patient = await this.patientRepository.deletePatientById(_id);
 
       if (!patient) {
-        throw new Error('Patient not found');
+        throw new Error('Paciente não encontrado.');
       }
 
       return this.sanitizePatient(patient);
@@ -195,12 +187,8 @@ export class PatientService implements IPatientService {
   }
 
   async listPatients(filter: Partial<IPatient>): Promise<IPatient[]> {
-    try {
-      const patients = await this.patientRepository.listPatients(filter);
-      return patients.map((patient) => this.sanitizePatient(patient));
-    } catch (error) {
-      throw new Error(`Error listing patients: ${(error as Error).message}`);
-    }
+    const patients = await this.patientRepository.listPatients(filter);
+    return patients.map((patient) => this.sanitizePatient(patient));
   }
 
   async uploadMedicalDocument(
@@ -211,7 +199,7 @@ export class PatientService implements IPatientService {
     const { fileBase64, fileName, mimeType } = params;
 
     if (!fileBase64) {
-      throw new AppError(400, 'File is required');
+      throw new AppError(400, 'Envie o arquivo.');
     }
 
     if (!isAllowedMimeType(mimeType)) {
@@ -236,7 +224,7 @@ export class PatientService implements IPatientService {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     this.assertOwnsPatient(patient, requesterId);
@@ -262,7 +250,7 @@ export class PatientService implements IPatientService {
     );
 
     if (!updatedPatient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     return this.sanitizePatient(updatedPatient);
@@ -276,7 +264,7 @@ export class PatientService implements IPatientService {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     this.assertOwnsPatient(patient, requesterId);
@@ -286,7 +274,7 @@ export class PatientService implements IPatientService {
     );
 
     if (!documentExists) {
-      throw new AppError(404, 'Medical document not found');
+      throw new AppError(404, 'Documento médico não encontrado.');
     }
 
     const updatedPatient = await this.patientRepository.removeMedicalDocument(
@@ -295,7 +283,7 @@ export class PatientService implements IPatientService {
     );
 
     if (!updatedPatient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     return this.sanitizePatient(updatedPatient);
@@ -309,7 +297,7 @@ export class PatientService implements IPatientService {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     this.assertOwnsPatient(patient, requesterId);
@@ -319,7 +307,7 @@ export class PatientService implements IPatientService {
     );
 
     if (!document) {
-      throw new AppError(404, 'Medical document not found');
+      throw new AppError(404, 'Documento médico não encontrado.');
     }
 
     const fileUrl = generateSignedPatientDocumentUrl(

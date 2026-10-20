@@ -102,14 +102,14 @@ export class PatientController implements IController {
     try {
       const patient = await this.patientService.getPatientById(id);
       if (!patient) {
-        res.status(404).json({ message: 'Patient not found', status: 404 });
+        res
+          .status(404)
+          .json({ message: 'Paciente não encontrado.', status: 404 });
         return;
       }
       res.status(200).json(patient);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: (error as Error).message, status: 500 });
+      res.status(500).json({ message: (error as Error).message, status: 500 });
     }
   };
 
@@ -121,14 +121,14 @@ export class PatientController implements IController {
     try {
       const patient = await this.patientService.getPatientByUserId(userId);
       if (!patient) {
-        res.status(404).json({ message: 'Patient not found', status: 404 });
+        res
+          .status(404)
+          .json({ message: 'Paciente não encontrado.', status: 404 });
         return;
       }
       res.status(200).json(patient);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: (error as Error).message, status: 500 });
+      res.status(500).json({ message: (error as Error).message, status: 500 });
     }
   };
 
@@ -142,14 +142,14 @@ export class PatientController implements IController {
         normalizeCpf(cpf),
       );
       if (!patient) {
-        res.status(404).json({ message: 'Patient not found', status: 404 });
+        res
+          .status(404)
+          .json({ message: 'Paciente não encontrado.', status: 404 });
         return;
       }
       res.status(200).json(patient);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: (error as Error).message, status: 500 });
+      res.status(500).json({ message: (error as Error).message, status: 500 });
     }
   };
 
@@ -193,13 +193,13 @@ export class PatientController implements IController {
     try {
       const existingPatient = await this.patientService.getPatientById(id);
       if (!existingPatient) {
-        res.status(404).json({ message: 'Patient not found' });
+        res.status(404).json({ message: 'Paciente não encontrado.' });
         return;
       }
       if (existingPatient.userId !== req.user!.sub) {
         res
           .status(403)
-          .json({ message: 'You do not have access to this patient' });
+          .json({ message: 'Você não tem acesso aos dados deste paciente.' });
         return;
       }
 
@@ -208,7 +208,7 @@ export class PatientController implements IController {
         updateData,
       );
       if (!updatedPatient) {
-        res.status(404).json({ message: 'Patient not found' });
+        res.status(404).json({ message: 'Paciente não encontrado.' });
         return;
       }
       res.status(200).json(updatedPatient);
@@ -277,7 +277,7 @@ export class PatientController implements IController {
     try {
       const deletedPatient = await this.patientService.deletePatientById(id);
       if (!deletedPatient) {
-        res.status(404).json({ message: 'Patient not found' });
+        res.status(404).json({ message: 'Paciente não encontrado.' });
         return;
       }
       res.status(200).json(deletedPatient);

@@ -59,7 +59,7 @@ export const prescriptionSchema = new mongoose.Schema(
       validate: {
         validator: (value: unknown[]) =>
           Array.isArray(value) && value.length > 0,
-        message: 'At least one exam is required',
+        message: 'Informe pelo menos um exame.',
       },
     },
   },

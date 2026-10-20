@@ -55,32 +55,41 @@ export class ExamBookingService implements IExamBookingService {
   ) {
     if (requester.isExamProfessional) {
       if (requester.healthUnitId !== healthUnitId) {
-        throw new AppError(403, 'Forbidden');
+        throw new AppError(
+          403,
+          'Você não tem permissão para realizar esta ação.',
+        );
       }
 
       const healthUnit =
         await this.healthUnitRepository.getHealthUnitById(healthUnitId);
 
       if (!healthUnit) {
-        throw new AppError(404, 'Health unit not found');
+        throw new AppError(404, 'Unidade de saúde não encontrada.');
       }
 
       return healthUnit;
     }
 
     if (!requester.isAdmin) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const healthUnit =
       await this.healthUnitRepository.getHealthUnitById(healthUnitId);
 
     if (!healthUnit) {
-      throw new AppError(404, 'Health unit not found');
+      throw new AppError(404, 'Unidade de saúde não encontrada.');
     }
 
     if (healthUnit.userId !== requester.sub) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     return healthUnit;
@@ -106,7 +115,10 @@ export class ExamBookingService implements IExamBookingService {
     scheduledAt: Date,
   ): Promise<IExamAvailabilityRule> {
     if (scheduledAt.getTime() <= Date.now()) {
-      throw new AppError(400, 'Cannot book a time in the past');
+      throw new AppError(
+        400,
+        'Não é possível marcar em um horário que já passou.',
+      );
     }
 
     const isBlackedOut = await this.examAvailabilityRepository.isDateBlackedOut(
@@ -115,13 +127,16 @@ export class ExamBookingService implements IExamBookingService {
     );
 
     if (isBlackedOut) {
-      throw new AppError(400, 'This date is unavailable for booking');
+      throw new AppError(
+        400,
+        'Esta data não está disponível para agendamento.',
+      );
     }
 
     const rule = await this.getActiveRuleForDate(healthUnitId, scheduledAt);
 
     if (!rule) {
-      throw new AppError(400, 'This clinic is closed on the selected day');
+      throw new AppError(400, 'A clínica não funciona no dia escolhido.');
     }
 
     const validTimes = generateSlotTimes(rule);
@@ -131,7 +146,7 @@ export class ExamBookingService implements IExamBookingService {
       .padStart(2, '0')}`;
 
     if (!validTimes.includes(hhmm)) {
-      throw new AppError(400, 'Invalid time slot');
+      throw new AppError(400, 'Horário inválido.');
     }
 
     return rule;
@@ -196,7 +211,10 @@ export class ExamBookingService implements IExamBookingService {
         booking.healthUnitId,
       );
       if (healthUnit?.userId === requester.sub) return;
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const patient = await this.patientRepository.getPatientByUserId(
@@ -205,7 +223,7 @@ export class ExamBookingService implements IExamBookingService {
 
     if (patient?._id === booking.patientId) return;
 
-    throw new AppError(403, 'Forbidden');
+    throw new AppError(403, 'Você não tem permissão para realizar esta ação.');
   }
 
   async createBooking(
@@ -213,14 +231,14 @@ export class ExamBookingService implements IExamBookingService {
     requester: IExamBookingRequester,
   ): Promise<IExamBookingWithContext> {
     if (requester.isAdmin) {
-      throw new AppError(403, 'Only patients can book exams');
+      throw new AppError(403, 'Somente pacientes podem marcar exames.');
     }
 
     let patient;
 
     if (requester.isReceptionist) {
       if (!params.patientId) {
-        throw new AppError(400, 'patientId is required');
+        throw new AppError(400, 'Informe o paciente.');
       }
 
       if (
@@ -229,20 +247,23 @@ export class ExamBookingService implements IExamBookingService {
       ) {
         throw new AppError(
           403,
-          'You can only book exams for your own health unit',
+          'Você só pode marcar exames da sua própria unidade.',
         );
       }
 
       patient = await this.patientRepository.getPatientById(params.patientId);
 
       if (!patient) {
-        throw new AppError(404, 'Patient not found');
+        throw new AppError(404, 'Paciente não encontrado.');
       }
     } else {
       patient = await this.patientRepository.getPatientByUserId(requester.sub);
 
       if (!patient) {
-        throw new AppError(400, 'Patient profile is required to book an exam');
+        throw new AppError(
+          400,
+          'Complete seu cadastro de paciente para marcar exames.',
+        );
       }
     }
 
@@ -251,11 +272,11 @@ export class ExamBookingService implements IExamBookingService {
     );
 
     if (!offering || offering.healthUnitId !== params.healthUnitId) {
-      throw new AppError(400, 'This exam is not offered by this clinic');
+      throw new AppError(400, 'Este exame não é oferecido por esta clínica.');
     }
 
     if (!offering.isActive) {
-      throw new AppError(400, 'This exam is not currently available');
+      throw new AppError(400, 'Este exame não está disponível no momento.');
     }
 
     await this.assertMinimumGapFromOtherBookings(
@@ -277,7 +298,7 @@ export class ExamBookingService implements IExamBookingService {
     );
 
     if (!reserved) {
-      throw new AppError(409, 'This time slot is fully booked');
+      throw new AppError(409, 'Este horário já está lotado.');
     }
 
     try {
@@ -311,7 +332,7 @@ export class ExamBookingService implements IExamBookingService {
     const booking = await this.examBookingRepository.getExamBookingById(id);
 
     if (!booking) {
-      throw new AppError(404, 'Exam booking not found');
+      throw new AppError(404, 'Agendamento de exame não encontrado.');
     }
 
     await this.assertCanAccessBooking(booking, requester);
@@ -320,7 +341,7 @@ export class ExamBookingService implements IExamBookingService {
       booking.status !== EExamBookingStatus.SCHEDULED &&
       booking.status !== EExamBookingStatus.CONFIRMED
     ) {
-      throw new AppError(400, 'This booking can no longer be canceled');
+      throw new AppError(400, 'Este exame não pode mais ser cancelado.');
     }
 
     const updated = await this.examBookingRepository.updateExamBookingById(id, {
@@ -348,7 +369,7 @@ export class ExamBookingService implements IExamBookingService {
     const booking = await this.examBookingRepository.getExamBookingById(id);
 
     if (!booking) {
-      throw new AppError(404, 'Exam booking not found');
+      throw new AppError(404, 'Agendamento de exame não encontrado.');
     }
 
     await this.assertCanAccessBooking(booking, requester);
@@ -357,7 +378,7 @@ export class ExamBookingService implements IExamBookingService {
       booking.status !== EExamBookingStatus.SCHEDULED &&
       booking.status !== EExamBookingStatus.CONFIRMED
     ) {
-      throw new AppError(400, 'This booking can no longer be rescheduled');
+      throw new AppError(400, 'Este exame não pode mais ser remarcado.');
     }
 
     await this.cancelBooking(id, requester, 'Reagendado');
@@ -381,7 +402,7 @@ export class ExamBookingService implements IExamBookingService {
     const booking = await this.examBookingRepository.getExamBookingById(id);
 
     if (!booking) {
-      throw new AppError(404, 'Exam booking not found');
+      throw new AppError(404, 'Agendamento de exame não encontrado.');
     }
 
     await this.assertOwnsHealthUnit(booking.healthUnitId, requester);
@@ -392,24 +413,36 @@ export class ExamBookingService implements IExamBookingService {
 
     if (newStatus === EExamBookingStatus.IN_PROGRESS) {
       if (!isActiveStatus) {
-        throw new AppError(400, 'Invalid status transition');
+        throw new AppError(
+          400,
+          'Não é possível mudar o agendamento para este status.',
+        );
       }
     } else if (newStatus === EExamBookingStatus.COMPLETED) {
       if (booking.status !== EExamBookingStatus.IN_PROGRESS) {
-        throw new AppError(400, 'Invalid status transition');
+        throw new AppError(
+          400,
+          'Não é possível mudar o agendamento para este status.',
+        );
       }
     } else if (newStatus === EExamBookingStatus.NO_SHOW) {
       if (!isActiveStatus) {
-        throw new AppError(400, 'Invalid status transition');
+        throw new AppError(
+          400,
+          'Não é possível mudar o agendamento para este status.',
+        );
       }
       if (booking.scheduledAt.getTime() > Date.now()) {
         throw new AppError(
           400,
-          'Cannot mark as no-show before the scheduled time',
+          'Não é possível registrar a ausência antes do horário marcado.',
         );
       }
     } else {
-      throw new AppError(400, 'Invalid status transition');
+      throw new AppError(
+        400,
+        'Não é possível mudar o agendamento para este status.',
+      );
     }
 
     const updated = await this.examBookingRepository.updateExamBookingById(id, {
@@ -426,7 +459,7 @@ export class ExamBookingService implements IExamBookingService {
     const booking = await this.examBookingRepository.getExamBookingById(id);
 
     if (!booking) {
-      throw new AppError(404, 'Exam booking not found');
+      throw new AppError(404, 'Agendamento de exame não encontrado.');
     }
 
     await this.assertCanAccessBooking(booking, requester);
@@ -442,7 +475,7 @@ export class ExamBookingService implements IExamBookingService {
     const patient = await this.patientRepository.getPatientById(patientId);
 
     if (!patient) {
-      throw new AppError(404, 'Patient not found');
+      throw new AppError(404, 'Paciente não encontrado.');
     }
 
     const bookings =
@@ -475,7 +508,10 @@ export class ExamBookingService implements IExamBookingService {
     } else if (patient.userId === requester.sub) {
       authorizedBookings = bookings;
     } else {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const totalItems = authorizedBookings.length;
@@ -587,7 +623,7 @@ export class ExamBookingService implements IExamBookingService {
       await this.examBookingRepository.getExamBookingById(bookingId);
 
     if (!booking) {
-      throw new AppError(404, 'Exam booking not found');
+      throw new AppError(404, 'Agendamento de exame não encontrado.');
     }
 
     await this.assertOwnsHealthUnit(booking.healthUnitId, requester);
@@ -595,18 +631,18 @@ export class ExamBookingService implements IExamBookingService {
     if (booking.status !== EExamBookingStatus.COMPLETED) {
       throw new AppError(
         400,
-        'Only completed bookings can be linked to a result',
+        'Só é possível vincular resultado a um exame já realizado.',
       );
     }
 
     if (booking.resultExamId) {
-      throw new AppError(400, 'This booking already has a linked result');
+      throw new AppError(400, 'Este exame já tem um resultado vinculado.');
     }
 
     const exam = await this.examRepository.getExamById(examId);
 
     if (!exam) {
-      throw new AppError(404, 'Exam result not found');
+      throw new AppError(404, 'Resultado de exame não encontrado.');
     }
 
     if (
@@ -615,7 +651,7 @@ export class ExamBookingService implements IExamBookingService {
     ) {
       throw new AppError(
         400,
-        'This exam result does not belong to the same patient/clinic as the booking',
+        'Este resultado não pertence ao mesmo paciente ou clínica do agendamento.',
       );
     }
 

@@ -20,30 +20,26 @@ export class UserService implements IUserService {
   }
 
   async createUser(params: IParamsCreateUser): Promise<IUser> {
-    try {
-      const existingUser = await this.userRepository.findUserByEmail(
-        params.email,
-      );
-      if (existingUser) {
-        throw new Error('A user with this email already exists');
-      }
-
-      const hashedPassword = await bcrypt.hash(params.password, 10);
-
-      return await this.userRepository.createUser({
-        ...params,
-        password: hashedPassword,
-      });
-    } catch (error) {
-      throw new Error(`Error creating user: ${(error as Error).message}`);
+    const existingUser = await this.userRepository.findUserByEmail(
+      params.email,
+    );
+    if (existingUser) {
+      throw new Error('Já existe uma conta com este e-mail.');
     }
+
+    const hashedPassword = await bcrypt.hash(params.password, 10);
+
+    return await this.userRepository.createUser({
+      ...params,
+      password: hashedPassword,
+    });
   }
 
   async getUserById(_id: string): Promise<IUser | null> {
     try {
       const user = await this.userRepository.findUserById(_id);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('Usuário não encontrado.');
       }
       return user;
     } catch (error) {
@@ -57,7 +53,7 @@ export class UserService implements IUserService {
     try {
       const user = await this.userRepository.findUserByEmail(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('Usuário não encontrado.');
       }
       return user;
     } catch (error) {
@@ -71,16 +67,12 @@ export class UserService implements IUserService {
     _id: string,
     params: IParamsUpdateUser,
   ): Promise<IUser | null> {
-    try {
-      const user = await this.userRepository.findUserById(_id);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      return await this.userRepository.updateUserById(_id, params);
-    } catch (error) {
-      throw new Error(`Error updating user: ${(error as Error).message}`);
+    const user = await this.userRepository.findUserById(_id);
+    if (!user) {
+      throw new Error('Usuário não encontrado.');
     }
+
+    return await this.userRepository.updateUserById(_id, params);
   }
 
   async uploadUserImage(
@@ -91,7 +83,7 @@ export class UserService implements IUserService {
       const existingUser = await this.userRepository.findUserById(_id);
 
       if (!existingUser) {
-        throw new Error('User not found');
+        throw new Error('Usuário não encontrado.');
       }
 
       const uploadedImage = await uploadImageToCloudinary({
@@ -111,24 +103,16 @@ export class UserService implements IUserService {
   }
 
   async deleteUserById(_id: string): Promise<IUser | null> {
-    try {
-      const user = await this.userRepository.findUserById(_id);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      await this.userRepository.deleteUserById(_id);
-      return user;
-    } catch (error) {
-      throw new Error(`Error deleting user: ${(error as Error).message}`);
+    const user = await this.userRepository.findUserById(_id);
+    if (!user) {
+      throw new Error('Usuário não encontrado.');
     }
+
+    await this.userRepository.deleteUserById(_id);
+    return user;
   }
 
   async listUsers(filter: Partial<IUser> = {}): Promise<IUser[]> {
-    try {
-      return await this.userRepository.listUsers(filter);
-    } catch (error) {
-      throw new Error(`Error listing users: ${(error as Error).message}`);
-    }
+    return await this.userRepository.listUsers(filter);
   }
 }

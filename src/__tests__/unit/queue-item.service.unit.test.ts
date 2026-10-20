@@ -18,6 +18,7 @@ import {
 import { QueueNotificationService } from '../../domain/notification/service/queue-notification.service';
 import { NotificationService } from '../../domain/notification/service/notification.service';
 import { ENotificationType } from '../../domain/notification/interfaces/notification.interface';
+import { QueueOrderingService } from '../../domain/queue-item/service/queue-ordering.service';
 
 function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
   const items = initialItems.map((item) => ({ ...item }));
@@ -60,7 +61,10 @@ function createFakeQueueItemRepository(initialItems: IQueueItem[]) {
             item.status === EQueueItemStatus.WAITING &&
             item.position != null,
         )
-        .sort((left, right) => (left.position as number) - (right.position as number));
+        .sort(
+          (left, right) =>
+            (left.position as number) - (right.position as number),
+        );
       return waiting[0] ? { ...waiting[0] } : null;
     }),
     getLastQueuePosition: jest.fn(
@@ -438,7 +442,7 @@ describe('QueueItemService checkInQueueItem', () => {
     );
 
     await expect(service.checkInQueueItem('qi-1')).rejects.toThrow(
-      'Somente pacientes aguardando podem fazer check-in',
+      'Somente pacientes aguardando podem fazer check-in.',
     );
   });
 
@@ -448,7 +452,7 @@ describe('QueueItemService checkInQueueItem', () => {
     );
 
     await expect(service.checkInQueueItem('qi-1')).rejects.toThrow(
-      'Check-in já realizado para este paciente',
+      'Check-in já realizado para este paciente.',
     );
   });
 });
@@ -693,6 +697,91 @@ describe('QueueItemService markMissedCheckInsAsAbsent', () => {
     expect(queueItemRepository.updateQueueItemById).toHaveBeenCalledWith(
       'qi-1',
       expect.objectContaining({ status: EQueueItemStatus.ABSENT }),
+    );
+  });
+});
+
+describe('QueueItemService markQueueItemAsAbsent', () => {
+  function buildService(missedCalls: number) {
+    const queueItemRepository = createFakeQueueItemRepository([
+      {
+        _id: 'qi-1',
+        queueId: 'queue-1',
+        patientId: 'patient-1',
+        code: 'A1',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.IN_SERVICE,
+        missedCalls,
+        scheduledDateTime: new Date(),
+        isWalkIn: false,
+      },
+    ]);
+    const queueRepository = {
+      getQueueById: jest
+        .fn()
+        .mockResolvedValue({ _id: 'queue-1', healthUnitId: 'unit-1' }),
+    } as unknown as IQueueRepository;
+    const appointmentRepository = {
+      listAppointments: jest.fn().mockResolvedValue([
+        {
+          _id: 'appointment-1',
+          queueItemId: 'qi-1',
+          status: EAppointmentStatus.SCHEDULED,
+        },
+      ]),
+      updateAppointmentById: jest.fn(),
+    } as unknown as IAppointmentRepository;
+    const notificationService = {
+      createNotification: jest.fn(),
+    } as unknown as NotificationService;
+
+    const service = new QueueItemService({
+      queueItemRepository,
+      queueRepository,
+      appointmentRepository,
+      notificationService,
+      queueOrderingService: {
+        recalculatePositions: jest.fn(),
+      } as unknown as QueueOrderingService,
+    });
+
+    return { service, appointmentRepository, notificationService };
+  }
+
+  it('cancels the appointment and tells the patient why after the second missed call, so they can book again', async () => {
+    const { service, appointmentRepository, notificationService } =
+      buildService(1);
+
+    const updated = await service.markQueueItemAsAbsent('qi-1');
+
+    expect(updated.status).toBe(EQueueItemStatus.ABSENT);
+    expect(appointmentRepository.updateAppointmentById).toHaveBeenCalledWith(
+      'appointment-1',
+      expect.objectContaining({ status: EAppointmentStatus.CANCELED }),
+    );
+    expect(notificationService.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patientId: 'patient-1',
+        type: ENotificationType.APPOINTMENT_CANCELED_FOR_ABSENCE,
+        appointmentId: 'appointment-1',
+        data: expect.objectContaining({ healthUnitId: 'unit-1' }),
+      }),
+    );
+  });
+
+  it('keeps the appointment after the first missed call, since the patient goes back to the end of the line', async () => {
+    const { service, appointmentRepository, notificationService } =
+      buildService(0);
+
+    const updated = await service.markQueueItemAsAbsent('qi-1');
+
+    expect(updated.status).toBe(EQueueItemStatus.WAITING);
+    expect(appointmentRepository.updateAppointmentById).not.toHaveBeenCalled();
+    expect(notificationService.createNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: ENotificationType.APPOINTMENT_CANCELED_FOR_ABSENCE,
+      }),
     );
   });
 });

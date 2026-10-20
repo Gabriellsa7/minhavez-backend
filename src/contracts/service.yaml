@@ -6559,6 +6559,7 @@ components:
             - CHECK_IN_REMINDER
             - APPOINTMENT_AUTO_CANCELED
             - QUEUE_WINDOW_OPENED
+            - APPOINTMENT_CANCELED_FOR_ABSENCE
         message:
           type: string
           description: The content of the notification
@@ -6626,6 +6627,7 @@ components:
             - CHECK_IN_REMINDER
             - APPOINTMENT_AUTO_CANCELED
             - QUEUE_WINDOW_OPENED
+            - APPOINTMENT_CANCELED_FOR_ABSENCE
         message:
           type: string
           description: The content of the notification

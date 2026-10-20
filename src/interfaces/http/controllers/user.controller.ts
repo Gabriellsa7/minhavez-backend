@@ -20,11 +20,7 @@ export class UserController implements IController {
     this.router.get('/users/:id', this.getUserById);
     this.router.post('/users', this.createUser);
     this.router.put('/users/:id', authMiddleware, this.updateUser);
-    this.router.post(
-      '/users/:id/image',
-      authMiddleware,
-      this.uploadUserImage,
-    );
+    this.router.post('/users/:id/image', authMiddleware, this.uploadUserImage);
     this.router.delete('/users/:id', authMiddleware, this.deleteUser);
   }
 
@@ -53,7 +49,7 @@ export class UserController implements IController {
     try {
       const user = await this.userService.getUserById(id);
       if (!user) {
-        this.notFound(res, 'User not found');
+        this.notFound(res, 'Usuário não encontrado.');
         return;
       }
       res.status(200).json(user);
@@ -91,7 +87,7 @@ export class UserController implements IController {
     try {
       const updatedUser = await this.userService.updateUserById(id, updateData);
       if (!updatedUser) {
-        this.notFound(res, 'User not found');
+        this.notFound(res, 'Usuário não encontrado.');
         return;
       }
       res.status(200).json(updatedUser);
@@ -121,7 +117,7 @@ export class UserController implements IController {
       });
 
       if (!updatedUser) {
-        this.notFound(res, 'User not found');
+        this.notFound(res, 'Usuário não encontrado.');
         return;
       }
 
@@ -139,10 +135,10 @@ export class UserController implements IController {
     try {
       const deletedUser = await this.userService.deleteUserById(id);
       if (!deletedUser) {
-        this.notFound(res, 'User not found');
+        this.notFound(res, 'Usuário não encontrado.');
         return;
       }
-      res.status(200).json({ message: 'User deleted successfully' });
+      res.status(200).json({ message: 'Usuário excluído com sucesso.' });
     } catch (error) {
       this.serverError(res, error);
     }

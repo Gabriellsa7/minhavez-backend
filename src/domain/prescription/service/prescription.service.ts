@@ -68,7 +68,7 @@ export class PrescriptionService implements IPrescriptionService {
       : requester.healthUnitId;
 
     if (!professionalId || !healthUnitId) {
-      throw new AppError(400, 'professionalId and healthUnitId are required');
+      throw new AppError(400, 'Informe o profissional e a unidade de saúde.');
     }
 
     return { professionalId, healthUnitId };
@@ -79,7 +79,7 @@ export class PrescriptionService implements IPrescriptionService {
     healthUnitId: string,
   ): Promise<IPrescriptionExam[]> {
     if (!exams || exams.length === 0) {
-      throw new AppError(400, 'At least one exam is required');
+      throw new AppError(400, 'Informe pelo menos um exame.');
     }
 
     const resolved: IPrescriptionExam[] = [];
@@ -107,7 +107,7 @@ export class PrescriptionService implements IPrescriptionService {
     requester: IPrescriptionRequester,
   ): Promise<IPrescriptionWithContext> {
     if (!params.patientId) {
-      throw new AppError(400, 'patientId is required');
+      throw new AppError(400, 'Informe o paciente.');
     }
 
     const { professionalId, healthUnitId } =
@@ -132,7 +132,7 @@ export class PrescriptionService implements IPrescriptionService {
     const prescription = await this.prescriptionRepository.findById(id);
 
     if (!prescription) {
-      throw new AppError(404, 'Prescription not found');
+      throw new AppError(404, 'Prescrição não encontrada.');
     }
 
     return this.enrich(prescription);
@@ -146,7 +146,10 @@ export class PrescriptionService implements IPrescriptionService {
       const patient = await this.patientRepository.getPatientById(patientId);
 
       if (!patient || patient.userId !== requester.sub) {
-        throw new AppError(403, 'Forbidden');
+        throw new AppError(
+          403,
+          'Você não tem permissão para realizar esta ação.',
+        );
       }
     }
 
@@ -163,7 +166,10 @@ export class PrescriptionService implements IPrescriptionService {
     requester: IPrescriptionRequester,
   ): Promise<IPrescriptionWithContext[]> {
     if (!requester.isAdmin && requester.sub !== professionalId) {
-      throw new AppError(403, 'Forbidden');
+      throw new AppError(
+        403,
+        'Você não tem permissão para realizar esta ação.',
+      );
     }
 
     const prescriptions =

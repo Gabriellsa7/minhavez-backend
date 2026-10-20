@@ -67,7 +67,9 @@ export class HealthProfessionalController implements IController {
           search,
           pagination,
         );
-      res.status(200).json(buildPaginatedResponse(items, totalItems, pagination));
+      res
+        .status(200)
+        .json(buildPaginatedResponse(items, totalItems, pagination));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -118,7 +120,9 @@ export class HealthProfessionalController implements IController {
         });
 
       if (!updatedHealthProfessional) {
-        res.status(404).json({ message: 'Health professional not found' });
+        res
+          .status(404)
+          .json({ message: 'Profissional de saúde não encontrado.' });
         return;
       }
 
@@ -136,9 +140,7 @@ export class HealthProfessionalController implements IController {
       await this.healthProfessionalService.deleteHealthProfessionalById(
         req.params.id,
       );
-      res
-        .status(200)
-        .json({ message: 'Health professional deleted successfully' });
+      res.status(200).json({ message: 'Profissional excluído com sucesso.' });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -153,7 +155,9 @@ export class HealthProfessionalController implements IController {
       const healthProfessional =
         await this.healthProfessionalService.getHealthProfessionalById(id);
       if (!healthProfessional) {
-        res.status(404).json({ message: 'Health professional not found' });
+        res
+          .status(404)
+          .json({ message: 'Profissional de saúde não encontrado.' });
         return;
       }
       res.status(200).json(healthProfessional);
@@ -190,7 +194,9 @@ export class HealthProfessionalController implements IController {
           appointmentId,
         );
       if (!healthProfessional) {
-        res.status(404).json({ message: 'Health professional not found' });
+        res
+          .status(404)
+          .json({ message: 'Profissional de saúde não encontrado.' });
         return;
       }
       res.status(200).json(healthProfessional);

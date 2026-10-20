@@ -140,7 +140,7 @@ export class AppointmentController implements IController {
     try {
       const appointment = await this.appointmentService.getAppointmentById(id);
       if (!appointment) {
-        res.status(404).json({ message: 'Appointment not found' });
+        res.status(404).json({ message: 'Consulta não encontrada.' });
         return;
       }
       res.status(200).json(appointment);
@@ -217,12 +217,10 @@ export class AppointmentController implements IController {
     try {
       const deleted =
         await this.appointmentService.clearAppointmentHistoryByPatientId(id);
-      res
-        .status(200)
-        .json({
-          message: 'Histórico limpo com sucesso',
-          count: deleted.length,
-        });
+      res.status(200).json({
+        message: 'Histórico limpo com sucesso',
+        count: deleted.length,
+      });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -296,7 +294,7 @@ export class AppointmentController implements IController {
       const updatedAppointment =
         await this.appointmentService.updateAppointmentById(id, updateData);
       if (!updatedAppointment) {
-        res.status(404).json({ message: 'Appointment not found' });
+        res.status(404).json({ message: 'Consulta não encontrada.' });
         return;
       }
       res.status(200).json(updatedAppointment);
@@ -329,7 +327,7 @@ export class AppointmentController implements IController {
       const deletedAppointment =
         await this.appointmentService.deleteAppointmentById(id);
       if (!deletedAppointment) {
-        res.status(404).json({ message: 'Appointment not found' });
+        res.status(404).json({ message: 'Consulta não encontrada.' });
         return;
       }
       res.status(200).json(deletedAppointment);

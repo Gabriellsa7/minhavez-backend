@@ -55,7 +55,7 @@ export function errorHandler(
 
   return res.status(500).json({
     status: 500,
-    message: 'Internal Server Error',
+    message: 'Erro interno do servidor. Tente novamente em instantes.',
     timestamp: new Date().toISOString(),
     path: req.originalUrl,
   });

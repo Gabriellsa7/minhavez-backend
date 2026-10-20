@@ -12,6 +12,11 @@ declare module 'express' {
   }
 }
 
+const UNAUTHENTICATED_MESSAGE = 'Faça login para continuar.';
+const INVALID_SESSION_MESSAGE = 'Sessão inválida. Faça login novamente.';
+const EXPIRED_SESSION_MESSAGE = 'Sua sessão expirou. Faça login novamente.';
+const FORBIDDEN_MESSAGE = 'Você não tem permissão para realizar esta ação.';
+
 const sendError = (
   req: Request,
   res: Response,
@@ -34,7 +39,7 @@ export const authMiddleware = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    sendError(req, res, 401, 'Authorization header missing');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -46,14 +51,14 @@ export const authMiddleware = (
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      sendError(req, res, 401, 'Token expired');
+      sendError(req, res, 401, EXPIRED_SESSION_MESSAGE);
       return;
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      sendError(req, res, 401, 'Invalid token');
+      sendError(req, res, 401, INVALID_SESSION_MESSAGE);
       return;
     }
-    sendError(req, res, 401, 'Token verification failed');
+    sendError(req, res, 401, INVALID_SESSION_MESSAGE);
     return;
   }
 };
@@ -62,17 +67,17 @@ export const authorize =
   (...roles: EUserRole[]) =>
   (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      sendError(req, res, 401, 'Unauthorized');
+      sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
       return;
     }
 
     if (req.user.principalType !== EPrincipalType.USER) {
-      sendError(req, res, 403, 'Forbidden');
+      sendError(req, res, 403, FORBIDDEN_MESSAGE);
       return;
     }
 
     if (!req.user.role || !roles.includes(req.user.role)) {
-      sendError(req, res, 403, 'Forbidden');
+      sendError(req, res, 403, FORBIDDEN_MESSAGE);
       return;
     }
 
@@ -85,7 +90,7 @@ export const authorizeAdminOrHealthProfessional = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -97,7 +102,7 @@ export const authorizeAdminOrHealthProfessional = (
     req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL;
 
   if (!isAdmin && !isHealthProfessional) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -110,7 +115,7 @@ export const authorizeAdminOrExamProfessional = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -120,10 +125,11 @@ export const authorizeAdminOrExamProfessional = (
 
   const isExamProfessional =
     req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
-    req.user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL;
+    req.user.healthProfessionalType ===
+      EHealthProfessionalType.EXAM_PROFESSIONAL;
 
   if (!isAdmin && !isExamProfessional) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -136,7 +142,7 @@ export const authorizeAdminOrGeneralHealthProfessional = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -149,7 +155,7 @@ export const authorizeAdminOrGeneralHealthProfessional = (
     req.user.healthProfessionalType === EHealthProfessionalType.GENERAL;
 
   if (!isAdmin && !isGeneralHealthProfessional) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -162,7 +168,7 @@ export const authorizeAdminOrExamProfessionalOrReceptionist = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -172,13 +178,13 @@ export const authorizeAdminOrExamProfessionalOrReceptionist = (
 
   const isExamProfessional =
     req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
-    req.user.healthProfessionalType === EHealthProfessionalType.EXAM_PROFESSIONAL;
+    req.user.healthProfessionalType ===
+      EHealthProfessionalType.EXAM_PROFESSIONAL;
 
-  const isReceptionist =
-    req.user.principalType === EPrincipalType.RECEPTIONIST;
+  const isReceptionist = req.user.principalType === EPrincipalType.RECEPTIONIST;
 
   if (!isAdmin && !isExamProfessional && !isReceptionist) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -191,7 +197,7 @@ export const authorizeUserOrReceptionist = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
@@ -199,11 +205,10 @@ export const authorizeUserOrReceptionist = (
     req.user.principalType === EPrincipalType.USER &&
     req.user.role === EUserRole.USER;
 
-  const isReceptionist =
-    req.user.principalType === EPrincipalType.RECEPTIONIST;
+  const isReceptionist = req.user.principalType === EPrincipalType.RECEPTIONIST;
 
   if (!isUser && !isReceptionist) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -214,12 +219,12 @@ export const authorizePrincipalTypes =
   (...principalTypes: EPrincipalType[]) =>
   (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      sendError(req, res, 401, 'Unauthorized');
+      sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
       return;
     }
 
     if (!principalTypes.includes(req.user.principalType)) {
-      sendError(req, res, 403, 'Forbidden');
+      sendError(req, res, 403, FORBIDDEN_MESSAGE);
       return;
     }
 
@@ -238,12 +243,12 @@ export const authorizeStaff = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    sendError(req, res, 401, 'Unauthorized');
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
     return;
   }
 
   if (!isStaff(req.user)) {
-    sendError(req, res, 403, 'Forbidden');
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
     return;
   }
 
@@ -257,7 +262,7 @@ export const authorizePatientOwner =
   ) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) {
-      sendError(req, res, 401, 'Unauthorized');
+      sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
       return;
     }
 
@@ -271,7 +276,7 @@ export const authorizePatientOwner =
 
       // Missing resources fall through so the handler answers with its own 404.
       if (patientUserId && patientUserId !== req.user.sub) {
-        sendError(req, res, 403, 'Forbidden');
+        sendError(req, res, 403, FORBIDDEN_MESSAGE);
         return;
       }
 
@@ -283,13 +288,11 @@ export const authorizePatientOwner =
 
 export const authorizeQueueOwner =
   (
-    resolveProfessionalId: (
-      req: Request,
-    ) => Promise<string | null | undefined>,
+    resolveProfessionalId: (req: Request) => Promise<string | null | undefined>,
   ) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) {
-      sendError(req, res, 401, 'Unauthorized');
+      sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
       return;
     }
 
@@ -307,7 +310,7 @@ export const authorizeQueueOwner =
 
       // Missing resources fall through so the handler answers with its own 404/400.
       if (professionalId && professionalId !== req.user.sub) {
-        sendError(req, res, 403, 'Forbidden');
+        sendError(req, res, 403, FORBIDDEN_MESSAGE);
         return;
       }
 
