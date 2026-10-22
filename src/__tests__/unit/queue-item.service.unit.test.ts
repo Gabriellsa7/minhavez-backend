@@ -784,4 +784,38 @@ describe('QueueItemService markQueueItemAsAbsent', () => {
       }),
     );
   });
+
+  it('calls the only patient again at position 1 after their first missed call', async () => {
+    const queueItemRepository = createFakeQueueItemRepository([
+      {
+        _id: 'qi-1',
+        queueId: 'queue-1',
+        patientId: 'patient-1',
+        code: 'A1',
+        position: 1,
+        priority: EQueueItemPriority.MEDIUM,
+        status: EQueueItemStatus.IN_SERVICE,
+        missedCalls: 0,
+        scheduledDateTime: new Date(),
+        isWalkIn: false,
+      },
+    ]);
+    const service = new QueueItemService({
+      queueItemRepository,
+      queueRepository: {} as unknown as IQueueRepository,
+      appointmentRepository: {} as unknown as IAppointmentRepository,
+      notificationService: {
+        createNotification: jest.fn(),
+      } as unknown as NotificationService,
+    });
+
+    await service.markQueueItemAsAbsent('qi-1');
+
+    const item = await queueItemRepository.getQueueItemById('qi-1');
+    expect(item).toMatchObject({
+      status: EQueueItemStatus.IN_SERVICE,
+      position: 1,
+      missedCalls: 1,
+    });
+  });
 });

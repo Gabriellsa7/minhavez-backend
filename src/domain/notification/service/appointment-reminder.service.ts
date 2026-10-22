@@ -8,7 +8,10 @@ import {
 } from '../../../shared/utils/brazilTime';
 
 export interface IParamsAppointmentReminderService {
-  notificationService: Pick<INotificationService, 'createNotification'>;
+  notificationService: Pick<
+    INotificationService,
+    'createNotification' | 'cancelPendingNotificationsForAppointment'
+  >;
 }
 
 interface IReminderWindow {
@@ -23,15 +26,16 @@ const REMINDER_WINDOWS: IReminderWindow[] = [
 ];
 
 const REMINDER_HOUR = 9;
+// The same-day reminder must arrive before an early appointment, but not at night.
+const SAME_DAY_LEAD_MS = 2 * 60 * 60 * 1000;
+const EARLIEST_REMINDER_HOUR = 6;
+const ONE_HOUR_MS = 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 type EDayComparison = 'past' | 'today' | 'future';
 
 export class AppointmentReminderService {
-  private readonly notificationService: Pick<
-    INotificationService,
-    'createNotification'
-  >;
+  private readonly notificationService: IParamsAppointmentReminderService['notificationService'];
 
   constructor(params: IParamsAppointmentReminderService) {
     this.notificationService = params.notificationService;
@@ -59,7 +63,7 @@ export class AppointmentReminderService {
       const scheduledAt =
         dayComparison === 'today'
           ? new Date()
-          : new Date(targetDayStart.getTime() + REMINDER_HOUR * 60 * 60 * 1000);
+          : this.reminderTime(targetDayStart, daysBefore, appointmentDateTime);
 
       await this.notificationService.createNotification({
         patientId: appointment.patientId,
@@ -71,6 +75,32 @@ export class AppointmentReminderService {
         scheduledAt,
       });
     }
+  }
+
+  async cancelReminders(appointmentId: string): Promise<void> {
+    await this.notificationService.cancelPendingNotificationsForAppointment(
+      appointmentId,
+    );
+  }
+
+  private reminderTime(
+    targetDayStart: Date,
+    daysBefore: number,
+    appointmentDateTime: Date,
+  ): Date {
+    const atReminderHour =
+      targetDayStart.getTime() + REMINDER_HOUR * ONE_HOUR_MS;
+    if (daysBefore > 0) return new Date(atReminderHour);
+
+    return new Date(
+      Math.max(
+        Math.min(
+          atReminderHour,
+          appointmentDateTime.getTime() - SAME_DAY_LEAD_MS,
+        ),
+        targetDayStart.getTime() + EARLIEST_REMINDER_HOUR * ONE_HOUR_MS,
+      ),
+    );
   }
 
   private compareDay(target: Date, reference: Date): EDayComparison {

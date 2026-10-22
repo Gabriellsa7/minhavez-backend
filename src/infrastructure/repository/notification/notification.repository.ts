@@ -1,5 +1,8 @@
 import { HydratedDocument } from 'mongoose';
-import { INotification } from '../../../domain/notification/interfaces/notification.interface';
+import {
+  ENotificationStatus,
+  INotification,
+} from '../../../domain/notification/interfaces/notification.interface';
 import { INotificationSchema } from '../../db/mongo/schema/notification.schema';
 import {
   IParamsCreateNotification,
@@ -111,6 +114,21 @@ export class NotificationRepository implements INotificationRepository {
         `Error listing notifications: ${(error as Error).message}`,
       );
     }
+  }
+
+  async cancelPendingNotificationsByAppointmentId(
+    appointmentId: string,
+  ): Promise<number> {
+    const result = await MNotification.updateMany(
+      {
+        appointmentId,
+        status: {
+          $in: [ENotificationStatus.PENDING, ENotificationStatus.SCHEDULED],
+        },
+      },
+      { status: ENotificationStatus.CANCELLED },
+    );
+    return result.modifiedCount;
   }
 
   async markNotificationRead(id: string): Promise<INotification | null> {

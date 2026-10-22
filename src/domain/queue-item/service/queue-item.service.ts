@@ -224,6 +224,9 @@ export class QueueItemService implements IQueueItemService {
         },
       );
 
+      // Renumber before calling the next patient: when the absent patient is the
+      // only one waiting, they are called again and must not keep "last + 1".
+      await this.queueOrderingService.recalculatePositions(queueItem.queueId);
       await this.advanceQueue(queueItem.queueId);
       await this.queueOrderingService.recalculatePositions(queueItem.queueId);
 

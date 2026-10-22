@@ -1,5 +1,7 @@
-import { AppointmentReminderService } from '../../../domain/notification/service/appointment-reminder.service';
-import { INotificationService } from '../../../domain/notification/interfaces/notification.service.interface';
+import {
+  AppointmentReminderService,
+  IParamsAppointmentReminderService,
+} from '../../../domain/notification/service/appointment-reminder.service';
 import { IAppointment } from '../../../domain/appointment/interfaces/appointment.interface';
 
 function addDays(date: Date, days: number): Date {
@@ -22,10 +24,9 @@ describe('AppointmentReminderService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new AppointmentReminderService({
-      notificationService: { createNotification } as unknown as Pick<
-        INotificationService,
-        'createNotification'
-      >,
+      notificationService: {
+        createNotification,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
     });
 
     const appointment = createAppointment(addDays(new Date(), 5));
@@ -52,10 +53,9 @@ describe('AppointmentReminderService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new AppointmentReminderService({
-      notificationService: { createNotification } as unknown as Pick<
-        INotificationService,
-        'createNotification'
-      >,
+      notificationService: {
+        createNotification,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
     });
 
     const appointment = createAppointment(addDays(new Date(), 1));
@@ -82,10 +82,9 @@ describe('AppointmentReminderService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new AppointmentReminderService({
-      notificationService: { createNotification } as unknown as Pick<
-        INotificationService,
-        'createNotification'
-      >,
+      notificationService: {
+        createNotification,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
     });
 
     const appointment = createAppointment(new Date());
@@ -108,10 +107,9 @@ describe('AppointmentReminderService', () => {
       .fn()
       .mockResolvedValue({ _id: 'notification-1' });
     const service = new AppointmentReminderService({
-      notificationService: { createNotification } as unknown as Pick<
-        INotificationService,
-        'createNotification'
-      >,
+      notificationService: {
+        createNotification,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
     });
 
     const appointment = createAppointment(new Date('2026-08-28T14:00:00.000Z'));
@@ -131,5 +129,45 @@ describe('AppointmentReminderService', () => {
     expect(hoje!.scheduledAt.toISOString()).toBe('2026-08-28T12:00:00.000Z');
 
     jest.useRealTimers();
+  });
+
+  it('sends the "hoje" reminder before an early appointment instead of at 9h', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-26T13:00:00.000Z'));
+
+    const createNotification = jest
+      .fn()
+      .mockResolvedValue({ _id: 'notification-1' });
+    const service = new AppointmentReminderService({
+      notificationService: {
+        createNotification,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
+    });
+
+    // 08:00 in Brazil: the reminder goes out at 06:00, not after the appointment.
+    await service.createReminders(
+      createAppointment(new Date('2026-08-30T11:00:00.000Z')),
+    );
+
+    const hoje = createNotification.mock.calls
+      .map((call) => call[0])
+      .find((call) => call.message.includes('hoje'));
+    expect(hoje.scheduledAt.toISOString()).toBe('2026-08-30T09:00:00.000Z');
+
+    jest.useRealTimers();
+  });
+
+  it('cancels the pending reminders of an appointment', async () => {
+    const cancelPendingNotificationsForAppointment = jest.fn();
+    const service = new AppointmentReminderService({
+      notificationService: {
+        cancelPendingNotificationsForAppointment,
+      } as unknown as IParamsAppointmentReminderService['notificationService'],
+    });
+
+    await service.cancelReminders('appointment-1');
+
+    expect(cancelPendingNotificationsForAppointment).toHaveBeenCalledWith(
+      'appointment-1',
+    );
   });
 });

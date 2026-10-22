@@ -103,6 +103,13 @@ export class NotificationService implements INotificationService {
       await this.notificationRepository.getNotificationById(id);
     if (!notification) return null;
 
+    if (notification.status === ENotificationStatus.CANCELLED) {
+      Logger.info('Notification cancelled, skipping send', {
+        notificationId: id,
+      });
+      return notification;
+    }
+
     if (
       notification.status === ENotificationStatus.SENT ||
       notification.status === ENotificationStatus.DELIVERED
@@ -305,6 +312,34 @@ export class NotificationService implements INotificationService {
         `Error listing notifications: ${(error as Error).message}`,
       );
     }
+  }
+
+  // What the patient sees in the app: scheduled reminders only show up once they
+  // are due, and cancelled ones (e.g. of a cancelled appointment) never do.
+  async listPatientInbox(
+    patientId: string,
+    options: { onlyUnread?: boolean } = {},
+  ): Promise<INotification[]> {
+    const notifications = await this.listNotifications({
+      patientId,
+      ...(options.onlyUnread ? { read: false } : {}),
+    });
+    const now = Date.now();
+
+    return notifications.filter(
+      (notification) =>
+        notification.status !== ENotificationStatus.CANCELLED &&
+        (!notification.scheduledAt ||
+          new Date(notification.scheduledAt).getTime() <= now),
+    );
+  }
+
+  async cancelPendingNotificationsForAppointment(
+    appointmentId: string,
+  ): Promise<void> {
+    await this.notificationRepository.cancelPendingNotificationsByAppointmentId(
+      appointmentId,
+    );
   }
 
   async updateNotificationById(

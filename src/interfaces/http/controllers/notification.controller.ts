@@ -79,9 +79,8 @@ export class NotificationController implements IController {
         res.status(200).json([]);
         return;
       }
-      const notifications = await this.notificationService.listNotifications({
-        patientId,
-      });
+      const notifications =
+        await this.notificationService.listPatientInbox(patientId);
       res.status(200).json(notifications);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -98,10 +97,10 @@ export class NotificationController implements IController {
         res.status(200).json([]);
         return;
       }
-      const notifications = await this.notificationService.listNotifications({
+      const notifications = await this.notificationService.listPatientInbox(
         patientId,
-        read: false,
-      });
+        { onlyUnread: true },
+      );
       res.status(200).json(notifications);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -184,9 +183,8 @@ export class NotificationController implements IController {
         res.status(200).json({ message: 'Notificações apagadas.' });
         return;
       }
-      const notifications = await this.notificationService.listNotifications({
-        patientId,
-      });
+      const notifications =
+        await this.notificationService.listPatientInbox(patientId);
       await Promise.all(
         notifications.map((notification) =>
           this.notificationService.deleteNotificationById(notification._id),
@@ -230,9 +228,8 @@ export class NotificationController implements IController {
         return;
       }
       const unreadNotifications =
-        await this.notificationService.listNotifications({
-          patientId,
-          read: false,
+        await this.notificationService.listPatientInbox(patientId, {
+          onlyUnread: true,
         });
       await Promise.all(
         unreadNotifications.map((notification) =>

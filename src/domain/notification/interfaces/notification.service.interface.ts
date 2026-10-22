@@ -19,4 +19,11 @@ export interface INotificationService {
   ): Promise<INotification | null>;
   deleteNotificationById(id: string): Promise<INotification | null>;
   markNotificationRead(id: string): Promise<INotification | null>;
+  listPatientInbox(
+    patientId: string,
+    options?: { onlyUnread?: boolean },
+  ): Promise<INotification[]>;
+  cancelPendingNotificationsForAppointment(
+    appointmentId: string,
+  ): Promise<void>;
 }

@@ -31,4 +31,7 @@ export interface INotificationRepository {
   getNotificationById(id: string): Promise<INotification | null>;
   listNotifications(filter: Partial<INotification>): Promise<INotification[]>;
   markNotificationRead(id: string): Promise<INotification | null>;
+  cancelPendingNotificationsByAppointmentId(
+    appointmentId: string,
+  ): Promise<number>;
 }

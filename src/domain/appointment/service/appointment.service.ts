@@ -155,7 +155,9 @@ export class AppointmentService implements IAppointmentService {
       );
 
       if (hasAppointmentOnSameDay) {
-        throw new Error('Você já tem uma consulta ativa neste dia. Só é possível marcar uma consulta por dia.');
+        throw new Error(
+          'Você já tem uma consulta ativa neste dia. Só é possível marcar uma consulta por dia.',
+        );
       }
 
       const existingAppointmentAtSameTime =
@@ -440,7 +442,14 @@ export class AppointmentService implements IAppointmentService {
         updated &&
         (params.status === EAppointmentStatus.CANCELED || params.dateTime)
       ) {
-        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+        await this.cancelScheduledNotifications(id);
+
+        if (
+          params.dateTime &&
+          updated.status === EAppointmentStatus.SCHEDULED
+        ) {
+          await this.appointmentReminderService?.createReminders(updated);
+        }
       }
       if (!updated) {
         throw new Error('Consulta não encontrada.');
@@ -498,6 +507,15 @@ export class AppointmentService implements IAppointmentService {
     return updated!;
   }
 
+  private async cancelScheduledNotifications(
+    appointmentId: string,
+  ): Promise<void> {
+    await this.notificationJobScheduler?.cancelJobsForAppointment(
+      appointmentId,
+    );
+    await this.appointmentReminderService?.cancelReminders(appointmentId);
+  }
+
   private canCancelAppointment(
     dateTime: Date,
     now: Date = new Date(),
@@ -546,7 +564,7 @@ export class AppointmentService implements IAppointmentService {
         await this.appointmentRepository.deleteAppointmentById(id);
 
       if (deleted) {
-        await this.notificationJobScheduler?.cancelJobsForAppointment(id);
+        await this.cancelScheduledNotifications(id);
       }
       if (!deleted) {
         throw new Error('Consulta não encontrada.');
@@ -570,9 +588,7 @@ export class AppointmentService implements IAppointmentService {
 
       await Promise.all(
         deleted.map((appointment) =>
-          this.notificationJobScheduler?.cancelJobsForAppointment(
-            appointment._id,
-          ),
+          this.cancelScheduledNotifications(appointment._id),
         ),
       );
 
