@@ -199,7 +199,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (160)
+## ✅ Completed (166)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -403,3 +403,12 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 164. Secure the queue/queue-item write routes: `createQueue`, `updateQueue`, `deleteQueue`, `openQueue`, `closeQueue`, `call`, `finish` and `absent` now require `authMiddleware` + `authorizeAdminOrHealthProfessional`, plus a new `authorizeQueueOwner` check so a health professional can only operate their own queue (403 otherwise; admins always pass). `service.yaml` documents `security: bearerAuth` and the 401/403 responses on all 8 operations.
 165. Authenticate and scope the WebSocket gateway: `notification.socket.ts` now verifies the JWT during the handshake (`?token=` or `Authorization` header), rejecting with 401 if missing/invalid and closing with code 4401 on expiry. `broadcastNotification` takes a `{ healthUnitId?, queueId?, patientIds? }` scope so an event only reaches the unit's receptionists/professionals, the unit's admin, or the affected patients — updated in all 6 call sites. Updated `queue-socket.service.ts` (manager) and `notification.service.ts` (app) to send the token and stop reconnecting on 4401.
 166. Prevent double-booking atomically: added a partial unique index on `(professionalId, dateTime)` covering only `SCHEDULED`/`IN_PROGRESS` appointments. A duplicate-key error now maps to `AppError(409)` on both create and reschedule (documented in `service.yaml`); when rejected, the service rolls back the queue item it had created and recalculates queue positions. Covered by `appointment-double-booking.int.test.ts` (10 concurrent bookings for the same slot, exactly 1 succeeds). Before deploying: check prod for existing duplicate `SCHEDULED`/`IN_PROGRESS` appointments for the same professional/time — the index silently fails to build if any exist (Mongoose only logs it).
+
+### 🧪 Manual Test Findings (TCC)
+
+167. Keep inputs above the keyboard on Android: with edge-to-edge (forced on Android 16) the window no longer resizes, so the login, signup, edit-profile and medical-info screens now use `behavior="padding"` on both platforms instead of only on iOS.
+168. Lift the floating tab bar above the Android navigation bar by adding the bottom safe-area inset to its offset, and pad the tab screens by the same inset through a new `useTabBarHeight` hook.
+169. Confirm with a toast that the account was created ("Conta criada com sucesso!") before redirecting to login.
+170. Make the "Complete seu cadastro" banner on the home screen tappable, opening the same patient registration form used when booking.
+171. Tell the patient when their attendance is finished — a "Atendimento concluído" toast and a success card on the queue screen — and open the rating by matching the appointment through the queue item, since the appointments list can still show it as scheduled at that moment.
+172. Cover the whole app with a "Sem conexão com a internet" screen while the device is offline (`expo-network`), which goes away by itself when the connection comes back.
