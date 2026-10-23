@@ -28,7 +28,16 @@ export class QueueController implements IController {
   initRoutes() {
     this.router.get('/queues', this.getQueue);
     this.router.get('/queues/:id', this.getQueueById);
-    this.router.get('/queues/patient/:patientId', this.getQueueByPatientId);
+    this.router.get(
+      '/queues/patient/:patientId',
+      authMiddleware,
+      authorizePatientOwner(
+        async (req) =>
+          (await this.patientService.getPatientById(req.params.patientId))
+            ?.userId,
+      ),
+      this.getQueueByPatientId,
+    );
     this.router.get(
       '/queues/patient/:patientId/details',
       authMiddleware,
@@ -45,10 +54,12 @@ export class QueueController implements IController {
     );
     this.router.get(
       '/queue/professional/:professionalId/management',
+      ...this.professionalOwnerGuards(),
       this.getQueueManagementByProfessionalId,
     );
     this.router.get(
       '/queue/professional/:professionalId/history',
+      ...this.professionalOwnerGuards(),
       this.getQueueHistoryByProfessionalId,
     );
     this.router.post(
@@ -86,6 +97,15 @@ export class QueueController implements IController {
       '/health-units/:id/queue-summary',
       this.getHealthUnitQueueSummary,
     );
+  }
+
+  // The professional's own queue screens; admins always pass.
+  private professionalOwnerGuards() {
+    return [
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(async (req) => req.params.professionalId),
+    ];
   }
 
   private queueWriteGuards() {

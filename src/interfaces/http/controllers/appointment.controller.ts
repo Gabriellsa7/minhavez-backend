@@ -13,6 +13,8 @@ import {
   authorize,
   authorizePatientOwner,
   authorizeStaff,
+  authorizeUnitStaff,
+  isStaff,
 } from '../middlewary/auth.middleware';
 import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 import { EUserRole } from '../../../domain/user/interfaces/user.interface';
@@ -61,6 +63,8 @@ export class AppointmentController implements IController {
     );
     this.router.get(
       '/health-units/:id/appointments',
+      authMiddleware,
+      authorizeUnitStaff(async (req) => req.params.id),
       this.getAppointmentsByHealthUnit,
     );
     this.router.get(
@@ -83,6 +87,7 @@ export class AppointmentController implements IController {
     );
     this.router.get(
       '/health-professionals/:id/appointments',
+      authMiddleware,
       this.getAppointmentsByProfessional,
     );
     this.router.post('/appointments', authMiddleware, this.createAppointment);
@@ -203,7 +208,25 @@ export class AppointmentController implements IController {
     try {
       const appointments =
         await this.appointmentService.listAppointmentsByProfessionalId(id);
-      res.status(200).json(appointments);
+      const user = req.user!;
+      // Staff of the professional's unit see everything. Patients only need the
+      // taken slots to book, so other patients' data is left out for them.
+      const isUnitStaff =
+        isStaff(user) &&
+        (!user.healthUnitId ||
+          appointments.every(
+            (appointment) =>
+              String(appointment.healthUnitId) === user.healthUnitId,
+          ));
+      res.status(200).json(
+        isUnitStaff
+          ? appointments
+          : appointments.map(({ professionalId, dateTime, status }) => ({
+              professionalId,
+              dateTime,
+              status,
+            })),
+      );
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

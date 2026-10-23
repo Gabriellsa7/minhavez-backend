@@ -5,6 +5,12 @@ import {
   buildPaginatedResponse,
   parsePagination,
 } from '../../../shared/utils/pagination';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import {
+  authMiddleware,
+  authorize,
+  authorizeAdminOrSelfProfessional,
+} from '../middlewary/auth.middleware';
 
 export class HealthProfessionalController implements IController {
   router: Router;
@@ -30,14 +36,28 @@ export class HealthProfessionalController implements IController {
       '/health-professionals/appointment/:appointmentId',
       this.getHealthProfessionalByAppointmentId,
     );
-    this.router.post('/health-professionals', this.createHealthProfessional);
-    this.router.put('/health-professionals/:id', this.updateHealthProfessional);
+    this.router.post(
+      '/health-professionals',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
+      this.createHealthProfessional,
+    );
+    this.router.put(
+      '/health-professionals/:id',
+      authMiddleware,
+      authorizeAdminOrSelfProfessional,
+      this.updateHealthProfessional,
+    );
     this.router.post(
       '/health-professionals/:id/image',
+      authMiddleware,
+      authorizeAdminOrSelfProfessional,
       this.uploadHealthProfessionalImage,
     );
     this.router.delete(
       '/health-professionals/:id',
+      authMiddleware,
+      authorize(EUserRole.ADMIN),
       this.deleteHealthProfessional,
     );
   }

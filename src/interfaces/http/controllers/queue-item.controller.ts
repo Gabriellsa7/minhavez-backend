@@ -13,6 +13,8 @@ import {
   authorizePatientOwner,
   authorizeQueueOwner,
   authorizeStaff,
+  authorizeUnitStaff,
+  isStaff,
 } from '../middlewary/auth.middleware';
 import { IPatientService } from '../../../domain/patient/interfaces/patient.service.interface';
 
@@ -20,12 +22,18 @@ export class QueueItemController implements IController {
   router: Router;
   private readonly queueItemService: IQueueItemService;
   private readonly queueService: Pick<IQueueService, 'getQueueById'>;
-  private readonly patientService: Pick<IPatientService, 'getPatientById'>;
+  private readonly patientService: Pick<
+    IPatientService,
+    'getPatientById' | 'getPatientByUserId'
+  >;
 
   constructor(
     queueItemService: IQueueItemService,
     queueService: Pick<IQueueService, 'getQueueById'>,
-    patientService: Pick<IPatientService, 'getPatientById'>,
+    patientService: Pick<
+      IPatientService,
+      'getPatientById' | 'getPatientByUserId'
+    >,
   ) {
     this.queueItemService = queueItemService;
     this.queueService = queueService;
@@ -41,7 +49,19 @@ export class QueueItemController implements IController {
       authorizeStaff,
       this.getQueueItems,
     );
-    this.router.get('/queue-items/:id', this.getQueueItemById);
+    this.router.get(
+      '/queue-items/:id',
+      authMiddleware,
+      authorizePatientOwner(async (req) => {
+        const queueItem = await this.queueItemService
+          .getQueueItemById(req.params.id)
+          .catch(() => null);
+        if (!queueItem) return null;
+        return (await this.patientService.getPatientById(queueItem.patientId))
+          ?.userId;
+      }),
+      this.getQueueItemById,
+    );
     this.router.get(
       '/queue-items/patient/:patientId',
       authMiddleware,
@@ -54,11 +74,44 @@ export class QueueItemController implements IController {
     );
     this.router.get(
       '/queue-items/professionals/:professionalId',
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(async (req) => req.params.professionalId),
       this.getQueueProfissionalById,
     );
-    this.router.get('/queue-items/queues/:queueId', this.getQueueItemByQueueId);
-    this.router.post('/queue-items', this.createQueueItem);
-    this.router.put('/queue-items/:id', this.updateQueueItem);
+    this.router.get(
+      '/queue-items/queues/:queueId',
+      authMiddleware,
+      authorizeUnitStaff(
+        async (req) =>
+          (
+            await this.queueService
+              .getQueueById(req.params.queueId)
+              .catch(() => null)
+          )?.healthUnitId,
+        this.isPatientInQueue,
+      ),
+      this.getQueueItemByQueueId,
+    );
+    this.router.post(
+      '/queue-items',
+      authMiddleware,
+      authorizeAdminOrHealthProfessional,
+      authorizeQueueOwner(
+        async (req) =>
+          (
+            await this.queueService
+              .getQueueById(req.body?.queueId)
+              .catch(() => null)
+          )?.professionalId,
+      ),
+      this.createQueueItem,
+    );
+    this.router.put(
+      '/queue-items/:id',
+      ...this.queueOperatorGuards(),
+      this.updateQueueItem,
+    );
     this.router.patch(
       '/queue-items/:id/finish',
       ...this.queueOperatorGuards(),
@@ -80,8 +133,24 @@ export class QueueItemController implements IController {
       authorizeAdminOrExamProfessionalOrReceptionist,
       this.checkInQueueItem,
     );
-    this.router.delete('/queue-items/:id', this.deleteQueueItem);
+    this.router.delete(
+      '/queue-items/:id',
+      ...this.queueOperatorGuards(),
+      this.deleteQueueItem,
+    );
   }
+
+  // The app's queue screen counts the other patients from this list, so a patient
+  // who is in the queue may read it.
+  private isPatientInQueue = async (req: Request): Promise<boolean> => {
+    const patient = await this.patientService.getPatientByUserId(req.user!.sub);
+    if (!patient) return false;
+    const queueItems = await this.queueItemService.listQueueItem({
+      queueId: req.params.queueId,
+      patientId: patient._id,
+    });
+    return queueItems.length > 0;
+  };
 
   private queueOperatorGuards() {
     return [
@@ -150,7 +219,18 @@ export class QueueItemController implements IController {
         res.status(404).json({ message: 'Paciente não encontrado na fila.' });
         return;
       }
-      res.status(200).json(queueItem);
+      // Patients get only what the queue screen shows about the others.
+      res.status(200).json(
+        isStaff(req.user!)
+          ? queueItem
+          : queueItem.map(({ _id, queueId, code, status, position }) => ({
+              _id,
+              queueId,
+              code,
+              status,
+              position,
+            })),
+      );
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

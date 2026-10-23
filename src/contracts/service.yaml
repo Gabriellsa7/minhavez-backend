@@ -93,6 +93,8 @@ paths:
 
   /users/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Users
       summary: Get a user by ID
@@ -106,6 +108,18 @@ paths:
             type: string
           description: The ID of the user
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: User found
           content:
@@ -1101,6 +1115,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
+      security:
+        - bearerAuth: []
       tags:
         - HealthProfessionals
       summary: Create a new health professional
@@ -1113,6 +1129,18 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateHealthProfessional'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '201':
           description: Health professional created successfully
           content:
@@ -1165,6 +1193,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
+      security:
+        - bearerAuth: []
       tags:
         - HealthProfessionals
       summary: Update a health professional
@@ -1184,6 +1214,18 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateHealthProfessional'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Health professional updated successfully
           content:
@@ -1209,6 +1251,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - HealthProfessionals
       summary: Delete a health professional
@@ -1222,6 +1266,18 @@ paths:
             type: string
             description: The ID of the health professional
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Health professional deleted successfully
           content:
@@ -1242,6 +1298,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /health-professionals/{id}/image:
     post:
+      security:
+        - bearerAuth: []
       tags:
         - HealthProfessionals
       summary: Upload a health professional profile image
@@ -1261,6 +1319,18 @@ paths:
             schema:
               $ref: '#/components/schemas/UploadHealthProfessionalImage'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Health professional profile image uploaded successfully
           content:
@@ -1566,6 +1636,8 @@ paths:
 
   /queue/professional/{professionalId}/management:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Get professional queue management
@@ -1579,6 +1651,18 @@ paths:
             type: string
           description: Professional identifier.
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue management retrieved successfully.
           content:
@@ -1601,6 +1685,8 @@ paths:
 
   /queue/professional/{professionalId}/history:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Queues
       summary: Get professional's attendance history
@@ -1628,6 +1714,18 @@ paths:
             format: date-time
           description: Filters attendances whose queue date is on or before this date.
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Attendance history retrieved successfully.
           content:
@@ -1759,6 +1857,8 @@ paths:
 
   /queues/patient/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueuesByPatient
       summary: Get queues by patient ID
@@ -1772,6 +1872,18 @@ paths:
             type: string
           description: The ID of the patient
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queues found
           content:
@@ -1867,6 +1979,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItems
       summary: Create a new queue item
@@ -1879,6 +1993,18 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateQueueItem'
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '201':
           description: Queue item created successfully
           content:
@@ -1899,6 +2025,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /queue-items/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItems
       summary: Get a queue item by ID
@@ -1912,6 +2040,18 @@ paths:
             type: string
           description: The ID of the queue item
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item found
           content:
@@ -1931,6 +2071,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItems
       summary: Update a queue item
@@ -1951,6 +2093,18 @@ paths:
               $ref: '#/components/schemas/UpdateQueueItem'
               description: The data to update the queue item with
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item updated successfully
           content:
@@ -1980,6 +2134,8 @@ paths:
                 $ref: '#/components/schemas/Error'
                 description: An error message describing what went wrong on the server
     delete:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItems
       summary: Delete a queue item
@@ -1993,6 +2149,18 @@ paths:
             type: string
             description: The ID of the queue item
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue item deleted successfully
           content:
@@ -2238,6 +2406,8 @@ paths:
 
   /queue-items/professionals/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItemsByProfessional
       summary: Get queue items by professional ID
@@ -2251,6 +2421,18 @@ paths:
             type: string
           description: The ID of the professional
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue items found
           content:
@@ -2268,6 +2450,8 @@ paths:
 
   /queue-items/queues/{id}:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - QueueItemsByQueueId
       summary: Get queue items by queues ID
@@ -2281,6 +2465,18 @@ paths:
             type: string
           description: The ID of the queues
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Queue items found
           content:
@@ -3270,6 +3466,8 @@ paths:
 
   /health-units/{id}/appointments:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: List appointments for a health unit
@@ -3282,6 +3480,18 @@ paths:
             type: string
           description: Health unit ID
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointments belonging to the unit
           content:
@@ -3419,6 +3629,8 @@ paths:
 
   /health-professionals/{id}/appointments:
     get:
+      security:
+        - bearerAuth: []
       tags:
         - Appointments
       summary: List appointments for a health professional
@@ -3431,6 +3643,18 @@ paths:
             type: string
           description: Health professional ID
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Appointments belonging to the professional
           content:
@@ -3693,6 +3917,8 @@ paths:
           description: Bull Board HTML dashboard
   /debug/test-notification:
     post:
+      security:
+        - bearerAuth: []
       tags: [Infrastructure]
       summary: Queue a development-only test notification
       description: This route is not registered when NODE_ENV is production.
@@ -3707,6 +3933,18 @@ paths:
                 patientId:
                   type: string
       responses:
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '201':
           description: Notification and job created
           content:

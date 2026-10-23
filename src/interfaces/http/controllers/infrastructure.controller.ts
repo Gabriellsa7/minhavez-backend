@@ -9,6 +9,8 @@ import { NotificationService } from '../../../domain/notification/service/notifi
 import { NotificationRepository } from '../../../infrastructure/repository/notification/notification.repository';
 import { NotificationJobScheduler } from '../../../infrastructure/queue/bullmq/notification-job-scheduler';
 import { ENotificationType } from '../../../domain/notification/interfaces/notification.interface';
+import { EUserRole } from '../../../domain/user/interfaces/user.interface';
+import { authMiddleware, authorize } from '../middlewary/auth.middleware';
 
 export class InfrastructureController implements IController {
   router: Router;
@@ -33,7 +35,12 @@ export class InfrastructureController implements IController {
     this.router.get('/health/queues', this.getQueueStatus);
 
     if (process.env.NODE_ENV !== 'production') {
-      this.router.post('/debug/test-notification', this.createTestNotification);
+      this.router.post(
+        '/debug/test-notification',
+        authMiddleware,
+        authorize(EUserRole.ADMIN),
+        this.createTestNotification,
+      );
     }
 
     const serverAdapter = new ExpressAdapter();
@@ -104,13 +111,14 @@ export class InfrastructureController implements IController {
   ): Promise<void> => {
     try {
       const patientId = req.body.patientId || new Types.ObjectId().toString();
-      const notification = await this.debugNotificationService.createNotification({
-        patientId,
-        title: 'Teste de infraestrutura',
-        message: 'Notificação de validação do ambiente de desenvolvimento.',
-        type: ENotificationType.REMINDER,
-        metadata: { source: 'debug/test-notification' },
-      });
+      const notification =
+        await this.debugNotificationService.createNotification({
+          patientId,
+          title: 'Teste de infraestrutura',
+          message: 'Notificação de validação do ambiente de desenvolvimento.',
+          type: ENotificationType.REMINDER,
+          metadata: { source: 'debug/test-notification' },
+        });
       const job = await this.notificationJobScheduler.enqueue({
         notificationId: notification._id,
         patientId,

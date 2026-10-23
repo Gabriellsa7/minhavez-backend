@@ -231,7 +231,10 @@ export const authorizePrincipalTypes =
     next();
   };
 
-const isStaff = (user: IAuthPayload): boolean =>
+const isAdminUser = (user: IAuthPayload): boolean =>
+  user.principalType === EPrincipalType.USER && user.role === EUserRole.ADMIN;
+
+export const isStaff = (user: IAuthPayload): boolean =>
   (user.principalType === EPrincipalType.USER &&
     user.role === EUserRole.ADMIN) ||
   user.principalType === EPrincipalType.HEALTH_PROFESSIONAL ||
@@ -319,3 +322,88 @@ export const authorizeQueueOwner =
       next(error);
     }
   };
+
+// Staff of the health unit that owns the resource; admins always pass. When
+// `isMember` is given, a non-staff caller it accepts (e.g. a patient who is in the
+// queue) is let through too.
+export const authorizeUnitStaff =
+  (
+    resolveHealthUnitId: (req: Request) => Promise<string | null | undefined>,
+    isMember?: (req: Request) => Promise<boolean>,
+  ) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
+      return;
+    }
+
+    try {
+      if (!isStaff(req.user)) {
+        if (isMember && (await isMember(req))) {
+          next();
+          return;
+        }
+        sendError(req, res, 403, FORBIDDEN_MESSAGE);
+        return;
+      }
+
+      if (isAdminUser(req.user)) {
+        next();
+        return;
+      }
+
+      const healthUnitId = await resolveHealthUnitId(req);
+
+      // Missing resources fall through so the handler answers with its own 404.
+      if (healthUnitId && healthUnitId !== req.user.healthUnitId) {
+        sendError(req, res, 403, FORBIDDEN_MESSAGE);
+        return;
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+// The account owner (the `:id` route param) or any staff member.
+export const authorizeSelfOrStaff = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
+    return;
+  }
+
+  if (req.user.sub !== req.params.id && !isStaff(req.user)) {
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
+    return;
+  }
+
+  next();
+};
+
+// Admins, or the health professional the `:id` route param refers to.
+export const authorizeAdminOrSelfProfessional = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    sendError(req, res, 401, UNAUTHENTICATED_MESSAGE);
+    return;
+  }
+
+  const isSelf =
+    req.user.principalType === EPrincipalType.HEALTH_PROFESSIONAL &&
+    req.user.sub === req.params.id;
+
+  if (!isAdminUser(req.user) && !isSelf) {
+    sendError(req, res, 403, FORBIDDEN_MESSAGE);
+    return;
+  }
+
+  next();
+};

@@ -1,7 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { IController } from './IController';
 import { UserService } from '../../../domain/user/service/user.service';
-import { authMiddleware } from '../middlewary/auth.middleware';
+import {
+  authMiddleware,
+  authorizeSelfOrStaff,
+} from '../middlewary/auth.middleware';
 import { EPrincipalType } from '../../../domain/auth/interfaces/auth.interface';
 
 export class UserController implements IController {
@@ -17,7 +20,12 @@ export class UserController implements IController {
   initRoutes() {
     this.router.get('/users/me', authMiddleware, this.getCurrentUser);
     this.router.get('/users', authMiddleware, this.getUsers);
-    this.router.get('/users/:id', this.getUserById);
+    this.router.get(
+      '/users/:id',
+      authMiddleware,
+      authorizeSelfOrStaff,
+      this.getUserById,
+    );
     this.router.post('/users', this.createUser);
     this.router.put('/users/:id', authMiddleware, this.updateUser);
     this.router.post('/users/:id/image', authMiddleware, this.uploadUserImage);
