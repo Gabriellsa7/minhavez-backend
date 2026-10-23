@@ -199,7 +199,7 @@ The implementation must prioritize **real-time behavior, reliability, cross-syst
 
 ---
 
-## ✅ Completed (166)
+## ✅ Completed (167)
 
 ### 🏗️ Project Foundations & Initial Setup
 
@@ -412,3 +412,4 @@ _Solo work from Feb–Aug 2026, before starting to pair on commits — never log
 170. Make the "Complete seu cadastro" banner on the home screen tappable, opening the same patient registration form used when booking.
 171. Tell the patient when their attendance is finished — a "Atendimento concluído" toast and a success card on the queue screen — and open the rating by matching the appointment through the queue item, since the appointments list can still show it as scheduled at that moment.
 172. Cover the whole app with a "Sem conexão com a internet" screen while the device is offline (`expo-network`), which goes away by itself when the connection comes back.
+173. Keep the queue screen's "Cancelar consulta" button above the Android navigation bar by applying the bottom safe-area inset to the screen.
