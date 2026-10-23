@@ -5,6 +5,9 @@ import {
 } from '../../../domain/notification/interfaces/notification.interface';
 import { INotificationJobScheduler } from '../../../domain/notification/interfaces/notification-job-scheduler.interface';
 import { INotificationRepository } from '../../../domain/notification/repository/notification.repository.interface';
+import { INotificationProvider } from '../../../domain/notification/interfaces/notification-provider.interface';
+import { IPatientRepository } from '../../../domain/patient/repository/patient.repository.interface';
+import { IUserRepository } from '../../../domain/user/repository/user.repository.interface';
 
 describe('NotificationService', () => {
   it('queues notifications for background processing', async () => {
@@ -101,5 +104,64 @@ describe('NotificationService', () => {
     await service.processNotification('notification-1');
 
     expect(updateNotificationById).not.toHaveBeenCalled();
+  });
+
+  it('marks a push delivered when one device got it and disables the unregistered ones', async () => {
+    const tickets = [
+      { token: 'old-1', status: 'ok', id: 'ticket-1' },
+      { token: 'old-2', status: 'ok', id: 'ticket-2' },
+      { token: 'current', status: 'ok', id: 'ticket-3' },
+    ];
+    const unregistered = (id: string) => ({
+      id,
+      token: '',
+      status: 'error',
+      details: { error: 'DeviceNotRegistered' },
+    });
+    const updateNotificationById = jest.fn().mockResolvedValue({});
+    const disableDeviceToken = jest.fn();
+
+    const service = new NotificationService({
+      notificationRepository: {
+        getNotificationById: jest.fn().mockResolvedValue({
+          _id: 'notification-1',
+          patientId: 'patient-1',
+          providerResponse: {
+            tickets,
+            ticketIds: tickets.map((ticket) => ticket.id),
+          },
+        }),
+        updateNotificationById,
+      } as unknown as INotificationRepository,
+      notificationProvider: {
+        getReceipts: jest
+          .fn()
+          .mockResolvedValue([
+            unregistered('ticket-1'),
+            unregistered('ticket-2'),
+            { id: 'ticket-3', token: '', status: 'ok' },
+          ]),
+      } as unknown as INotificationProvider,
+      patientRepository: {
+        getPatientById: jest
+          .fn()
+          .mockResolvedValue({ _id: 'patient-1', userId: 'user-1' }),
+      } as unknown as IPatientRepository,
+      userRepository: { disableDeviceToken } as unknown as IUserRepository,
+    });
+
+    await service.processReceipt('notification-1');
+
+    expect(disableDeviceToken).toHaveBeenCalledTimes(2);
+    expect(disableDeviceToken).toHaveBeenCalledWith('user-1', 'old-1');
+    expect(disableDeviceToken).toHaveBeenCalledWith('user-1', 'old-2');
+    expect(updateNotificationById).toHaveBeenCalledWith(
+      'notification-1',
+      expect.objectContaining({
+        notificationData: expect.objectContaining({
+          status: ENotificationStatus.DELIVERED,
+        }),
+      }),
+    );
   });
 });

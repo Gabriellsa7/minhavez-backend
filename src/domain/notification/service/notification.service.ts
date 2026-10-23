@@ -13,7 +13,11 @@ import {
   IParamsNotificationService,
   INotificationService,
 } from '../interfaces/notification.service.interface';
-import { INotificationProvider } from '../interfaces/notification-provider.interface';
+import {
+  INotificationProvider,
+  IPushReceipt,
+  IPushTicket,
+} from '../interfaces/notification-provider.interface';
 import { INotificationJobScheduler } from '../interfaces/notification-job-scheduler.interface';
 import { INotificationSocketGateway } from '../interfaces/notification-socket.interface';
 import { notificationConfig } from '../../../infrastructure/config/notification.constants';
@@ -265,7 +269,10 @@ export class NotificationService implements INotificationService {
     }
     const receipts = await this.notificationProvider.getReceipts(ticketIds);
     const errors = receipts.filter((receipt) => receipt.status !== 'ok');
-    if (errors.length > 0) {
+    await this.disableUnregisteredDevices(notification, errors);
+    // Old installs leave tokens behind, so a push is delivered as long as one of
+    // the patient's devices got it.
+    if (errors.length === receipts.length) {
       throw new Error(`Expo receipt error: ${JSON.stringify(errors)}`);
     }
     const updated = await this.notificationRepository.updateNotificationById(
@@ -285,6 +292,45 @@ export class NotificationService implements INotificationService {
       receipts,
     });
     return updated;
+  }
+
+  // Receipts come back without the token, so it is found through the ticket id.
+  private async disableUnregisteredDevices(
+    notification: INotification,
+    errors: IPushReceipt[],
+  ): Promise<void> {
+    const unregisteredIds = new Set(
+      errors
+        .filter((receipt) => receipt.details?.error === 'DeviceNotRegistered')
+        .map((receipt) => receipt.id),
+    );
+    if (
+      unregisteredIds.size === 0 ||
+      !this.patientRepository ||
+      !this.userRepository
+    ) {
+      return;
+    }
+
+    const tickets = Array.isArray(notification.providerResponse?.tickets)
+      ? (notification.providerResponse.tickets as IPushTicket[])
+      : [];
+    const tokens = tickets
+      .filter((ticket) => ticket.id && unregisteredIds.has(ticket.id))
+      .map((ticket) => ticket.token)
+      .filter((token): token is string => Boolean(token));
+    if (tokens.length === 0) return;
+
+    const patient = await this.patientRepository.getPatientById(
+      notification.patientId,
+    );
+    if (!patient) return;
+
+    await Promise.all(
+      tokens.map((token) =>
+        this.userRepository!.disableDeviceToken(patient.userId, token),
+      ),
+    );
   }
 
   async getNotificationById(id: string): Promise<INotification | null> {
